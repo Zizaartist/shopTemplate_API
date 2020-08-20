@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,11 @@ namespace ApiClick.Controllers
 {
     public class ImagesController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        private readonly IWebHostEnvironment _appEnvironment;
+        public ImagesController(IWebHostEnvironment appEnvironment)
+        {
+            _appEnvironment = appEnvironment;
+        }
 
         // POST: api/Users
         [Route("api/PostImage")]
@@ -26,11 +31,7 @@ namespace ApiClick.Controllers
                 {
                     await uploadedFile.CopyToAsync(fileStream);
                 }
-                FileModel file = new FileModel { Name = uploadedFile.FileName, Path = path };
-                _context.Files.Add(file);
             }
-            _context.SaveChanges();
-
             return RedirectToAction("Index");
         }
     }
