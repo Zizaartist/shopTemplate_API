@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "HyT2vAC6EnZhxYwekk71xQ+CPpcgYQKloucE/GSr1IC9IUVDR4dzXYuqQVKCGkntleCNbfevXU/ndPobJSfg8w==",
+  "dgSpecHash": "/wrQQ3NhcXXHNleT7hjyPPgBM5WScGNWqEDOO0gBNeM/bFpA9cjNloRtx9KSISJr5ney1tvU+SMSkMQ/Ds61xw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Ziza_art\\Desktop\\Click\\ApiClick\\ApiClick.csproj",
+  "projectFilePath": "C:\\Users\\Ziza_art\\source\\repos\\ClickAPI\\ApiClick.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Ziza_art\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\3.1.6\\microsoft.aspnetcore.authentication.jwtbearer.3.1.6.nupkg.sha512",
     "C:\\Users\\Ziza_art\\.nuget\\packages\\microsoft.aspnetcore.html.abstractions\\2.2.0\\microsoft.aspnetcore.html.abstractions.2.2.0.nupkg.sha512",
