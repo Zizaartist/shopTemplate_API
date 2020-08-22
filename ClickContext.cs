@@ -134,7 +134,7 @@ namespace ApiClick
 
                 entity.ToTable("CategoryCL", "dbo");
 
-                entity.Property(e => e.CategoryName).HasMaxLength(250);
+                entity.Property(e => e.CategoryName).HasMaxLength(250).IsRequired();
 
                 entity.Property(e => e.Code).HasMaxLength(50);
             });
@@ -246,11 +246,13 @@ namespace ApiClick
             modelBuilder.Entity<OrderStatusCl>(entity =>
             {
                 entity.HasKey(e => e.OrderStatusId);
+                entity.Property(p => p.OrderStatusName).IsRequired();
             });
 
             modelBuilder.Entity<UserRolesCl>(entity =>
             {
                 entity.HasKey(e => e.UserRolesId);
+                entity.Property(p => p.UserRoleName).IsRequired();
             });
 
             modelBuilder.Entity<MessageOpinionCl>(entity => 
