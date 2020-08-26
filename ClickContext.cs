@@ -26,7 +26,7 @@ namespace ApiClick
         public virtual DbSet<ProductCl> ProductCl { get; set; }
         public virtual DbSet<UserCl> UserCl { get; set; }
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
-        public virtual DbSet<ImageCl> ImageCls { get; set; }
+
         public virtual DbSet<CategoryCl> CategoryCl { get; set; }
         public virtual DbSet<OrderStatusCl> OrderStatusCl { get; set; }
         public virtual DbSet<UserRolesCl> UserRolesCls { get; set; }
@@ -134,7 +134,7 @@ namespace ApiClick
 
                 entity.ToTable("CategoryCL", "dbo");
 
-                entity.Property(e => e.CategoryName).HasMaxLength(250).IsRequired();
+                entity.Property(e => e.CategoryName).HasMaxLength(250);
 
                 entity.Property(e => e.Code).HasMaxLength(50);
             });
@@ -246,13 +246,11 @@ namespace ApiClick
             modelBuilder.Entity<OrderStatusCl>(entity =>
             {
                 entity.HasKey(e => e.OrderStatusId);
-                entity.Property(p => p.OrderStatusName).IsRequired();
             });
 
             modelBuilder.Entity<UserRolesCl>(entity =>
             {
                 entity.HasKey(e => e.UserRolesId);
-                entity.Property(p => p.UserRoleName).IsRequired();
             });
 
             modelBuilder.Entity<MessageOpinionCl>(entity => 
@@ -260,15 +258,15 @@ namespace ApiClick
                 entity.HasKey(k => k.MessageOpinionId);
                 //if message is deleted - like gets removed too
                 entity.HasOne(m => m.message).WithMany().HasForeignKey(k => k.MessageId).OnDelete(DeleteBehavior.Cascade);
-                //it doesn't apply to users though, for now
+                //it doesn't apply to users though
                 entity.HasOne(u => u.user).WithMany().HasForeignKey(u => u.UserId).OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<ImageCl>(entity => 
             {
                 entity.HasKey(k => k.ImageId);
-                entity.HasOne(u => u.user).WithMany().HasForeignKey(k => k.UserId);
-                entity.Property(s => s.path).IsRequired(true);
+                entity.HasOne(u => u.user).WithMany().HasForeignKey(k => k.UserId).IsRequired();
+                entity.Property(p => p.path).IsRequired();
             });
 
             OnModelCreatingPartial(modelBuilder);

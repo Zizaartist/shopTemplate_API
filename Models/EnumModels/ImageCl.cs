@@ -12,5 +12,7 @@ namespace ApiClick.Models.EnumModels
         public int UserId { get; set; }
         public string path { get; set; }
 
+        public virtual UserCl user { get; set; }
+
     }
 }
