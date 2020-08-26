@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ApiClick.Models
+namespace ApiClick.Models.EnumModels
 {
     public partial class ImageCl
     {
