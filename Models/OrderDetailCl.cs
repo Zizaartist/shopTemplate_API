@@ -15,6 +15,7 @@ namespace ApiClick.Models
         public int OrderId { get; set; }
         public int? ProductId { get; set; }
         public int price { get; set; }
+        public int count { get; set; }
 
         [ForeignKey("ProductId")]
         public ProductCl product { get; set; }
