@@ -8909,11 +8909,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Ziza_art\\Desktop\\Click\\ApiClick\\ApiClick.csproj",
+      "projectUniqueName": "C:\\Users\\Ziza_art\\source\\repos\\ClickAPI\\ApiClick.csproj",
       "projectName": "ApiClick",
-      "projectPath": "C:\\Users\\Ziza_art\\Desktop\\Click\\ApiClick\\ApiClick.csproj",
+      "projectPath": "C:\\Users\\Ziza_art\\source\\repos\\ClickAPI\\ApiClick.csproj",
       "packagesPath": "C:\\Users\\Ziza_art\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Ziza_art\\Desktop\\Click\\ApiClick\\obj\\",
+      "outputPath": "C:\\Users\\Ziza_art\\source\\repos\\ClickAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\",
