@@ -14,6 +14,7 @@ namespace ApiClick.Models
         public int OrderDetailId { get; set; }
         public int OrderId { get; set; }
         public int? ProductId { get; set; }
+        public int? BrandId { get; set; }
         public int price { get; set; }
         public int count { get; set; }
 
