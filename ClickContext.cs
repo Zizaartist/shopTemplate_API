@@ -26,6 +26,7 @@ namespace ApiClick
         public virtual DbSet<ProductCl> ProductCl { get; set; }
         public virtual DbSet<UserCl> UserCl { get; set; }
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
+        public virtual DbSet<ImageCl> ImageCl { get; set; }
 
         public virtual DbSet<CategoryCl> CategoryCl { get; set; }
         public virtual DbSet<OrderStatusCl> OrderStatusCl { get; set; }
