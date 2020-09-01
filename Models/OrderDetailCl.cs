@@ -14,11 +14,11 @@ namespace ApiClick.Models
         public int OrderDetailId { get; set; }
         public int OrderId { get; set; }
         public int? ProductId { get; set; }
-        public int price { get; set; }
+        public int price { get; set; } //to Price
 
         [ForeignKey("ProductId")]
-        public ProductCl product { get; set; }
+        public ProductCl product { get; set; } //to Product
         [ForeignKey("OrderId")]
-        public OrdersCl order { get; set; }
+        public OrdersCl order { get; set; } //to Order
     }
 }

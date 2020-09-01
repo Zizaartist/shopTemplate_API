@@ -11,13 +11,13 @@ namespace ApiClick.Models
         }
 
         public int BrandMenuId { get; set; }
-        public int CategoryId { get; set; }
+        public int CategoryId { get; set; } //?
         public string Description { get; set; }
-        public string UrlImg1 { get; set; }
+        public string UrlImg1 { get; set; } //to ImgId
         public DateTime CreatedDate { get; set; }
         public int BrandId { get; set; }
 
-        public virtual BrandCl Brand { get; set; }
-        public virtual ICollection<ProductCl> ProductCl { get; set; }
+        public virtual BrandCl Brand { get; set; } 
+        public virtual ICollection<ProductCl> ProductCl { get; set; } //to Products
     }
 }

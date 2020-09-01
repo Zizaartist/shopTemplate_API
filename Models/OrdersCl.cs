@@ -10,6 +10,6 @@ namespace ApiClick.Models
         public DateTime CreatedDate { get; set; }
         public int UserId { get; set; }
         public virtual UserCl User { get; set; }
-        public virtual ICollection<OrderDetailCl> orderDetails { get; set; }
+        public virtual ICollection<OrderDetailCl> orderDetails { get; set; } //to OrderDetails
     }
 }

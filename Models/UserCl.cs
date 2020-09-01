@@ -14,20 +14,20 @@ namespace ApiClick.Models
         }
 
         public int UserId { get; set; }
-        public int CategoryId { get; set; }
+        public int CategoryId { get; set; } //?
         public string Phone { get; set; }
-        public string Pasword { get; set; }
-        public string Name { get; set; }
+        public string Pasword { get; set; } //to Password
+        public string Name { get; set; } //to Login
         public string Street { get; set; }
         public int? House { get; set; }
         public int? Padik { get; set; }
         public int? Etash { get; set; }
         public int? Kv { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int role { get; set; }
+        public int role { get; set; } //to Role
 
-        public virtual ICollection<BrandCl> BrandCl { get; set; }
-        public virtual ICollection<MessageCl> MessageCl { get; set; }
-        public virtual ICollection<OrdersCl> OrdersCl { get; set; }
+        public virtual ICollection<BrandCl> BrandCl { get; set; } //to Brands
+        public virtual ICollection<MessageCl> MessageCl { get; set; } //to Messages
+        public virtual ICollection<OrdersCl> OrdersCl { get; set; } //to Orders
     }
 }

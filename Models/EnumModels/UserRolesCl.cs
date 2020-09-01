@@ -8,7 +8,7 @@ namespace ApiClick.Models.EnumModels
     public class UserRolesCl
     {
 
-        public int UserRolesId { get; set; }
+        public int UserRolesId { get; set; } //to UserRoleId
         public string UserRoleName { get; set; }
 
     }
