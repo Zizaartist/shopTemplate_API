@@ -479,28 +479,28 @@ namespace ApiClick.Migrations
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .HasConstraintName("FK_BrandCl_CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.ImageCl", "ImgBanner")
                         .WithOne()
                         .HasForeignKey("ApiClick.Models.BrandCl", "ImgBannerId")
                         .HasConstraintName("FK_BrandCl_ImgBannerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.ImageCl", "ImgLogo")
                         .WithOne()
                         .HasForeignKey("ApiClick.Models.BrandCl", "ImgLogoId")
                         .HasConstraintName("FK_BrandCl_ImgLogoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.UserCl", "User")
                         .WithMany("Brands")
                         .HasForeignKey("UserId")
                         .HasConstraintName("FK_BrandCl_UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -510,14 +510,14 @@ namespace ApiClick.Migrations
                         .WithMany("BrandMenus")
                         .HasForeignKey("BrandId")
                         .HasConstraintName("FK_BrandMenuCl_BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.ImageCl", "Image")
                         .WithOne()
                         .HasForeignKey("ApiClick.Models.BrandMenuCl", "ImgId")
                         .HasConstraintName("FK_BrandMenuCl_ImgId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -536,14 +536,14 @@ namespace ApiClick.Migrations
                         .WithMany()
                         .HasForeignKey("BrandId")
                         .HasConstraintName("FK_MessageCl_BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.UserCl", "User")
                         .WithMany("Messages")
                         .HasForeignKey("UserId")
                         .HasConstraintName("FK_MessageCl_UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -586,21 +586,21 @@ namespace ApiClick.Migrations
                         .WithMany()
                         .HasForeignKey("BrandOwnerId")
                         .HasConstraintName("FK_OrderCl_BrandOwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.EnumModels.OrderStatusCl", "OrderStatus")
                         .WithMany()
                         .HasForeignKey("StatusId")
                         .HasConstraintName("FK_OrderCl_StatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.UserCl", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .HasConstraintName("FK_OrderCl_UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -610,21 +610,21 @@ namespace ApiClick.Migrations
                         .WithMany("Products")
                         .HasForeignKey("BrandMenuId")
                         .HasConstraintName("FK_ProductCl_BrandMenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.CategoryCl", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .HasConstraintName("FK_ProductCl_CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ApiClick.Models.ImageCl", "Image")
                         .WithOne()
                         .HasForeignKey("ApiClick.Models.ProductCl", "ImgId")
                         .HasConstraintName("FK_ProductCl_ImgId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

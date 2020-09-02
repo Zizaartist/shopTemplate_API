@@ -107,22 +107,26 @@ namespace ApiClick
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Brands)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_BrandCl_UserId");
+                    .HasConstraintName("FK_BrandCl_UserId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.Category)
                     .WithMany()
                     .HasForeignKey(d => d.CategoryId)
-                    .HasConstraintName("FK_BrandCl_CategoryId");
+                    .HasConstraintName("FK_BrandCl_CategoryId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.ImgLogo)
                     .WithOne()
                     .HasForeignKey<BrandCl>(e => e.ImgLogoId)
-                    .HasConstraintName("FK_BrandCl_ImgLogoId");
+                    .HasConstraintName("FK_BrandCl_ImgLogoId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.ImgBanner)
                     .WithOne()
                     .HasForeignKey<BrandCl>(e => e.ImgBannerId)
-                    .HasConstraintName("FK_BrandCl_ImgBannerId");
+                    .HasConstraintName("FK_BrandCl_ImgBannerId")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<BrandMenuCl>(entity =>
@@ -147,12 +151,14 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.BrandMenus)
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_BrandMenuCl_BrandId");
+                    .HasConstraintName("FK_BrandMenuCl_BrandId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.Image)
                     .WithOne()
                     .HasForeignKey<BrandMenuCl>(d => d.ImgId)
-                    .HasConstraintName("FK_BrandMenuCl_ImgId");
+                    .HasConstraintName("FK_BrandMenuCl_ImgId")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<CategoryCl>(entity =>
@@ -197,12 +203,14 @@ namespace ApiClick
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Messages)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_MessageCl_UserId");
+                    .HasConstraintName("FK_MessageCl_UserId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.Brand)
                     .WithMany()
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_MessageCl_BrandId");
+                    .HasConstraintName("FK_MessageCl_BrandId")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<OrdersCl>(entity =>
@@ -219,17 +227,20 @@ namespace ApiClick
                 entity.HasOne(e => e.OrderStatus)
                     .WithMany()
                     .HasForeignKey(e => e.StatusId)
-                    .HasConstraintName("FK_OrderCl_StatusId");
+                    .HasConstraintName("FK_OrderCl_StatusId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_OrderCl_UserId");
+                    .HasConstraintName("FK_OrderCl_UserId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.BrandOwner)
                     .WithMany()
                     .HasForeignKey(e => e.BrandOwnerId)
-                    .HasConstraintName("FK_OrderCl_BrandOwnerId");
+                    .HasConstraintName("FK_OrderCl_BrandOwnerId")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<OrderDetailCl>(entity =>
@@ -269,17 +280,20 @@ namespace ApiClick
                 entity.HasOne(e => e.Category)
                     .WithMany()
                     .HasForeignKey(e => e.CategoryId)
-                    .HasConstraintName("FK_ProductCl_CategoryId");
+                    .HasConstraintName("FK_ProductCl_CategoryId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Image)
                     .WithOne()
                     .HasForeignKey<ProductCl>(e => e.ImgId)
-                    .HasConstraintName("FK_ProductCl_ImgId");
+                    .HasConstraintName("FK_ProductCl_ImgId")
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.BrandMenu)
                     .WithMany(p => p.Products)
                     .HasForeignKey(d => d.BrandMenuId)
-                    .HasConstraintName("FK_ProductCl_BrandMenuId");
+                    .HasConstraintName("FK_ProductCl_BrandMenuId")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<UserCl>(entity =>

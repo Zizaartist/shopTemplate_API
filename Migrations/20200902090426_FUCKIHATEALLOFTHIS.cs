@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ApiClick.Migrations
 {
-    public partial class GoodModelsHopefully : Migration
+    public partial class FUCKIHATEALLOFTHIS : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -121,22 +121,19 @@ namespace ApiClick.Migrations
                         column: x => x.BrandOwnerId,
                         principalSchema: "dbo",
                         principalTable: "UserCl",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                     table.ForeignKey(
                         name: "FK_OrderCl_StatusId",
                         column: x => x.StatusId,
                         principalSchema: "u0906946_u0906946",
                         principalTable: "OrderStatusCl",
-                        principalColumn: "OrderStatusId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "OrderStatusId");
                     table.ForeignKey(
                         name: "FK_OrderCl_UserId",
                         column: x => x.UserId,
                         principalSchema: "dbo",
                         principalTable: "UserCl",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -178,29 +175,25 @@ namespace ApiClick.Migrations
                         column: x => x.CategoryId,
                         principalSchema: "dbo",
                         principalTable: "CategoryCl",
-                        principalColumn: "CategoryId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CategoryId");
                     table.ForeignKey(
                         name: "FK_BrandCl_ImgBannerId",
                         column: x => x.ImgBannerId,
                         principalSchema: "u0906946_u0906946",
                         principalTable: "ImageCl",
-                        principalColumn: "ImageId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ImageId");
                     table.ForeignKey(
                         name: "FK_BrandCl_ImgLogoId",
                         column: x => x.ImgLogoId,
                         principalSchema: "u0906946_u0906946",
                         principalTable: "ImageCl",
-                        principalColumn: "ImageId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ImageId");
                     table.ForeignKey(
                         name: "FK_BrandCl_UserId",
                         column: x => x.UserId,
                         principalSchema: "dbo",
                         principalTable: "UserCl",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -223,15 +216,13 @@ namespace ApiClick.Migrations
                         column: x => x.BrandId,
                         principalSchema: "dbo",
                         principalTable: "BrandCL",
-                        principalColumn: "BrandId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "BrandId");
                     table.ForeignKey(
                         name: "FK_BrandMenuCl_ImgId",
                         column: x => x.ImgId,
                         principalSchema: "u0906946_u0906946",
                         principalTable: "ImageCl",
-                        principalColumn: "ImageId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ImageId");
                 });
 
             migrationBuilder.CreateTable(
@@ -258,15 +249,13 @@ namespace ApiClick.Migrations
                         column: x => x.BrandId,
                         principalSchema: "dbo",
                         principalTable: "BrandCL",
-                        principalColumn: "BrandId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "BrandId");
                     table.ForeignKey(
                         name: "FK_MessageCl_UserId",
                         column: x => x.UserId,
                         principalSchema: "dbo",
                         principalTable: "UserCl",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -293,22 +282,19 @@ namespace ApiClick.Migrations
                         column: x => x.BrandMenuId,
                         principalSchema: "dbo",
                         principalTable: "BrandMenuCl",
-                        principalColumn: "BrandMenuId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "BrandMenuId");
                     table.ForeignKey(
                         name: "FK_ProductCl_CategoryId",
                         column: x => x.CategoryId,
                         principalSchema: "dbo",
                         principalTable: "CategoryCl",
-                        principalColumn: "CategoryId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CategoryId");
                     table.ForeignKey(
                         name: "FK_ProductCl_ImgId",
                         column: x => x.ImgId,
                         principalSchema: "u0906946_u0906946",
                         principalTable: "ImageCl",
-                        principalColumn: "ImageId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ImageId");
                 });
 
             migrationBuilder.CreateTable(
