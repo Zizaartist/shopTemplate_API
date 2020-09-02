@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiClick.Migrations
 {
     [DbContext(typeof(ClickContext))]
-    [Migration("20200902090426_FUCKIHATEALLOFTHIS")]
-    partial class FUCKIHATEALLOFTHIS
+    [Migration("20200902093442_fuuuuuuuuuuuuuuuuuuuuuuuuuuck")]
+    partial class fuuuuuuuuuuuuuuuuuuuuuuuuuuck
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ApiClick.Migrations
 {
-    public partial class FUCKIHATEALLOFTHIS : Migration
+    public partial class fuuuuuuuuuuuuuuuuuuuuuuuuuuck : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
