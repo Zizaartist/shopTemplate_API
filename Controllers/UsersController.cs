@@ -111,7 +111,7 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRolesId;
+                userCl.Role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRoleId;
 
                 _context.UserCl.Add(userCl);
                 await _context.SaveChangesAsync();

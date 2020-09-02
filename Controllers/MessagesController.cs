@@ -33,7 +33,7 @@ namespace ApiClick.Controllers
 
             if (opinion != null)
             {
-                if (opinion.opinion == opinionValue)
+                if (opinion.Opinion == opinionValue)
                 {
                     return BadRequest(); //wrong code
                 }
@@ -42,9 +42,9 @@ namespace ApiClick.Controllers
                     var message = _context.MessageCl.Find(id);
                     _context.Entry(opinion).State = EntityState.Modified;
                     _context.Entry(message).State = EntityState.Modified;
-                    opinion.opinion = !opinionValue;
+                    opinion.Opinion = !opinionValue;
                     message.Likes++;
-                    message.DisLike--;
+                    message.Dislikes--;
 
                     try
                     {
@@ -71,7 +71,7 @@ namespace ApiClick.Controllers
             {
                 MessageId = id,
                 UserId = userId,
-                opinion = opinionValue
+                Opinion = opinionValue
             };
             _context.MessageOpinionCl.Add(opinion);
             await _context.SaveChangesAsync();
@@ -91,7 +91,7 @@ namespace ApiClick.Controllers
 
             if (opinion != null)
             {
-                if (opinion.opinion == opinionValue)
+                if (opinion.Opinion == opinionValue)
                 {
                     return BadRequest(); //wrong code
                 }
@@ -100,9 +100,9 @@ namespace ApiClick.Controllers
                     var message = _context.MessageCl.Find(id);
                     _context.Entry(opinion).State = EntityState.Modified;
                     _context.Entry(message).State = EntityState.Modified;
-                    opinion.opinion = !opinionValue;
+                    opinion.Opinion = !opinionValue;
                     message.Likes--;
-                    message.DisLike++;
+                    message.Dislikes++;
 
                     try
                     {
@@ -129,7 +129,7 @@ namespace ApiClick.Controllers
             {
                 MessageId = id,
                 UserId = userId,
-                opinion = opinionValue
+                Opinion = opinionValue
             };
             _context.MessageOpinionCl.Add(opinion);
             await _context.SaveChangesAsync();

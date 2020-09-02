@@ -52,7 +52,7 @@ namespace ApiClick.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRolesCls.First(r => r.UserRolesId == user.role).UserRoleName)
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRolesCls.First(r => r.UserRoleId == user.Role).UserRoleName)
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

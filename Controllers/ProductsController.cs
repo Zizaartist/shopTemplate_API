@@ -165,7 +165,7 @@ namespace ApiClick.Controllers
         private bool SameNameProduct(ProductCl product)
         {
             return _context.ProductCl.Where(m => m.BrandMenuId == product.BrandMenuId)
-                                     .Any(m => m.Title == product.Title);
+                                     .Any(m => m.ProductName == product.ProductName);
         }
 
         private bool ProductClExists(int id)

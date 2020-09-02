@@ -152,7 +152,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Image)
                     .WithOne()
                     .HasForeignKey<BrandMenuCl>(d => d.ImgId)
-                    .HasConstraintName("FK_BrandMenuCl_BrandId");
+                    .HasConstraintName("FK_BrandMenuCl_ImgId");
             });
 
             modelBuilder.Entity<CategoryCl>(entity =>

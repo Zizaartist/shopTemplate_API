@@ -16,7 +16,7 @@ namespace ApiClick.Models
         //Not nullable
         public int BrandMenuId { get; set; }
         public int BrandId { get; set; }
-        public string ImgId { get; set; }
+        public int ImgId { get; set; }
         public string Description { get; set; }
         
         //Nullable

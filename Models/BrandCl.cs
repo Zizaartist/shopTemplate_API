@@ -14,8 +14,8 @@ namespace ApiClick.Models
         public int BrandId { get; set; }
         public int CategoryId { get; set; }
         public int UserId { get; set; }
-        public string ImgLogoId { get; set; }
-        public string ImgBannerId { get; set; }
+        public int ImgLogoId { get; set; }
+        public int ImgBannerId { get; set; }
         public string BrandName { get; set; }
         public string Description { get; set; }
         public string DescriptionMax { get; set; }

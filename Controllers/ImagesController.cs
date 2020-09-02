@@ -62,7 +62,7 @@ namespace ApiClick.Controllers
                 var imageEntity = new ImageCl()
                 {
                     UserId = identityToUser(User.Identity).UserId,
-                    path = path
+                    Path = path
                 };
                 _context.ImageCl.Add(imageEntity);
                 imageRegisters.Add(imageEntity);
