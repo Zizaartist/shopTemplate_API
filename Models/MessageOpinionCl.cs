@@ -7,19 +7,22 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Models
 {
+    /// <summary>
+    /// Модель, лайков и дизлайков
+    /// </summary>
     public partial class MessageOpinionCl
     {
-
+        //Not nullable
         public int MessageOpinionId { get; set; }
         public int MessageId { get; set; }
         public int UserId { get; set; }
         /// <summary>
-        /// При значении true - лайк, при обратном - дизлайк
+        /// При значении true - лайк, false - дизлайк
         /// </summary>
-        public bool opinion { get; set; } 
+        public bool Opinion { get; set; } 
 
-        public MessageCl message { get; set; }
-        public UserCl user { get; set; }
+        public MessageCl Message { get; set; }
+        public UserCl User { get; set; }
 
     }
 }
