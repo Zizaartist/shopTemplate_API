@@ -102,7 +102,7 @@ namespace ApiClick.Controllers
             }
 
             //Не позволять создавать бренды с уже имеющимся именем
-            if (_context.BrandCl.Any(a => a.Title == brandCl.Title)) 
+            if (_context.BrandCl.Any(a => a.BrandName == brandCl.BrandName)) 
             {
                 return Forbid();
             }

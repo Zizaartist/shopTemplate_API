@@ -29,6 +29,7 @@ namespace ApiClick.Controllers
 
         // GET: api/Users/5PhoneAuth
         [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Route("api/[controller]")]
         [HttpGet("{id}")]
         public async Task<ActionResult<UserCl>> GetUserCl(int id)
         {
@@ -44,6 +45,7 @@ namespace ApiClick.Controllers
 
         // PUT: api/Users/5
         [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Route("api/[controller]")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUserCl(int id, UserCl userCl)
         {
@@ -75,9 +77,9 @@ namespace ApiClick.Controllers
 
         // POST:
         // Авторизация с помощью номера телефона
-        [Route("api/PhoneAuth")]
+        [Route("api/PhoneCheck")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> PhoneAuth(string phone)
+        public async Task<ActionResult<UserCl>> PhoneCheck(string phone)
         {
             var user = _context.UserCl.FirstOrDefault(u => u.Phone == phone);
 
@@ -92,6 +94,15 @@ namespace ApiClick.Controllers
             }
 
             return user;
+        }
+
+        //returns ok if admin token is still valid
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [Route("api/AdminCheck")]
+        [HttpPost]
+        public async Task<ActionResult<UserCl>> AdminCheck()
+        {
+            return Ok();
         }
 
         // POST: api/Users
@@ -111,7 +122,27 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRolesId;
+                userCl.Role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRoleId;
+
+                _context.UserCl.Add(userCl);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetUserCl", new { id = userCl.UserId }, userCl);
+            }
+        }
+
+        //ДОБАВЛЕНИЕ СУПЕРЮЗЕРА. УДАЛИТЬ ПО ВО ВРЕМЯ РЕЛИЗА
+        [Route("api/AddSuperAdminTemp")]
+        [HttpPost]
+        public async Task<ActionResult<UserCl>> AddSuperAdminTemp(UserCl userCl) 
+        {
+            if (userCl == null)
+            {
+                return BadRequest();
+            }
+            else
+            {
+                userCl.CreatedDate = DateTime.Now;
+                userCl.Role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRoleId;
 
                 _context.UserCl.Add(userCl);
                 await _context.SaveChangesAsync();

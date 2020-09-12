@@ -38,7 +38,7 @@ namespace ApiClick.Controllers
             }
 
             List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == ordersCl.OrdersId).ToList();
-            ordersCl.orderDetails = relatedOrderDetails;
+            ordersCl.OrderDetails = relatedOrderDetails;
 
             return ordersCl;
         }
@@ -48,21 +48,21 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<OrdersCl>> PostOrdersCl(OrdersCl ordersCl)
         {
-            if (ordersCl == null || ordersCl.orderDetails == null || ordersCl.User == null)
+            if (ordersCl == null || ordersCl.OrderDetails == null || ordersCl.User == null)
             {
                 return BadRequest();
             }
 
             //filling blanks and sending to DB
             ordersCl.CreatedDate = DateTime.Now;
-            ordersCl.Status = _context.UserRolesCls.First(r => r.UserRoleName == "SomeKindOfStatus").UserRolesId;
+            ordersCl.StatusId = _context.UserRolesCls.First(r => r.UserRoleName == "SomeKindOfStatus").UserRoleId;
             ordersCl.User = _context.UserCl.First(u => u.Phone == ordersCl.User.Phone);
             ordersCl.UserId = ordersCl.User.UserId;
 
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
 
-            List<OrderDetailCl> locallyStoredValues = ordersCl.orderDetails.ToList();
+            List<OrderDetailCl> locallyStoredValues = ordersCl.OrderDetails.ToList();
             //upload details to DB
             foreach (OrderDetailCl orderDetail in locallyStoredValues) 
             {   
@@ -70,9 +70,9 @@ namespace ApiClick.Controllers
                 {
                     OrderId = orderDetail.OrderId,
                     ProductId = orderDetail.ProductId,
-                    price = _context.ProductCl.First(p => p.ProductId == orderDetail.ProductId).Price,
-                    product = _context.ProductCl.FirstOrDefault(p => p.ProductId == orderDetail.ProductId),
-                    order = orderDetail.order
+                    Price = _context.ProductCl.First(p => p.ProductId == orderDetail.ProductId).Price,
+                    Product = _context.ProductCl.FirstOrDefault(p => p.ProductId == orderDetail.ProductId),
+                    Order = orderDetail.Order
                     //order = _context.OrdersCl.
                 });
                 await _context.SaveChangesAsync();

@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Models.EnumModels
 {
+    /// <summary>
+    /// Enum модель, хранящая строковые значения статусов
+    /// </summary>
     public class OrderStatusCl
     {
 

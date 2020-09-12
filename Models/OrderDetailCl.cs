@@ -11,16 +11,15 @@ namespace ApiClick.Models
     /// </summary>
     public class OrderDetailCl
     {
+        //Not nullable
         public int OrderDetailId { get; set; }
         public int OrderId { get; set; }
-        public int? ProductId { get; set; }
-        public int? BrandId { get; set; }
-        public int price { get; set; }
-        public int count { get; set; }
 
-        [ForeignKey("ProductId")]
-        public ProductCl product { get; set; }
-        [ForeignKey("OrderId")]
-        public OrdersCl order { get; set; }
+        //Nullable
+        public int? ProductId { get; set; }
+        public int? Price { get; set; }
+
+        public ProductCl Product { get; set; }
+        public OrdersCl Order { get; set; }
     }
 }
