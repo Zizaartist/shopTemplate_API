@@ -29,11 +29,12 @@ namespace ApiClick.Controllers
 
         // GET: api/Users/5PhoneAuth
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [Route("api/[controller]")]
-        [HttpGet("{id}")]
+        [Route("api/[controller]/{id}")]
+        [HttpGet]
         public async Task<ActionResult<UserCl>> GetUserCl(int id)
         {
             var userCl = await _context.UserCl.FindAsync(id);
+            var userCl2 = _context.UserCl.FirstOrDefault(e => e.UserId == id);
 
             if (userCl == null)
             {
@@ -45,8 +46,8 @@ namespace ApiClick.Controllers
 
         // PUT: api/Users/5
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [Route("api/[controller]")]
-        [HttpPut("{id}")]
+        [Route("api/[controller]/{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutUserCl(int id, UserCl userCl)
         {
             if (id != userCl.UserId)
@@ -113,6 +114,7 @@ namespace ApiClick.Controllers
             if (userCl == null)
             {
                 return BadRequest();
+
             }
 
             if (_context.UserCl.Any(x => x.Phone == userCl.Phone))

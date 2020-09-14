@@ -12,13 +12,13 @@ using System.Security.Principal;
 
 namespace ApiClick.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
         ClickContext _context = new ClickContext();
 
         // GET: api/Products
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductCl>>> GetProductCl()
@@ -26,11 +26,12 @@ namespace ApiClick.Controllers
             return await _context.ProductCl.ToListAsync();
         }
 
-        // GET: api/Products/5
+        // GET: api/GetProductsByMenu/5
         //Возвращает список продуктов принадлежащих меню с указаным id
+        [Route("api/GetProductsByMenu")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<ProductCl>>> GetProductsByMenuCl(int id)
+        public async Task<ActionResult<IEnumerable<ProductCl>>> GetProductsByMenu(int id)
         {
             var productCl = await _context.ProductCl.Where(p => p.BrandMenuId == id).ToListAsync();
 
@@ -44,11 +45,12 @@ namespace ApiClick.Controllers
 
         // GET: api/Products/5
         //Возвращает продукт по id
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductCl>> GetProductCl(int id)
         {
-            var productCl = _context.ProductCl.FirstOrDefault(p => p.ProductId == id);
+            var productCl = await _context.ProductCl.FindAsync(id);
 
             if (productCl == null)
             {
@@ -59,6 +61,7 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/Products/5
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProductCl(int id, ProductCl productCl)
@@ -90,6 +93,7 @@ namespace ApiClick.Controllers
         }
 
         // POST: api/Products
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
         public async Task<ActionResult<ProductCl>> PostProductCl(ProductCl productCl)
@@ -108,6 +112,7 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/Products/5
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult<ProductCl>> DeleteProductCl(int id)

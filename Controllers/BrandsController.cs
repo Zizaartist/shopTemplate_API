@@ -13,7 +13,6 @@ using System.Security.Principal;
 
 namespace ApiClick.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class BrandsController : ControllerBase
     {
@@ -21,6 +20,7 @@ namespace ApiClick.Controllers
 
         // GET: api/Brands
         //Debug
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandCl()
@@ -28,11 +28,12 @@ namespace ApiClick.Controllers
             return await _context.BrandCl.ToListAsync();
         }
 
-        // GET: api/Brands/5
+        // GET: api/GetBrandsByCategory/5
         //Получить список брендов категории id
+        [Route("api/GetBrandsByCategory")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandCl(int id)
+        public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandsByCategory(int id)
         {
             var brandCl = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
 
@@ -44,9 +45,27 @@ namespace ApiClick.Controllers
             return brandCl;
         }
 
-        // GET: api/Brands
+        // GET: api/Brands/5
+        //Получить бренд по id
+        [Route("api/[controller]")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<BrandCl>> GetBrandCl(int id)
+        {
+            var brandCl = await _context.BrandCl.FindAsync(id);
+
+            if (brandCl == null)
+            {
+                return NotFound();
+            }
+
+            return brandCl;
+        }
+
+        // GET: api/GetMyBrands
         //Получить список своих брендов
         [Authorize(Roles = "SuperAdmin, Admin")]
+        [Route("api/GetMyBrands")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetMyBrands() //хз пока как маршрутизировать
         {
@@ -61,6 +80,7 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/Brands/5
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrandCl(int id, BrandCl brandCl)
@@ -91,6 +111,7 @@ namespace ApiClick.Controllers
             return NoContent();
         }
 
+        [Route("api/[controller]")]
         // POST: api/Brands
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
@@ -119,6 +140,7 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/Brands/5
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult<BrandCl>> DeleteBrandCl(int id)

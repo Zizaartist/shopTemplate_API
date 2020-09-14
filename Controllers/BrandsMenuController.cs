@@ -12,7 +12,6 @@ using System.Security.Principal;
 
 namespace ApiClick.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class BrandsMenuController : ControllerBase
     {
@@ -20,18 +19,20 @@ namespace ApiClick.Controllers
 
         // GET: api/BrandsMenu
         //Debug
-        [Authorize(Roles = "SupeAdmin")]
+        [Route("api/[controller]")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetBrandMenuCl()
         {
             return await _context.BrandMenuCl.ToListAsync();
         }
 
-        // GET: api/GetMenusByBrandCl/5
+        // GET: api/GetMenusByBrand/5
         //Возвращает список меню по id бренда
+        [Route("api/GetMenusByBrand")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetMenusByBrandCl(int id)
+        public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetMenusByBrand(int id)
         {
             var brandMenuCl = await _context.BrandMenuCl.Where(p => p.BrandId == id).ToListAsync();
 
@@ -44,7 +45,8 @@ namespace ApiClick.Controllers
         }
 
         // GET: api/BrandsMenu/5
-        //Возвращает список меню по id
+        //Возвращает меню по id
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet("{id}")]
         public async Task<ActionResult<BrandMenuCl>> GetBrandMenuCl(int id)
@@ -60,6 +62,7 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/BrandsMenu/5
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrandMenuCl(int id, BrandMenuCl brandMenuCl)
@@ -91,6 +94,7 @@ namespace ApiClick.Controllers
         }
 
         // POST: api/BrandsMenu
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
         public async Task<ActionResult<BrandMenuCl>> PostBrandMenuCl(BrandMenuCl brandMenuCl)
@@ -109,6 +113,7 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/BrandsMenu/5
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult<BrandMenuCl>> DeleteBrandMenuCl(int id)
