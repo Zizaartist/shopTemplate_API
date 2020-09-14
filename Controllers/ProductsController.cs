@@ -28,9 +28,9 @@ namespace ApiClick.Controllers
 
         // GET: api/GetProductsByMenu/5
         //Возвращает список продуктов принадлежащих меню с указаным id
-        [Route("api/GetProductsByMenu")]
+        [Route("api/GetProductsByMenu/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductCl>>> GetProductsByMenu(int id)
         {
             var productCl = await _context.ProductCl.Where(p => p.BrandMenuId == id).ToListAsync();
@@ -45,9 +45,9 @@ namespace ApiClick.Controllers
 
         // GET: api/Products/5
         //Возвращает продукт по id
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<ProductCl>> GetProductCl(int id)
         {
             var productCl = await _context.ProductCl.FindAsync(id);
@@ -61,9 +61,9 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/Products/5
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutProductCl(int id, ProductCl productCl)
         {
             if (id != productCl.ProductId)
@@ -112,9 +112,9 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/Products/5
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpDelete("{id}")]
+        [HttpDelete]
         public async Task<ActionResult<ProductCl>> DeleteProductCl(int id)
         {
             var productCl = await _context.ProductCl.FindAsync(id);

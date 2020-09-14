@@ -30,9 +30,9 @@ namespace ApiClick.Controllers
 
         // GET: api/GetBrandsByCategory/5
         //Получить список брендов категории id
-        [Route("api/GetBrandsByCategory")]
+        [Route("api/GetBrandsByCategory/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandsByCategory(int id)
         {
             var brandCl = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
@@ -47,9 +47,9 @@ namespace ApiClick.Controllers
 
         // GET: api/Brands/5
         //Получить бренд по id
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<BrandCl>> GetBrandCl(int id)
         {
             var brandCl = await _context.BrandCl.FindAsync(id);
@@ -80,9 +80,9 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/Brands/5
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutBrandCl(int id, BrandCl brandCl)
         {
             if (id != brandCl.BrandId || brandCl == null)
@@ -140,9 +140,9 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/Brands/5
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpDelete("{id}")]
+        [HttpDelete]
         public async Task<ActionResult<BrandCl>> DeleteBrandCl(int id)
         {
             var brandCl = await _context.BrandCl.FindAsync(id);

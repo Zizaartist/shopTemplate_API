@@ -29,9 +29,9 @@ namespace ApiClick.Controllers
 
         // GET: api/GetMenusByBrand/5
         //Возвращает список меню по id бренда
-        [Route("api/GetMenusByBrand")]
+        [Route("api/GetMenusByBrand/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetMenusByBrand(int id)
         {
             var brandMenuCl = await _context.BrandMenuCl.Where(p => p.BrandId == id).ToListAsync();
@@ -46,9 +46,9 @@ namespace ApiClick.Controllers
 
         // GET: api/BrandsMenu/5
         //Возвращает меню по id
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<BrandMenuCl>> GetBrandMenuCl(int id)
         {
             var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
@@ -62,9 +62,9 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/BrandsMenu/5
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutBrandMenuCl(int id, BrandMenuCl brandMenuCl)
         {
             if (id != brandMenuCl.BrandMenuId || brandMenuCl == null)
@@ -113,9 +113,9 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/BrandsMenu/5
-        [Route("api/[controller]")]
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpDelete("{id}")]
+        [HttpDelete]
         public async Task<ActionResult<BrandMenuCl>> DeleteBrandMenuCl(int id)
         {
             var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
