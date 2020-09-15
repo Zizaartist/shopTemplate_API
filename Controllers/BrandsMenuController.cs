@@ -109,7 +109,7 @@ namespace ApiClick.Controllers
             _context.BrandMenuCl.Add(brandMenuCl);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBrandMenuCl", new { id = brandMenuCl.BrandMenuId }, brandMenuCl);
+            return Ok();
         }
 
         // DELETE: api/BrandsMenu/5
@@ -134,7 +134,7 @@ namespace ApiClick.Controllers
             _context.BrandMenuCl.Remove(brandMenuCl);
             await _context.SaveChangesAsync();
 
-            return brandMenuCl;
+            return Ok();
         }
 
         private UserCl identityToUser(IIdentity identity)

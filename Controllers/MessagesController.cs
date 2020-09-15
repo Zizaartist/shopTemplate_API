@@ -208,7 +208,7 @@ namespace ApiClick.Controllers
             _context.MessageCl.Add(messageCl);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetMessageCl", new { id = messageCl.MessageId }, messageCl);
+            return Ok();
         }
 
         // DELETE: api/Messages/5
@@ -226,7 +226,7 @@ namespace ApiClick.Controllers
             _context.MessageCl.Remove(messageCl);
             await _context.SaveChangesAsync();
 
-            return messageCl;
+            return Ok();
         }
 
         private UserCl identityToUser(IIdentity identity)

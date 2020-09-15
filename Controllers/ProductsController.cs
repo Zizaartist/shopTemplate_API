@@ -108,7 +108,7 @@ namespace ApiClick.Controllers
             _context.ProductCl.Add(productCl);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProductCl", new { id = productCl.ProductId }, productCl);
+            return Ok();
         }
 
         // DELETE: api/Products/5
@@ -132,7 +132,7 @@ namespace ApiClick.Controllers
             _context.ProductCl.Remove(productCl);
             await _context.SaveChangesAsync();
 
-            return productCl;
+            return Ok();
         }
 
         private UserCl identityToUser(IIdentity identity)

@@ -94,7 +94,7 @@ namespace ApiClick.Controllers
                 return Unauthorized(); //"go grab token first"
             }
 
-            return user;
+            return Ok();
         }
 
         //returns ok if admin token is still valid
@@ -128,7 +128,7 @@ namespace ApiClick.Controllers
 
                 _context.UserCl.Add(userCl);
                 await _context.SaveChangesAsync();
-                return CreatedAtAction("GetUserCl", new { id = userCl.UserId }, userCl);
+                return Ok();
             }
         }
 
@@ -148,7 +148,7 @@ namespace ApiClick.Controllers
 
                 _context.UserCl.Add(userCl);
                 await _context.SaveChangesAsync();
-                return CreatedAtAction("GetUserCl", new { id = userCl.UserId }, userCl);
+                return Ok();
             }
         }
 

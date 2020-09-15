@@ -78,7 +78,7 @@ namespace ApiClick.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return CreatedAtAction("GetOrdersCl", new { id = ordersCl.OrdersId }, ordersCl);
+            return Ok();
         }
 
         // DELETE: api/Orders/5
@@ -95,7 +95,7 @@ namespace ApiClick.Controllers
             _context.OrdersCl.Remove(ordersCl);
             await _context.SaveChangesAsync();
 
-            return ordersCl;
+            return Ok();
         }
 
         private bool OrdersClExists(int id)
