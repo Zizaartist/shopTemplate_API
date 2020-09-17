@@ -340,8 +340,6 @@ C:\Users\Ziza_art\Desktop\Click\ApiClick\obj\Debug\netcoreapp3.1\ApiClick.MvcApp
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csprojAssemblyReference.cache
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.AssemblyInfoInputs.cache
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.AssemblyInfo.cs
-C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csproj.CoreCompileInputs.cache
-C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.RazorAssemblyInfo.cache
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.RazorAssemblyInfo.cs
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.dll
@@ -515,3 +513,8 @@ C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\Serv
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\serviceDependencies.ClickAPIDebug - Web Deploy.json
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\serviceDependencies.json
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\ClickAPIDebug - Web Deploy\mssql1.arm.json
+C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
+C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csproj.CoreCompileInputs.cache
+C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.MvcApplicationPartsAssemblyInfo.cache

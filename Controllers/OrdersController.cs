@@ -8,17 +8,19 @@ using Microsoft.EntityFrameworkCore;
 using ApiClick;
 using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Principal;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ApiClick.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class OrdersController : ControllerBase
     {
         ClickContext _context = new ClickContext();
 
         // GET: api/Orders
-        [Authorize(Roles = "SupeAdmin")]
+        [Route("api/[controller]")]
+        [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrdersCl>>> GetOrdersCl()
         {
@@ -26,8 +28,9 @@ namespace ApiClick.Controllers
         }
 
         // GET: api/Orders/5
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{id}")]
+        [HttpGet]
         public async Task<ActionResult<OrdersCl>> GetOrdersCl(int id)
         {
             var ordersCl = await _context.OrdersCl.FindAsync(id);
@@ -37,27 +40,71 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
+            if (ordersCl.BrandOwnerId != identityToUser(User.Identity).UserId) 
+            {
+                return Forbid();
+            }
+
             List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == ordersCl.OrdersId).ToList();
             ordersCl.OrderDetails = relatedOrderDetails;
 
             return ordersCl;
         }
 
+        // GET: api/Orders/5
+        [Route("api/GetMyOrders")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet]
+        public async Task<ActionResult<List<OrdersCl>>> GetMyOrders()
+        {
+            var orders = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId).ToList();
+
+            if (orders == null)
+            {
+                return NotFound();
+            }
+
+            foreach (OrdersCl order in orders)
+            {
+                List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
+                order.OrderDetails = relatedOrderDetails;
+            }
+
+            return orders;
+        }
+
         // POST: api/Orders
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
         public async Task<ActionResult<OrdersCl>> PostOrdersCl(OrdersCl ordersCl)
         {
-            if (ordersCl == null || ordersCl.OrderDetails == null || ordersCl.User == null)
+            if (ordersCl == null || ordersCl.OrderDetails == null || ordersCl.OrderDetails.Count < 1)
             {
                 return BadRequest();
             }
 
+            var responsibleBrandOwnerId = await _context.BrandCl.FindAsync(
+                                                  (await  _context.BrandMenuCl.FindAsync(
+                                                       (await _context.ProductCl.FindAsync(
+                                                            ordersCl.OrderDetails.First().ProductId)
+                                                       ).BrandMenuId)
+                                                  ).BrandId);
+
             //filling blanks and sending to DB
             ordersCl.CreatedDate = DateTime.Now;
-            ordersCl.StatusId = _context.UserRolesCls.First(r => r.UserRoleName == "SomeKindOfStatus").UserRoleId;
-            ordersCl.User = _context.UserCl.First(u => u.Phone == ordersCl.User.Phone);
-            ordersCl.UserId = ordersCl.User.UserId;
+            ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
+            ordersCl.UserId = identityToUser(User.Identity).UserId;
+            ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
+
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
+            //TODO!!!!!!!!!!!!!!!!!
 
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
@@ -70,10 +117,7 @@ namespace ApiClick.Controllers
                 {
                     OrderId = orderDetail.OrderId,
                     ProductId = orderDetail.ProductId,
-                    Price = _context.ProductCl.First(p => p.ProductId == orderDetail.ProductId).Price,
-                    Product = _context.ProductCl.FirstOrDefault(p => p.ProductId == orderDetail.ProductId),
-                    Order = orderDetail.Order
-                    //order = _context.OrdersCl.
+                    Price = (await _context.ProductCl.FindAsync(orderDetail.Product.ProductId)).Price
                 });
                 await _context.SaveChangesAsync();
             }
@@ -82,8 +126,9 @@ namespace ApiClick.Controllers
         }
 
         // DELETE: api/Orders/5
+        [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpDelete("{id}")]
+        [HttpDelete]
         public async Task<ActionResult<OrdersCl>> DeleteOrdersCl(int id)
         {
             var ordersCl = await _context.OrdersCl.FindAsync(id);
@@ -96,6 +141,10 @@ namespace ApiClick.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
+        }
+        private UserCl identityToUser(IIdentity identity)
+        {
+            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         private bool OrdersClExists(int id)
