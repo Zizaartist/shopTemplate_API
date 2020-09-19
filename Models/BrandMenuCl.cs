@@ -16,10 +16,10 @@ namespace ApiClick.Models
         //Not nullable
         public int BrandMenuId { get; set; }
         public int BrandId { get; set; }
+
+        //Nullable
         public int ImgId { get; set; }
         public string Description { get; set; }
-        
-        //Nullable
         public DateTime CreatedDate { get; set; }
 
         public virtual BrandCl Brand { get; set; } 

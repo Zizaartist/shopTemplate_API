@@ -18,8 +18,16 @@ namespace ApiClick.Models
         /// Хранит id владельца бренда просто для логгирования
         /// </summary>
         public int BrandOwnerId { get; set; }
+        public int PaymentMethodId { get; set; }
+        public bool PointsUsed { get; set; }
+        public string Phone { get; set; }
 
         //Nullable
+        public string Street { get; set; }
+        public int? House { get; set; }
+        public int? Padik { get; set; }
+        public int? Etash { get; set; }
+        public int? Kv { get; set; }
         public DateTime CreatedDate { get; set; }
 
         public virtual UserCl User { get; set; }
