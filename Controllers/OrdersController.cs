@@ -75,10 +75,6 @@ namespace ApiClick.Controllers
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //Получаем список брендов которые ему принадлежат, а должен быть один единственный
                 ownerBuffer = new UserCl()
                 {
@@ -139,6 +135,7 @@ namespace ApiClick.Controllers
             //filling blanks and sending to DB
             ordersCl.CreatedDate = DateTime.Now;
             ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
+            ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
             ordersCl.UserId = identityToUser(User.Identity).UserId;
             ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
 
@@ -162,7 +159,7 @@ namespace ApiClick.Controllers
                 {
                     OrderId = orderDetail.OrderId,
                     ProductId = orderDetail.ProductId,
-                    Price = (await _context.ProductCl.FindAsync(orderDetail.Product.ProductId)).Price
+                    Price = (await _context.ProductCl.FindAsync(orderDetail.ProductId)).Price
                 });
                 await _context.SaveChangesAsync();
             }
