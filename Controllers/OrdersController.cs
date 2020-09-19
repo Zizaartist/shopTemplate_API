@@ -51,13 +51,58 @@ namespace ApiClick.Controllers
             return ordersCl;
         }
 
-        // GET: api/Orders/5
+        // GET: api/GetMyOrders
         [Route("api/GetMyOrders")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
         public async Task<ActionResult<List<OrdersCl>>> GetMyOrders()
         {
             var orders = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId).ToList();
+
+            if (orders == null)
+            {
+                return NotFound();
+            }
+
+            foreach (OrdersCl order in orders)
+            {
+                List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
+                order.OrderDetails = relatedOrderDetails;
+                var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //Получаем список брендов которые ему принадлежат, а должен быть один единственный
+                ownerBuffer = new UserCl()
+                {
+                    Brands = _context.BrandCl.Where(e => e.UserId == ownerBuffer.UserId).ToList()
+                };
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                order.BrandOwner = ownerBuffer;
+            }
+
+            return orders;
+        }
+
+        // GET: api/GetMyTasks
+        [Route("api/GetMyTasks")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<OrdersCl>>> GetMyTasks()
+        {
+            var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId).ToList();
 
             if (orders == null)
             {

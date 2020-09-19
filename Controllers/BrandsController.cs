@@ -25,7 +25,15 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandCl()
         {
-            return await _context.BrandCl.ToListAsync();
+            var brands = await _context.BrandCl.ToListAsync();
+
+            foreach (BrandCl brand in brands) 
+            {
+                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+            }
+
+            return brands;
         }
 
         // GET: api/GetBrandsByCategory/5
@@ -35,14 +43,20 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandsByCategory(int id)
         {
-            var brandCl = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
+            var brands = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
 
-            if (brandCl == null)
+            if (brands == null)
             {
                 return NotFound();
             }
 
-            return brandCl;
+            foreach (BrandCl brand in brands) 
+            {
+                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+            }
+
+            return brands;
         }
 
         // GET: api/Brands/5
@@ -59,6 +73,9 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
+            brandCl.ImgLogo = await _context.ImageCl.FindAsync(brandCl.ImgLogoId);
+            brandCl.ImgBanner = await _context.ImageCl.FindAsync(brandCl.ImgBannerId);
+
             return brandCl;
         }
 
@@ -69,14 +86,20 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetMyBrands() //хз пока как маршрутизировать
         {
-            var brandCl = await _context.BrandCl.Where(p => p.UserId == identityToUser(User.Identity).UserId).ToListAsync();
+            var brands = await _context.BrandCl.Where(p => p.UserId == identityToUser(User.Identity).UserId).ToListAsync();
 
-            if (brandCl == null)
+            if (brands == null)
             {
                 return NotFound();
             }
 
-            return brandCl;
+            foreach (BrandCl brand in brands)
+            {
+                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+            }
+
+            return brands;
         }
 
         // PUT: api/Brands/5

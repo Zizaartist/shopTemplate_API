@@ -24,7 +24,14 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetBrandMenuCl()
         {
-            return await _context.BrandMenuCl.ToListAsync();
+            var menus = await _context.BrandMenuCl.ToListAsync();
+
+            foreach (BrandMenuCl menu in menus)
+            {
+                menu.Image = await _context.ImageCl.FindAsync(menu.ImgId);
+            }
+
+            return menus;
         }
 
         // GET: api/GetMenusByBrand/5
@@ -34,14 +41,19 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetMenusByBrand(int id)
         {
-            var brandMenuCl = await _context.BrandMenuCl.Where(p => p.BrandId == id).ToListAsync();
+            var brandMenus = await _context.BrandMenuCl.Where(p => p.BrandId == id).ToListAsync();
 
-            if (brandMenuCl == null)
+            if (brandMenus == null)
             {
                 return NotFound();
             }
 
-            return brandMenuCl;
+            foreach (BrandMenuCl menu in brandMenus) 
+            {
+                menu.Image = await _context.ImageCl.FindAsync(menu.ImgId);
+            }
+
+            return brandMenus;
         }
 
         // GET: api/BrandsMenu/5
@@ -57,6 +69,8 @@ namespace ApiClick.Controllers
             {
                 return NotFound();
             }
+
+            brandMenuCl.Image = await _context.ImageCl.FindAsync(brandMenuCl.ImgId);
 
             return brandMenuCl;
         }
