@@ -13,6 +13,12 @@ namespace ApiClick.Models.EnumModels
 
         public int OrderStatusId { get; set; }
         public string OrderStatusName { get; set; }
+        public int MasterRoleId { get; set; }
+
+        /// <summary>
+        /// Роль, которая имеет права сменить статус на текущий
+        /// </summary>
+        public virtual UserRolesCl MasterRole { get; set; }
 
     }
 }

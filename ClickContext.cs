@@ -2,6 +2,7 @@
 using System.Linq;
 using ApiClick.Models;
 using ApiClick.Models.EnumModels;
+using ApiClick.Models.RegisterModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -18,6 +19,7 @@ namespace ApiClick
         {
         }
 
+        //Обычные модели
         public virtual DbSet<BrandCl> BrandCl { get; set; }
         public virtual DbSet<BrandMenuCl> BrandMenuCl { get; set; }
         public virtual DbSet<MessageCl> MessageCl { get; set; }
@@ -25,12 +27,18 @@ namespace ApiClick
         public virtual DbSet<OrderDetailCl> OrderDetailCl { get; set; }
         public virtual DbSet<ProductCl> ProductCl { get; set; }
         public virtual DbSet<UserCl> UserCl { get; set; }
+
+        //Модели-регистры
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
         public virtual DbSet<ImageCl> ImageCl { get; set; }
+        public virtual DbSet<PointRegister> PointRegisterCl { get; set; }
 
+        //Enum модели
         public virtual DbSet<CategoryCl> CategoryCl { get; set; }
         public virtual DbSet<OrderStatusCl> OrderStatusCl { get; set; }
-        public virtual DbSet<UserRolesCl> UserRolesCls { get; set; }
+        public virtual DbSet<UserRolesCl> UserRolesCl { get; set; }
+        public virtual DbSet<PaymentMethodCl> PaymentMethodCl { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -132,15 +140,13 @@ namespace ApiClick
 
             modelBuilder.Entity<BrandMenuCl>(entity =>
             {
-
                 //Not nullable
                 entity.HasKey(e => e.BrandMenuId)
                     .HasName("PK_BrandMenuCl_BrandMenuId");
 
                 entity.ToTable("BrandMenuCl", "dbo");
 
-                entity.Property(e => e.Description)
-                    .IsRequired()
+                entity.Property(e => e.BrandMenuName)
                     .HasMaxLength(250);
 
                 //Nullable
@@ -231,6 +237,12 @@ namespace ApiClick
                     .HasConstraintName("FK_OrderCl_StatusId")
                     .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne(e => e.PaymentMethod)
+                      .WithMany()
+                      .HasForeignKey(k => k.PaymentMethodId)
+                      .HasConstraintName("FK_OrderCl_PaymentMethodId")
+                      .OnDelete(DeleteBehavior.NoAction);
+
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.UserId)
@@ -266,23 +278,16 @@ namespace ApiClick
 
                 entity.ToTable("ProductCl", "dbo");
 
-                entity.Property(e => e.Description).IsRequired().HasMaxLength(250);
+                entity.Property(e => e.Description).HasMaxLength(250);
 
                 entity.Property(e => e.Price).IsRequired();
 
                 entity.Property(e => e.ProductName)
-                    .IsRequired()
                     .HasMaxLength(250);
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
-
-                entity.HasOne(e => e.Category)
-                    .WithMany()
-                    .HasForeignKey(e => e.CategoryId)
-                    .HasConstraintName("FK_ProductCl_CategoryId")
-                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Image)
                     .WithOne()
@@ -326,6 +331,12 @@ namespace ApiClick
             modelBuilder.Entity<OrderStatusCl>(entity =>
             {
                 entity.HasKey(e => e.OrderStatusId);
+
+                entity.HasOne(e => e.MasterRole)
+                      .WithMany()
+                      .HasForeignKey(k => k.MasterRoleId)
+                      .HasConstraintName("FK_OrderStatusCl_MasterRoleId")
+                      .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<UserRolesCl>(entity =>
@@ -361,6 +372,11 @@ namespace ApiClick
                     .IsRequired();
 
                 entity.Property(p => p.Path).IsRequired();
+            });
+
+            modelBuilder.Entity<PaymentMethodCl>(entity => 
+            {
+                entity.HasKey(k => k.PaymentMethodId);
             });
 
             OnModelCreatingPartial(modelBuilder);

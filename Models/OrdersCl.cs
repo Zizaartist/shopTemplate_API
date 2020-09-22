@@ -33,6 +33,7 @@ namespace ApiClick.Models
         public virtual UserCl User { get; set; }
         public virtual UserCl BrandOwner { get; set; }
         public virtual OrderStatusCl OrderStatus { get; set; }
+        public virtual PaymentMethodCl PaymentMethod { get; set; }
         public virtual ICollection<OrderDetailCl> OrderDetails { get; set; }
     }
 }

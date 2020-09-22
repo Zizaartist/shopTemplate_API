@@ -26,7 +26,7 @@ namespace ApiClick.Models
         public string Address { get; set; }
         public string WorkTime { get; set; }
         public int? Rating { get; set; } //null if no reviews
-        public string Hashtag1 { get; set; }
+        public string Hashtag1 { get; set; } 
         public string Hashtag2 { get; set; }
         public string Hashtag3 { get; set; }
         public string Hashtag4 { get; set; }
