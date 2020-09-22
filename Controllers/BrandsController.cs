@@ -103,35 +103,38 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/Brands/5
-        [Route("api/[controller]/{id}")]
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutBrandCl(int id, BrandCl brandCl)
+        public async Task<IActionResult> PutBrandCl(BrandCl brandCl)
         {
-            if (id != brandCl.BrandId || brandCl == null)
+            if (brandCl == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(brandCl).State = EntityState.Modified;
-
-            try
+            if (IsItMyBrand(identityToUser(User.Identity), brandCl))
             {
+                var existingBrand = await _context.BrandCl.FindAsync(brandCl.BrandId);
+
+                existingBrand.Address = brandCl.Address;
+                existingBrand.BrandName = brandCl.BrandName;
+                existingBrand.Contact = brandCl.Contact;
+                existingBrand.Description = brandCl.Description;
+                existingBrand.DescriptionMax = brandCl.DescriptionMax;
+                existingBrand.ImgBannerId = brandCl.ImgBannerId;
+                existingBrand.ImgLogoId = brandCl.ImgLogoId;
+                existingBrand.Phone = brandCl.Phone;
+                existingBrand.WorkTime = brandCl.WorkTime;
+
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            else 
             {
-                if (!BrandClExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return NoContent();
+            return Ok();
         }
 
         [Route("api/[controller]")]
@@ -170,20 +173,34 @@ namespace ApiClick.Controllers
         {
             var brandCl = await _context.BrandCl.FindAsync(id);
 
-            if (brandCl == null)
+            if (IsItMyBrand(identityToUser(User.Identity), brandCl))
+            {
+                _context.BrandCl.Remove(brandCl);
+
+                await _context.SaveChangesAsync();
+            }
+            else
             {
                 return NotFound();
             }
 
-            if (brandCl.UserId != identityToUser(User.Identity).UserId) 
-            {
-                return BadRequest();
-            }
-
-            _context.BrandCl.Remove(brandCl);
-            await _context.SaveChangesAsync();
-
             return Ok();
+        }
+
+        /// <summary>
+        /// Проверяет является ли бренд собственностью этого пользователя
+        /// </summary>
+        private bool IsItMyBrand(UserCl user, BrandCl brand)
+        {
+            var brandBuffer = _context.BrandCl.Find(brand.BrandId);
+            if ((brandBuffer == null) || (brandBuffer.UserId != identityToUser(User.Identity).UserId))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         private UserCl identityToUser(IIdentity identity) 

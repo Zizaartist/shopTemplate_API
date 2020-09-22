@@ -87,6 +87,9 @@ namespace ApiClick.Controllers
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 order.BrandOwner = ownerBuffer;
+                order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
+                order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
+                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
             }
 
             return orders;
@@ -98,7 +101,10 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<OrdersCl>>> GetMyTasks()
         {
-            var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId).ToList();
+            //Получаем заказы, где владелец токена обозначен как владелец бренда
+            //+ статус не является завершенным
+            var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+                                          .Where(e => e.OrderStatus.OrderStatusId != _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
             if (orders == null)
             {
@@ -109,9 +115,93 @@ namespace ApiClick.Controllers
             {
                 List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
                 order.OrderDetails = relatedOrderDetails;
+                order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
+                order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
+                order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
+                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
             }
 
             return orders;
+        }
+        
+        // GET: api/GetMyHistory
+        [Route("api/GetMyHistory")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<OrdersCl>>> GetMyHistory()
+        {
+            //Получаем заказы, где владелец токена обозначен как владелец бренда
+            //+ статус должен быть завершенным
+            var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+                                          .Where(e => e.OrderStatus.OrderStatusId == _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
+
+            if (orders == null)
+            {
+                return NotFound();
+            }
+
+            foreach (OrdersCl order in orders)
+            {
+                List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
+                order.OrderDetails = relatedOrderDetails;
+                order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
+                order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
+                order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
+                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+            }
+
+            return orders;
+        }
+
+        // PUT: api/Orders
+        [Route("api/[controller]/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet]
+        public async Task<ActionResult> PutOrdersCl(int id)
+        {
+            //Сперва проверяем на физическую возможность смены статуса
+            var order = await _context.OrdersCl.FindAsync(id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+            if (order.OrderStatus.OrderStatusName == "Завершено")
+            {
+                return Forbid();
+            }    
+            
+            //Затем проверяем права на смену статуса
+           // if(order.OrderStatus.)
+
+
+            return Ok();
+            ////Получаем заказы, где владелец токена обозначен как владелец бренда
+            ////+ статус должен быть завершенным
+            //var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+            //                              .Where(e => e.OrderStatus.OrderStatusId == _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
+
+            //if (orders == null)
+            //{
+            //    return NotFound();
+            //}
+
+            //foreach (OrdersCl order in orders)
+            //{
+            //    List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
+            //    order.OrderDetails = relatedOrderDetails;
+            //    order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
+            //    order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
+            //    order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
+            //    order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
+            //    order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+            //}
+
+            //return orders;
         }
 
         // POST: api/Orders
@@ -184,6 +274,7 @@ namespace ApiClick.Controllers
 
             return Ok();
         }
+
         private UserCl identityToUser(IIdentity identity)
         {
             return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);

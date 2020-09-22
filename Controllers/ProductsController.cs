@@ -75,35 +75,34 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/Products/5
-        [Route("api/[controller]/{id}")]
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutProductCl(int id, ProductCl productCl)
+        public async Task<IActionResult> PutProductCl(ProductCl productCl)
         {
-            if (id != productCl.ProductId)
+            if (productCl == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(productCl).State = EntityState.Modified;
-
-            try
+            if (IsItMyProduct(identityToUser(User.Identity), productCl))
             {
-                await _context.SaveChangesAsync();
+                var existingProduct = await _context.ProductCl.FindAsync(productCl.ProductId);
+
+                existingProduct.Description = productCl.Description;
+                existingProduct.ImgId = productCl.ImgId;
+                existingProduct.Price = productCl.Price;
+                existingProduct.PriceDiscount = productCl.PriceDiscount;
+                existingProduct.ProductName = productCl.ProductName;
+
+                _context.SaveChanges();
             }
-            catch (DbUpdateConcurrencyException)
+            else 
             {
-                if (!ProductClExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/Products
@@ -133,11 +132,6 @@ namespace ApiClick.Controllers
         {
             var productCl = await _context.ProductCl.FindAsync(id);
 
-            if (productCl == null)
-            {
-                return NotFound();
-            }
-
             if (!IsItMyProduct(identityToUser(User.Identity), productCl)) 
             {
                 return BadRequest();
@@ -159,16 +153,20 @@ namespace ApiClick.Controllers
         /// </summary>
         private bool IsItMyProduct(UserCl user, ProductCl product)
         {
-            var menu = _context.BrandMenuCl.FirstOrDefault(b => b.BrandMenuId == product.BrandMenuId);
-
-            if (menu == null)
+            var productBuffer = _context.ProductCl.Find(product.ProductId);
+            if (productBuffer == null)
             {
                 return false;
             }
 
-            var brand = _context.BrandCl.FirstOrDefault(m => m.BrandId == menu.BrandId);
+            var menuBuffer = _context.BrandMenuCl.Find(productBuffer.BrandMenuId);
+            if (menuBuffer == null) 
+            {
+                return false;
+            }
 
-            if ((brand == null) || (brand.UserId != identityToUser(User.Identity).UserId))
+            var brandBuffer = _context.BrandCl.Find(menuBuffer.BrandId);
+            if ((brandBuffer == null) || (brandBuffer.UserId != identityToUser(User.Identity).UserId))
             {
                 return false;
             }

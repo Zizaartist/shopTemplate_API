@@ -124,7 +124,7 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.Role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.Role = _context.UserRolesCl.First(r => r.UserRoleName == "User").UserRoleId;
 
                 _context.UserCl.Add(userCl);
                 await _context.SaveChangesAsync();
@@ -144,7 +144,7 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.Role = _context.UserRolesCls.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.Role = _context.UserRolesCl.First(r => r.UserRoleName == "User").UserRoleId;
 
                 _context.UserCl.Add(userCl);
                 await _context.SaveChangesAsync();

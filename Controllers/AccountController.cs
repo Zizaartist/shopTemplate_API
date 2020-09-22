@@ -102,12 +102,12 @@ namespace ApiClick.Controllers
             UserCl user = _context.UserCl.Where(e => e.Login == login).FirstOrDefault(e => e.Password == password);
 
             //if user wasn't found or his role is user = ignore
-            if (user != null && user.Role != _context.UserRolesCls.FirstOrDefault(e => e.UserRoleName == "User").UserRoleId)
+            if (user != null && user.Role != _context.UserRolesCl.FirstOrDefault(e => e.UserRoleName == "User").UserRoleId)
             {
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRolesCls.Find(user.Role).UserRoleName) //probably not safe but eh works fine by me
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRolesCl.Find(user.Role).UserRoleName) //probably not safe but eh works fine by me
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

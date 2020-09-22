@@ -76,35 +76,31 @@ namespace ApiClick.Controllers
         }
 
         // PUT: api/BrandsMenu/5
-        [Route("api/[controller]/{id}")]
+        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutBrandMenuCl(int id, BrandMenuCl brandMenuCl)
+        public async Task<IActionResult> PutBrandMenuCl(BrandMenuCl brandMenuCl)
         {
-            if (id != brandMenuCl.BrandMenuId || brandMenuCl == null)
+            if (brandMenuCl == null)
             {
                 return BadRequest();
             }
 
-            _context.Entry(brandMenuCl).State = EntityState.Modified;
-
-            try
+            if (IsItMyMenu(identityToUser(User.Identity), brandMenuCl))
             {
+                var existingMenu = await _context.BrandMenuCl.FindAsync(brandMenuCl.BrandMenuId);
+
+                existingMenu.BrandMenuName = brandMenuCl.BrandMenuName;
+                existingMenu.ImgId = brandMenuCl.ImgId;
+
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                if (!BrandMenuClExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/BrandsMenu
@@ -134,11 +130,6 @@ namespace ApiClick.Controllers
         {
             var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
 
-            if (brandMenuCl == null)
-            {
-                return NotFound();
-            }
-
             //if menu belongs to user - allow removal
             if (!IsItMyMenu(identityToUser(User.Identity), brandMenuCl))
             {
@@ -159,15 +150,20 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Проверяет является ли меню собственностью этого пользователя
         /// </summary>
-        private bool IsItMyMenu(UserCl user, BrandMenuCl menu) 
+        private bool IsItMyMenu(UserCl user, BrandMenuCl menu)
         {
-            var brand = _context.BrandCl.FirstOrDefault(b => b.BrandId == menu.BrandId);
-
-            if ((brand == null) || (brand.UserId != user.UserId))
+            var menuBuffer = _context.BrandMenuCl.Find(menu.BrandMenuId);
+            if (menuBuffer == null)
             {
                 return false;
             }
-            else 
+
+            var brandBuffer = _context.BrandCl.Find(menuBuffer.BrandId);
+            if ((brandBuffer == null) || (brandBuffer.UserId != identityToUser(User.Identity).UserId))
+            {
+                return false;
+            }
+            else
             {
                 return true;
             }
@@ -178,7 +174,7 @@ namespace ApiClick.Controllers
         /// </summary>
         private bool SameNameMenu(BrandMenuCl menu) 
         {
-            return _context.BrandMenuCl.Where(m => m.BrandId == menu.BrandId).Any(m => m.Description == menu.Description);
+            return _context.BrandMenuCl.Where(m => m.BrandId == menu.BrandId).Any(m => m.BrandMenuName == menu.BrandMenuName);
         }
 
         private bool BrandMenuClExists(int id)
