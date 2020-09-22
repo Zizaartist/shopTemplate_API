@@ -71,6 +71,32 @@ namespace ApiClick.Controllers
             return imageRegisters; 
         }
 
+        [Route("api/AddFile")]
+        [HttpPost]
+        //api/<FilesController>
+        public async Task<ActionResult<List<ImageCl>>> AddFile(Stream uploadedFile)
+        {
+            List<ImageCl> imageRegisters = new List<ImageCl>();
+            if (uploadedFile != null)
+            {
+                string path = Path.GetFileNameWithoutExtension(Path.GetTempFileName()) + ".png";
+                using (var fileStream = new FileStream(_appEnvironment.WebRootPath + "/Images/" + path, FileMode.Create))
+                {
+                    await uploadedFile.CopyToAsync(fileStream);
+                }
+                // создаем энтити image для учета файла, чтобы срач с блоба быстрее убирать
+                var imageEntity = new ImageCl()
+                {
+                    UserId = identityToUser(User.Identity).UserId,
+                    Path = path
+                };
+                _context.ImageCl.Add(imageEntity);
+                imageRegisters.Add(imageEntity);
+                await _context.SaveChangesAsync();
+            }
+            return imageRegisters;
+        }
+
         private UserCl identityToUser(IIdentity identity)
         {
             return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
