@@ -1,4 +1,5 @@
 ﻿using ApiClick.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -122,6 +123,22 @@ namespace ApiClick.Controllers
 
 
             return BadRequest();
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [Route("api/CacheCheck")]
+        [HttpPost]
+        public async Task<ActionResult<string>> CacheCheck(string phone)
+        {
+            try
+            {
+                string value = cache.Get<string>(phone);
+                return value;
+            }
+            catch (Exception) 
+            {
+                return BadRequest();
+            }
         }
 
         public static bool IsPhoneNumber(string number)
