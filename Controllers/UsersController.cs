@@ -10,6 +10,7 @@ using ApiClick.Models;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ApiClick.Controllers
 {
@@ -17,6 +18,12 @@ namespace ApiClick.Controllers
     public class UsersController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        IMemoryCache _cache;
+
+        public UsersController(IMemoryCache memoryCache)
+        {
+            _cache = memoryCache;
+        }
 
         // GET: api/Users
         [Route("api/[controller]")]
@@ -106,28 +113,58 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
+        // Регистрация пользователей
         // POST: api/Users
         [Route("api/[controller]")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> PostUserCl(UserCl userCl)
+        public async Task<ActionResult<UserCl>> PostUserCl(UserCl userCl, string code)
         {
             if (userCl == null)
             {
                 return BadRequest();
+            }
 
+            string localCode;
+            try
+            {
+                localCode = _cache.Get<string>(userCl.Phone);
+            }
+            catch (Exception) 
+            {
+                return BadRequest(new { errorText = "Ошибка при извлечении из кэша." });
+            }
+
+            if (localCode == null)
+            {
+                return BadRequest(new { errorText = "Устаревший или отсутствующий код." });
+            }
+            else 
+            {
+                if (localCode != code)
+                {
+                    return BadRequest(new { errorText = "Ошибка. Получен неверный код. Подтвердите номер еще раз." });
+                }
             }
 
             if (_context.UserCl.Any(x => x.Phone == userCl.Phone))
             {
-                return BadRequest(); //prob wrong code 
+                return BadRequest(new { errorText = "Такой номер уже зарегистрирован" });
             }
             else
             {
                 userCl.CreatedDate = DateTime.Now;
                 userCl.Role = _context.UserRolesCl.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.Points = 0;
 
                 _context.UserCl.Add(userCl);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception) 
+                {
+                    return Forbid();
+                }
                 return Ok();
             }
         }

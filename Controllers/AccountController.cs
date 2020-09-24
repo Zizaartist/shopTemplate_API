@@ -16,12 +16,11 @@ namespace ApiClick.Controllers
 {
     public class AccountController : Controller
     {
-
-        private IMemoryCache cache;
+        private IMemoryCache _cache;
 
         public AccountController(IMemoryCache memoryCache)
         {
-            cache = memoryCache;
+            _cache = memoryCache;
         }
 
         [Route("api/UserToken")]
@@ -98,7 +97,7 @@ namespace ApiClick.Controllers
                     //HttpClient client = new HttpClient();
                     //HttpResponseMessage response = await client.GetAsync("https://smsc.ru/sys/send.php?login=syberia&psw=K1e2s3k4i5l6&phones=" + PhoneLoc + "&mes=" + randomNumer);
                     //await response.Content.ReadAsStringAsync();
-                    cache.Set(phone, randomNumber, new MemoryCacheEntryOptions
+                    _cache.Set(phone, randomNumber, new MemoryCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
                     });
@@ -116,7 +115,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public IActionResult CodeCheck(string code, string phone)
         {
-            if (code == cache.Get(phone).ToString())
+            if (code == _cache.Get(phone).ToString())
             {
                 return Ok();
             }
@@ -132,7 +131,7 @@ namespace ApiClick.Controllers
         {
             try
             {
-                string value = cache.Get<string>(phone);
+                string value = _cache.Get<string>(phone);
                 return value;
             }
             catch (Exception) 
