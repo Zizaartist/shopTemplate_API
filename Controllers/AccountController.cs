@@ -1,17 +1,28 @@
 ﻿using ApiClick.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
 {
     public class AccountController : Controller
     {
+
+        private IMemoryCache cache;
+
+        public AccountController(IMemoryCache memoryCache)
+        {
+            cache = memoryCache;
+        }
+
         [Route("api/UserToken")]
         [HttpPost]
         public IActionResult UserToken(string phone)
@@ -70,6 +81,48 @@ namespace ApiClick.Controllers
             };
 
             return Json(response);
+        }
+
+        [Route("api/SmsCheck")]
+        [HttpPost]
+        public IActionResult SmsCheck(string phone)
+        {
+            Random rand = new Random();
+            string randomNumber = rand.Next(1000, 9999).ToString();
+            string PhoneLoc = phone;
+            if (phone != null)
+            {
+                if (IsPhoneNumber(PhoneLoc))
+                {
+                    cache.Set(1, randomNumber, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                    });
+                    //HttpClient client = new HttpClient();
+                    //HttpResponseMessage response = await client.GetAsync("https://smsc.ru/sys/send.php?login=syberia&psw=K1e2s3k4i5l6&phones=" + PhoneLoc + "&mes=" + randomNumer);
+                    //await response.Content.ReadAsStringAsync();
+                }
+            }
+
+            return Ok();
+        }
+
+        [Route("api/CodeCheck")]
+        [HttpPost]
+        public IActionResult CodeCheck(string code)
+        {
+            if (code == cache.Get(1).ToString())
+            {
+                return Ok();
+            }
+
+
+            return BadRequest();
+        }
+
+        public static bool IsPhoneNumber(string number)
+        {
+            return Regex.Match(number, @"^(\+*[0-9]{11})$").Success;
         }
 
         //identity with user rights
