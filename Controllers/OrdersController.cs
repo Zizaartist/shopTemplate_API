@@ -68,6 +68,10 @@ namespace ApiClick.Controllers
             {
                 List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
                 order.OrderDetails = relatedOrderDetails;
+                foreach (OrderDetailCl detail in order.OrderDetails) 
+                {
+                    detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
+                }
                 var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -90,6 +94,25 @@ namespace ApiClick.Controllers
                 order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
                 order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                order.User = null;
+                foreach (BrandCl brand in order.BrandOwner.Brands) 
+                {
+                    brand.User = null;
+                    brand.ImgLogo.User = null;
+                    brand.ImgBanner.User = null;
+                }
+                foreach (OrderDetailCl detail in order.OrderDetails) 
+                {
+                    detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
+                    detail.Product.Image.User = null;
+                }
+
             }
 
             return orders;
@@ -115,11 +138,33 @@ namespace ApiClick.Controllers
             {
                 List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
                 order.OrderDetails = relatedOrderDetails;
+                foreach (OrderDetailCl detail in order.OrderDetails)
+                {
+                    detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
+                }
                 order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
                 order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
                 order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
                 order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                order.User = null;
+                foreach (BrandCl brand in order.BrandOwner.Brands)
+                {
+                    brand.User = null;
+                    brand.ImgLogo.User = null;
+                    brand.ImgBanner.User = null;
+                }
+                foreach (OrderDetailCl detail in order.OrderDetails)
+                {
+                    detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
+                    detail.Product.Image.User = null;
+                }
             }
 
             return orders;
@@ -145,11 +190,33 @@ namespace ApiClick.Controllers
             {
                 List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
                 order.OrderDetails = relatedOrderDetails;
+                foreach (OrderDetailCl detail in order.OrderDetails)
+                {
+                    detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
+                }
                 order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
                 order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
                 order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
                 order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                order.User = null;
+                foreach (BrandCl brand in order.BrandOwner.Brands)
+                {
+                    brand.User = null;
+                    brand.ImgLogo.User = null;
+                    brand.ImgBanner.User = null;
+                }
+                foreach (OrderDetailCl detail in order.OrderDetails)
+                {
+                    detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
+                    detail.Product.Image.User = null;
+                }
             }
 
             return orders;
