@@ -308,19 +308,19 @@ namespace ApiClick.Controllers
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
 
-            List<OrderDetailCl> locallyStoredValues = ordersCl.OrderDetails.ToList();
-            //upload details to DB
-            foreach (OrderDetailCl orderDetail in locallyStoredValues) 
-            {   
-                _context.OrderDetailCl.Add(new OrderDetailCl() 
-                {
-                    OrderId = orderDetail.OrderId,
-                    ProductId = orderDetail.ProductId,
-                    Price = (await _context.ProductCl.FindAsync(orderDetail.ProductId)).Price
-                });
-                await _context.SaveChangesAsync();
-            }
-
+            //List<OrderDetailCl> locallyStoredValues = ordersCl.OrderDetails.ToList();
+            ////upload details to DB
+            //foreach (OrderDetailCl orderDetail in locallyStoredValues) 
+            //{   
+            //    _context.OrderDetailCl.Add(new OrderDetailCl() 
+            //    {
+            //        OrderId = orderDetail.OrderId,
+            //        ProductId = orderDetail.ProductId,
+            //        Price = (await _context.ProductCl.FindAsync(orderDetail.ProductId)).Price,
+            //        Count = orderDetail.Count
+            //    });
+            //    await _context.SaveChangesAsync();
+            //}
             return Ok();
         }
 
