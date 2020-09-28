@@ -342,3 +342,7 @@ C:\Users\Syberia-7\source\repos\ClickAPI\obj\Release\netcoreapp3.1\staticwebasse
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Release\netcoreapp3.1\ApiClick.dll
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Release\netcoreapp3.1\ApiClick.pdb
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Release\netcoreapp3.1\ApiClick.genruntimeconfig.cache
+C:\Users\Syberia-7\source\repos\ClickAPI\bin\Release\netcoreapp3.1\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\Syberia-7\source\repos\ClickAPI\bin\Release\netcoreapp3.1\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+C:\Users\Syberia-7\source\repos\ClickAPI\bin\Release\netcoreapp3.1\Newtonsoft.Json.Bson.dll
+C:\Users\Syberia-7\Source\Repos\ClickAPI\bin\Release\netcoreapp3.1\Microsoft.Azure.NotificationHubs.dll

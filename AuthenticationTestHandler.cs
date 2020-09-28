@@ -4,13 +4,21 @@ using System.Security.Principal;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using System;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace ApiClick
 {
     public class AuthenticationTestHandler : DelegatingHandler
     {
+        private readonly IHttpContextAccessor _contextAccessor;
+
+        public AuthenticationTestHandler(IHttpContextAccessor contextAccessor)
+        {
+            _contextAccessor = contextAccessor;
+        }
+
         protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -29,10 +37,10 @@ namespace ApiClick
                 if (VerifyUserAndPwd(user, password))
                 {
                     // Attach the new principal object to the current HttpContext object
-                    HttpContext.Current.User =
+                    _contextAccessor.HttpContext.User =
                         new GenericPrincipal(new GenericIdentity(user), new string[0]);
                     System.Threading.Thread.CurrentPrincipal =
-                        System.Web.HttpContext.Current.User;
+                        _contextAccessor.HttpContext.User;
                 }
                 else return Unauthorized();
             }

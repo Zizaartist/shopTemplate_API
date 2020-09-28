@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.NotificationHubs;
 using Microsoft.Azure.NotificationHubs.Messaging;
 using System.Collections.Generic;
@@ -9,11 +10,19 @@ using System.Web;
 
 namespace ApiClick.Controllers
 {
-    public class NotificationsController
+    [ApiController]
+    public class NotificationsController : ControllerBase
     {
+        private readonly IHttpContextAccessor _contextAccessor;
+
+        public NotificationsController(IHttpContextAccessor contextAccessor)
+        {
+            _contextAccessor = contextAccessor;
+        }
+
         public async Task<HttpResponseMessage> Post(string pns, [FromBody] string message, string to_tag)
         {
-            var user = HttpContext.Current.User.Identity.Name;
+            var user = _contextAccessor.HttpContext.User.Identity.Name;
             string[] userTag = new string[2];
             userTag[0] = "username:" + to_tag;
             userTag[1] = "from:" + user;
@@ -50,7 +59,7 @@ namespace ApiClick.Controllers
                 }
             }
 
-            return Request.CreateResponse(ret);
+            return new HttpResponseMessage(ret);
         }
     }
 }

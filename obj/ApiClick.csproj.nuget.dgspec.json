@@ -50,6 +50,10 @@
               "target": "Package",
               "version": "[3.1.8, )"
             },
+            "Microsoft.Azure.NotificationHubs": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[3.1.6, )"

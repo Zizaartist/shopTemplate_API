@@ -516,5 +516,6 @@ C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\Serv
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.JsonPatch.dll
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
-C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csproj.CoreCompileInputs.cache
-C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Syberia-7\Source\Repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.Azure.NotificationHubs.dll
+C:\Users\Syberia-7\Source\Repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csproj.CoreCompileInputs.cache
+C:\Users\Syberia-7\Source\Repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.MvcApplicationPartsAssemblyInfo.cache

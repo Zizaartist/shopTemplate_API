@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ApiClick.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.NotificationHubs;
 using Microsoft.Azure.NotificationHubs.Messaging;
 using System;
@@ -10,25 +13,23 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
 {
-    public class NotificationsRegistrationController
+    [ApiController]
+    public class NotificationsRegistrationController : ControllerBase
     {
-
+        private readonly IHttpContextAccessor _contextAccessor;
         private NotificationHubClient hub;
 
-        public NotificationsRegistrationController()
+        public NotificationsRegistrationController(IHttpContextAccessor contextAccessor)
         {
-            hub = Notifications.Instance.Hub;
-        }
-
-        public class DeviceRegistration
-        {
-            public string Platform { get; set; }
-            public string Handle { get; set; }
-            public string[] Tags { get; set; }
+            hub = Notifications.Instance.Hub; 
+            _contextAccessor = contextAccessor;
         }
 
         // POST api/register
         // This creates a registration id
+        [Route("api/[controller]")]
+        [Authorize(Roles = "User, Admin, SuperAdmin")]
+        [HttpPost]
         public async Task<string> Post(string handle = null)
         {
             string newRegistrationId = null;
@@ -81,7 +82,7 @@ namespace ApiClick.Controllers
             }
 
             registration.RegistrationId = id;
-            var username = HttpContext.Current.User.Identity.Name;
+            var username = _contextAccessor.HttpContext.User.Identity.Name;
 
             // add check if user is allowed to add these tags
             registration.Tags = new HashSet<string>(deviceUpdate.Tags);

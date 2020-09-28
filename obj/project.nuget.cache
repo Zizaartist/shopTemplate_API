@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "uI2uXC448YEqU+/uESrKtY8qEdKzEzeBxYS+K+M/cxbdYLY7RnjlYRIU57j279/WJj5KsiK809gWP6+O0fEICw==",
+  "dgSpecHash": "njPXoULEVwK8aKIvTomgCA+yDiMiGz4xxrqtWD2/pz2cAajoehql0HTHzdbG5mBrjjaf36BAOm4t15YbwlBzCw==",
   "success": true,
   "projectFilePath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
   "expectedPackageFiles": [
@@ -11,6 +11,7 @@
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.aspnetcore.razor\\2.2.0\\microsoft.aspnetcore.razor.2.2.0.nupkg.sha512",
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.aspnetcore.razor.language\\3.1.0\\microsoft.aspnetcore.razor.language.3.1.0.nupkg.sha512",
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.aspnetcore.razor.runtime\\2.2.0\\microsoft.aspnetcore.razor.runtime.2.2.0.nupkg.sha512",
+    "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.azure.notificationhubs\\4.0.0\\microsoft.azure.notificationhubs.4.0.0.nupkg.sha512",
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.bcl.hashcode\\1.1.0\\microsoft.bcl.hashcode.1.1.0.nupkg.sha512",
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\2.9.4\\microsoft.codeanalysis.analyzers.2.9.4.nupkg.sha512",
