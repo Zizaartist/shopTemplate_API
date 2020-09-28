@@ -28,8 +28,9 @@ namespace ApiClick.Controllers
         // POST api/register
         // This creates a registration id
         [Route("api/[controller]")]
-        [Authorize(Roles = "User, Admin, SuperAdmin")]
+        //[Authorize(Roles = "User, Admin, SuperAdmin")]
         [HttpPost]
+        //Handle содержит в себе токен, который пользователь получил от firebase
         public async Task<string> Post(string handle = null)
         {
             string newRegistrationId = null;
@@ -60,6 +61,9 @@ namespace ApiClick.Controllers
 
         // PUT api/register/5
         // This creates or updates a registration (with provided channelURI) at the specified id
+        [Route("api/[controller]")]
+        //[Authorize(Roles = "User, Admin, SuperAdmin")]
+        [HttpPut]
         public async Task<HttpResponseMessage> Put(string id, DeviceRegistration deviceUpdate)
         {
             RegistrationDescription registration = null;
@@ -82,11 +86,10 @@ namespace ApiClick.Controllers
             }
 
             registration.RegistrationId = id;
-            var username = _contextAccessor.HttpContext.User.Identity.Name;
 
             // add check if user is allowed to add these tags
             registration.Tags = new HashSet<string>(deviceUpdate.Tags);
-            registration.Tags.Add("username:" + username);
+            registration.Tags.Add("username:" + id);
 
             try
             {
@@ -101,6 +104,9 @@ namespace ApiClick.Controllers
         }
 
         // DELETE api/register/5
+        [Route("api/[controller]")]
+        //[Authorize(Roles = "User, Admin, SuperAdmin")]
+        [HttpDelete]
         public async Task<HttpResponseMessage> Delete(string id)
         {
             await hub.DeleteRegistrationAsync(id);
