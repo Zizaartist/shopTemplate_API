@@ -10,6 +10,7 @@ using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using Microsoft.EntityFrameworkCore.Internal;
+using ApiClick.Models.EnumModels;
 
 namespace ApiClick.Controllers
 {
@@ -225,7 +226,7 @@ namespace ApiClick.Controllers
         // PUT: api/Orders
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet]
+        [HttpPut]
         public async Task<ActionResult> PutOrdersCl(int id)
         {
 
@@ -248,11 +249,15 @@ namespace ApiClick.Controllers
             int userRole = identityToUser(User.Identity).Role;
             int statusId = order.StatusId;
             statusId++;
-            if (order.OrderStatus.MasterRoleId == userRole)
+            OrderStatusCl orderStatusCl = await _context.OrderStatusCl.FindAsync(statusId);
+
+            if (orderStatusCl.MasterRoleId == userRole /*|| userRole == 3*/)
             {
-                order.StatusId = statusId;
+                order.StatusId++;
+                order.OrderStatus = orderStatusCl;
             }
 
+            await _context.SaveChangesAsync();
 
             return Ok();
             ////Получаем заказы, где владелец токена обозначен как владелец бренда
