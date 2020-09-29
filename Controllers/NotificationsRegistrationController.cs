@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
@@ -18,6 +19,7 @@ namespace ApiClick.Controllers
     {
         private readonly IHttpContextAccessor _contextAccessor;
         private NotificationHubClient hub;
+        ClickContext _context = new ClickContext();
 
         public NotificationsRegistrationController(IHttpContextAccessor contextAccessor)
         {
@@ -62,7 +64,7 @@ namespace ApiClick.Controllers
         // PUT api/register/5
         // This creates or updates a registration (with provided channelURI) at the specified id
         [Route("api/[controller]")]
-        //[Authorize(Roles = "User, Admin, SuperAdmin")]
+        [Authorize(Roles = "User, Admin, SuperAdmin")]
         [HttpPut]
         public async Task<HttpResponseMessage> Put(string id, DeviceRegistration deviceUpdate)
         {
@@ -90,7 +92,10 @@ namespace ApiClick.Controllers
             // add check if user is allowed to add these tags
             registration.Tags = new HashSet<string>(deviceUpdate.Tags);
             registration.Tags.Add("username:" + id);
-
+            var userCl = identityToUser(User.Identity);
+            userCl.DeviceType = deviceUpdate.Platform;
+            userCl.NotificationRegistration = "username:" + id;
+            await _context.SaveChangesAsync();
             try
             {
                 await hub.CreateOrUpdateRegistrationAsync(registration);
@@ -122,6 +127,11 @@ namespace ApiClick.Controllers
                 if (response.StatusCode == HttpStatusCode.Gone)
                     throw new HttpRequestException(HttpStatusCode.Gone.ToString());
             }
+        }
+
+        private UserCl identityToUser(IIdentity identity)
+        {
+            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
     }
 }

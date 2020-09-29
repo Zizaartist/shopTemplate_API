@@ -23,6 +23,8 @@ namespace ApiClick.Models
         public int Points { get; set; }
 
         //Nullable
+        public string NotificationRegistration { get; set; }
+        public string DeviceType { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
         public string Name { get; set; }

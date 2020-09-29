@@ -14,10 +14,10 @@ namespace ApiClick.Controllers
     {
         private readonly IHttpContextAccessor _contextAccessor;
 
-        public NotificationsController(IHttpContextAccessor contextAccessor)
-        {
-            _contextAccessor = contextAccessor;
-        }
+        //public NotificationsController(IHttpContextAccessor contextAccessor)
+        //{
+        //    _contextAccessor = contextAccessor;
+        //}
 
         /// <summary>
         /// Sends notifications
@@ -65,6 +65,23 @@ namespace ApiClick.Controllers
             }
 
             return new HttpResponseMessage(ret);
+        }
+
+        public async Task ToSendNotificationAsync(string pns, string message, string userTag)
+        {
+            switch (pns.ToLower())
+            {
+                case "apns":
+                    // iOS
+                    var alert = "{\"aps\":{\"alert\":\"" + "From " + userTag + ": " + message + "\"}}";
+                    await Notifications.Instance.Hub.SendAppleNativeNotificationAsync(alert, userTag);
+                    break;
+                case "fcm":
+                    // Android
+                    var notif = "{ \"data\" : {\"message\":\"" + "From " + userTag + ": " + message + "\"}}";
+                    await Notifications.Instance.Hub.SendFcmNativeNotificationAsync(notif, userTag);
+                    break;
+            }
         }
     }
 }
