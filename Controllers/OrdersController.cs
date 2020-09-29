@@ -327,6 +327,7 @@ namespace ApiClick.Controllers
                 pointsController.CreatePointRegister(ordersCl.User, ordersCl);
             }
 
+            ordersCl.BrandOwner = await _context.UserCl.FindAsync(ordersCl.BrandOwnerId);
             NotificationsController notificationsController = new NotificationsController();
             await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
 
