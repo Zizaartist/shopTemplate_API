@@ -228,6 +228,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult> PutOrdersCl(int id)
         {
+
             //Сперва проверяем на физическую возможность смены статуса
             var order = await _context.OrdersCl.FindAsync(id);
 
@@ -240,10 +241,17 @@ namespace ApiClick.Controllers
             if (order.OrderStatus.OrderStatusName == "Завершено")
             {
                 return Forbid();
-            }    
-            
+            }
+
             //Затем проверяем права на смену статуса
-           // if(order.OrderStatus.)
+            // if(order.OrderStatus.)
+            int userRole = identityToUser(User.Identity).Role;
+            int statusId = order.StatusId;
+            statusId++;
+            if (order.OrderStatus.MasterRoleId == userRole)
+            {
+                order.StatusId = statusId;
+            }
 
 
             return Ok();
@@ -307,6 +315,15 @@ namespace ApiClick.Controllers
 
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
+
+            if (ordersCl.PointsUsed)
+            {
+                PointsController pointsController = new PointsController();
+                pointsController.CreatePointRegister(ordersCl.User, ordersCl);
+            }
+
+            NotificationsController notificationsController = new NotificationsController();
+            await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
 
             //List<OrderDetailCl> locallyStoredValues = ordersCl.OrderDetails.ToList();
             ////upload details to DB
