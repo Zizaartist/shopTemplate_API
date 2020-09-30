@@ -256,7 +256,10 @@ namespace ApiClick.Controllers
                 order.StatusId++;
                 order.OrderStatus = orderStatusCl;
             }
-
+            else
+            {
+                return Unauthorized();
+            }
             await _context.SaveChangesAsync();
 
             return Ok();

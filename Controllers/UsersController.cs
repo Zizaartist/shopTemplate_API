@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
+using System.Security.Principal;
 
 namespace ApiClick.Controllers
 {
@@ -71,6 +72,47 @@ namespace ApiClick.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!UserClExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Route("api/ChangeNumber")]
+        [HttpPut]
+        public async Task<IActionResult> ChangeUserNumber(string newPhoneNumber, string code)
+        {
+            var userCl = identityToUser(User.Identity);
+            if (userCl == null)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(userCl).State = EntityState.Modified;
+            if (_cache.Get(newPhoneNumber).ToString() == code)
+            {
+                userCl.Phone = newPhoneNumber;
+            }
+
+            else
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserClExists(userCl.UserId))
                 {
                     return NotFound();
                 }
@@ -192,6 +234,11 @@ namespace ApiClick.Controllers
         private bool UserClExists(int id)
         {
             return _context.UserCl.Any(e => e.UserId == id);
+        }
+
+        private UserCl identityToUser(IIdentity identity)
+        {
+            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
     }
 }
