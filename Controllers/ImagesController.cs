@@ -28,7 +28,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<List<ImageCl>>> PostImage(IFormFileCollection uploadedFiles)
         {
-            if (uploadedFiles == null) 
+            if (uploadedFiles == null || uploadedFiles.Count < 1) 
             {
                 return BadRequest();
             }
