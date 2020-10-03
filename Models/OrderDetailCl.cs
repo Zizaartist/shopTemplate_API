@@ -18,7 +18,7 @@ namespace ApiClick.Models
 
         //Nullable
         public int? ProductId { get; set; }
-        public int? Price { get; set; }
+        public Decimal Price { get; set; }
 
         public ProductCl Product { get; set; }
         public OrdersCl Order { get; set; }

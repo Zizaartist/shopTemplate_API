@@ -14,7 +14,7 @@ namespace ApiClick.Models.RegisterModels
         public int PointRegisterId { get; set; }
         public int OrderId { get; set; }
         public int OwnerId { get; set; }
-        public int Points { get; set; }
+        public Decimal Points { get; set; }
         /// <summary>
         /// Указывает на завершенность траты баллов, true - лишь в случае успешного выполнения
         /// </summary>

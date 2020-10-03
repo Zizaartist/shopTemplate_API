@@ -12,10 +12,10 @@ namespace ApiClick.Models
         //Not nullable
         public int ProductId { get; set; }
         public int BrandMenuId { get; set; }
-        public int Price { get; set; }
+        public Decimal Price { get; set; }
+        public int ImgId { get; set; }
 
         //Nullable
-        public int ImgId { get; set; }
         public string ProductName { get; set; }
         public string Description { get; set; }
         public int? PriceDiscount { get; set; }

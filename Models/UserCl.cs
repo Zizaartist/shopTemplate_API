@@ -20,7 +20,7 @@ namespace ApiClick.Models
         public int UserId { get; set; } 
         public string Phone { get; set; }
         public int Role { get; set; }
-        public int Points { get; set; }
+        public Decimal Points { get; set; }
 
         //Nullable
         public string NotificationRegistration { get; set; }
