@@ -58,7 +58,9 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<OrdersCl>>> GetMyOrders()
         {
-            var orders = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId).ToList();
+            //Находит заказы принадлежащие пользователю и отсеивает заказы со статусом "Завершенный"
+            var orders = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId &&
+                                                        e.StatusId != _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
             if (orders == null)
             {
@@ -229,7 +231,6 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<ActionResult> PutOrdersCl(int id)
         {
-
             //Сперва проверяем на физическую возможность смены статуса
             var order = await _context.OrdersCl.FindAsync(id);
 
@@ -244,17 +245,24 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            //Затем проверяем права на смену статуса
-            // if(order.OrderStatus.)
-            int userRole = identityToUser(User.Identity).Role;
-            int statusId = order.StatusId;
-            statusId++;
-            OrderStatusCl orderStatusCl = await _context.OrderStatusCl.FindAsync(statusId);
+            //Только пользователь и владелец бренда имеют доступ к смене статуса
+            var identity = identityToUser(User.Identity);
+            if (!(order.UserId == identity.UserId || order.BrandOwnerId == identity.UserId)) 
+            {
+                return Forbid();
+            }
 
-            if (orderStatusCl.MasterRoleId == userRole /*|| userRole == 3*/)
+            //Затем проверяем права на смену статуса
+            int userRole = identityToUser(User.Identity).Role;
+            int futureStatusId = order.StatusId + 1;
+            OrderStatusCl futureOrderStatusCl = await _context.OrderStatusCl.FindAsync(futureStatusId);
+
+            //Изменить статус могут лишь указанная роль или суперАдмин
+            if (userRole == futureOrderStatusCl.MasterRoleId || 
+                userRole == _context.UserRolesCl.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
             {
                 order.StatusId++;
-                order.OrderStatus = orderStatusCl;
+                order.OrderStatus = futureOrderStatusCl;
             }
             else
             {
@@ -263,28 +271,6 @@ namespace ApiClick.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
-            ////Получаем заказы, где владелец токена обозначен как владелец бренда
-            ////+ статус должен быть завершенным
-            //var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
-            //                              .Where(e => e.OrderStatus.OrderStatusId == _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
-
-            //if (orders == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //foreach (OrdersCl order in orders)
-            //{
-            //    List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
-            //    order.OrderDetails = relatedOrderDetails;
-            //    order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
-            //    order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
-            //    order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
-            //    order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
-            //    order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-            //}
-
-            //return orders;
         }
 
         // POST: api/Orders
