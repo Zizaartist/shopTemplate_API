@@ -67,20 +67,19 @@ namespace ApiClick.Controllers
             return new HttpResponseMessage(ret);
         }
 
-        public async Task ToSendNotificationAsync(string pns, string message, string userTag)
+        public async Task<NotificationOutcome> ToSendNotificationAsync(string pns, string message, string userTag)
         {
             switch (pns.ToLower())
             {
                 case "apns":
                     // iOS
                     var alert = "{\"aps\":{\"alert\":\"" + "From " + userTag + ": " + message + "\"}}";
-                    await Notifications.Instance.Hub.SendAppleNativeNotificationAsync(alert, userTag);
-                    break;
+                    return await Notifications.Instance.Hub.SendAppleNativeNotificationAsync(alert, userTag);
                 case "fcm":
                     // Android
                     var notif = "{ \"data\" : {\"message\":\"" + "From " + userTag + ": " + message + "\"}}";
-                    await Notifications.Instance.Hub.SendFcmNativeNotificationAsync(notif, userTag);
-                    break;
+                    return await Notifications.Instance.Hub.SendFcmNativeNotificationAsync(notif, userTag);
+                default: return null;
             }
         }
     }

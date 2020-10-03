@@ -254,6 +254,13 @@ namespace ApiClick
                     .HasForeignKey(e => e.BrandOwnerId)
                     .HasConstraintName("FK_OrderCl_BrandOwnerId")
                     .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.PointRegister)
+                    .WithOne(e => e.Order)
+                    .HasForeignKey<OrdersCl>(e => e.PointRegisterId)
+                    .HasConstraintName("FK_OrderCl_PointRegisterId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
             });
 
             modelBuilder.Entity<OrderDetailCl>(entity =>

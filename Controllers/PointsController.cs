@@ -12,45 +12,66 @@ namespace ApiClick.Controllers
     public class PointsController
     {
         ClickContext _context = new ClickContext();
+        const decimal pointsCoef = 0.05m;
 
-        public async void CreatePointRegister(UserCl user, OrdersCl order)
+        /// <summary>
+        /// Снятие баллов со счета клиента и создание записи в регистре
+        /// </summary>
+        /// <returns>Остаток, который нужно оплатить другими средствами</returns>
+        public async Task<PointRegister> CreatePointRegister(UserCl user, OrdersCl order)
         {
-            int points = order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
+            decimal pointsSum = order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
+            decimal points = pointsSum;
             if (user.Points < points)
             {
                 points = user.Points;
             }
-            var pointRegister = new PointRegister();
-            pointRegister.Owner = user;
-            pointRegister.Order = order;
-            pointRegister.Points = points;
-            _context.PointRegisterCl.Add(pointRegister);
-            await _context.SaveChangesAsync();
+            PointRegister register = new PointRegister
+            {
+                OwnerId = user.UserId,
+                OrderId = order.OrdersId,
+                Points = points,
+                TransactionCompleted = false
+            };
+            _context.PointRegisterCl.Add(register);
+            try
+            {
+                await _context.SaveChangesAsync();
+                order.User.Points -= points;
+            }
+            catch 
+            {
+                return null;
+            }
+
+            return register;
         }
 
+        /// <summary>
+        /// Один из возможных исходов процесса выполнения заказа
+        /// передача баллов владельцу бренда, начисление клиенту баллов, если была произведена оплата другими средствами
+        /// </summary>
         public async void RemovePoints(PointRegister pointRegister)
         {
-            pointRegister.Owner.Points -= pointRegister.Points;
             pointRegister.Order.BrandOwner.Points += pointRegister.Points;
-            int summ = pointRegister.Order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
-            float moneySumm = summ - pointRegister.Points;
-            pointRegister.Owner.Points += Convert.ToInt32(moneySumm*0.05);
+            decimal sum = pointRegister.Order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
+            decimal moneySum = sum - pointRegister.Points;
+            pointRegister.Owner.Points += Convert.ToInt32(moneySum * pointsCoef);
+            
             var register = await _context.PointRegisterCl.FindAsync(pointRegister.PointRegisterId);
-            if (register != null)
-            {
-                _context.PointRegisterCl.Remove(register);
-            }
+            register.TransactionCompleted = true;
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Один из возможных исходов процесса выполнения заказа
+        /// возврат баллов клиенту
+        /// </summary>
         public async void ReturnPoints(PointRegister pointRegister)
         {
             pointRegister.Owner.Points += pointRegister.Points;
             var register = await _context.PointRegisterCl.FindAsync(pointRegister.PointRegisterId);
-            if (register != null)
-            {
-                _context.PointRegisterCl.Remove(register);
-            }
+            register.TransactionCompleted = true;
             await _context.SaveChangesAsync();
         }
     }

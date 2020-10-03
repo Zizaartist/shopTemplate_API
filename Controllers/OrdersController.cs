@@ -297,6 +297,16 @@ namespace ApiClick.Controllers
             ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
             ordersCl.UserId = identityToUser(User.Identity).UserId;
             ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
+            if (ordersCl.PointsUsed)
+            {
+                PointsController pointsController = new PointsController();
+                var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
+                if (register == null) 
+                {
+                    return BadRequest();
+                }
+                ordersCl.PointRegisterId = register.PointRegisterId;
+            }
 
             //TODO!!!!!!!!!!!!!!!!!
             //TODO!!!!!!!!!!!!!!!!!
@@ -310,29 +320,11 @@ namespace ApiClick.Controllers
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
 
-            if (ordersCl.PointsUsed)
-            {
-                PointsController pointsController = new PointsController();
-                pointsController.CreatePointRegister(ordersCl.User, ordersCl);
-            }
 
             ordersCl.BrandOwner = await _context.UserCl.FindAsync(ordersCl.BrandOwnerId);
             NotificationsController notificationsController = new NotificationsController();
             await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
 
-            //List<OrderDetailCl> locallyStoredValues = ordersCl.OrderDetails.ToList();
-            ////upload details to DB
-            //foreach (OrderDetailCl orderDetail in locallyStoredValues) 
-            //{   
-            //    _context.OrderDetailCl.Add(new OrderDetailCl() 
-            //    {
-            //        OrderId = orderDetail.OrderId,
-            //        ProductId = orderDetail.ProductId,
-            //        Price = (await _context.ProductCl.FindAsync(orderDetail.ProductId)).Price,
-            //        Count = orderDetail.Count
-            //    });
-            //    await _context.SaveChangesAsync();
-            //}
             return Ok();
         }
 
