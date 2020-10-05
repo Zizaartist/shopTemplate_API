@@ -36,6 +36,59 @@ namespace ApiClick.Controllers
             return brands;
         }
 
+        // POST: api/GetBrandsByFilter/5
+        [Route("api/GetMyBrandsByFilter/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpPost]
+        public async Task<ActionResult<List<BrandCl>>> GetBrandsByFilter(int id, List<string> HashTagsStrings)
+        {
+            //HashTagsStrings.Add("");
+            var brands = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
+            for (int i = 0; i < HashTagsStrings.Count; i++)
+            {
+                brands = brands.Where(p => HashTagsStrings[i]==p.Hashtag1 ||
+                        HashTagsStrings[i] == p.Hashtag2 ||
+                        HashTagsStrings[i] == p.Hashtag3 ||
+                        HashTagsStrings[i] == p.Hashtag4 ||
+                        HashTagsStrings[i] == p.Hashtag5).ToList();
+            }
+
+
+            if (brands == null)
+            {
+                return NotFound();
+            }
+
+            //Если категория "мокрая" - добавить экстра инфы
+            if (id == (await _context.CategoryCl.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId ||
+                id == (await _context.CategoryCl.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId)
+            {
+                foreach (BrandCl brand in brands)
+                {
+                    //Если все идет по правильному сценарию, то у бренда будет не более 1 меню и 1 товара 
+                    brand.BrandMenus = _context.BrandMenuCl.Where(e => e.BrandId == brand.BrandId).ToList();
+                    if (brand.BrandMenus != null)
+                    {
+                        brand.BrandMenus.First().Image = null;
+                        brand.BrandMenus.First().Products = _context.ProductCl.Where(e => e.BrandMenuId == brand.BrandMenus.First().BrandMenuId).ToList();
+                        if (brand.BrandMenus.First().Products != null)
+                        {
+                            brand.BrandMenus.First().Products.First().Image = null;
+                        }
+                    }
+                }
+            }
+
+            foreach (BrandCl brand in brands)
+            {
+                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+            }
+
+            //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
+            return brands;
+        }
+
         // GET: api/GetBrandsByCategory/5
         //Получить список брендов категории id
         [Route("api/GetBrandsByCategory/{id}")]
