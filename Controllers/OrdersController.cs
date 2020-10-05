@@ -115,7 +115,6 @@ namespace ApiClick.Controllers
                     detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
                     detail.Product.Image.User = null;
                 }
-
             }
 
             return orders;
@@ -268,6 +267,22 @@ namespace ApiClick.Controllers
             {
                 return Unauthorized();
             }
+
+            if (order.OrderStatus.OrderStatusName == "Завершено") 
+            {
+                PointsController pointsController = new PointsController();
+                if (order.PointsUsed)
+                {
+                    order.PointRegister = await _context.PointRegisterCl.FindAsync(order.PointRegisterId);
+                    order.OrderDetails = _context.OrderDetailCl.Where(e => e.OrderId == order.OrdersId).ToList();
+                    pointsController.RemovePoints(order);
+                    pointsController.GetPoints(order, (await _context.PointRegisterCl.FindAsync(order.PointRegisterId)).Points);
+                }
+                else
+                {
+                    pointsController.GetPoints(order, 0);
+                }
+            }
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -284,6 +299,14 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
+            foreach (OrderDetailCl detail in ordersCl.OrderDetails) 
+            {
+                if (detail.Count < 1)
+                {
+                    return BadRequest();
+                }
+            }
+
             var responsibleBrandOwnerId = await _context.BrandCl.FindAsync(
                                                   (await  _context.BrandMenuCl.FindAsync(
                                                        (await _context.ProductCl.FindAsync(
@@ -296,7 +319,9 @@ namespace ApiClick.Controllers
             ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
             ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
             ordersCl.UserId = identityToUser(User.Identity).UserId;
+            ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
             ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
+
             if (ordersCl.PointsUsed)
             {
                 PointsController pointsController = new PointsController();

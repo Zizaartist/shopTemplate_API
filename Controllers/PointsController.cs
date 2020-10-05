@@ -26,22 +26,27 @@ namespace ApiClick.Controllers
             {
                 points = user.Points;
             }
-            PointRegister register = new PointRegister
+            //Нет возможности оплатить баллами, не учитывать
+            PointRegister register = null;
+            if (points != 0)
             {
-                OwnerId = user.UserId,
-                OrderId = order.OrdersId,
-                Points = points,
-                TransactionCompleted = false
-            };
-            _context.PointRegisterCl.Add(register);
-            try
-            {
-                await _context.SaveChangesAsync();
-                order.User.Points -= points;
-            }
-            catch 
-            {
-                return null;
+                register = new PointRegister
+                {
+                    OwnerId = user.UserId,
+                    OrderId = order.OrdersId,
+                    Points = points,
+                    TransactionCompleted = false
+                };
+                _context.PointRegisterCl.Add(register);
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    order.User.Points -= points;
+                }
+                catch
+                {
+                    return null;
+                }
             }
 
             return register;
@@ -51,16 +56,23 @@ namespace ApiClick.Controllers
         /// Один из возможных исходов процесса выполнения заказа
         /// передача баллов владельцу бренда, начисление клиенту баллов, если была произведена оплата другими средствами
         /// </summary>
-        public async void RemovePoints(PointRegister pointRegister)
+        public void RemovePoints(OrdersCl order)
         {
-            pointRegister.Order.BrandOwner.Points += pointRegister.Points;
-            decimal sum = pointRegister.Order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
-            decimal moneySum = sum - pointRegister.Points;
-            pointRegister.Owner.Points += Convert.ToInt32(moneySum * pointsCoef);
+            var brandOwner = _context.UserCl.Find(order.BrandOwnerId);
+            brandOwner.Points += order.PointRegister.Points;
             
-            var register = await _context.PointRegisterCl.FindAsync(pointRegister.PointRegisterId);
+            var register = _context.PointRegisterCl.Find(order.PointRegisterId);
             register.TransactionCompleted = true;
-            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Вычисляет 5% от денежной суммы и переводит на счет пользователя баллами
+        /// </summary>
+        public void GetPoints(OrdersCl order, decimal points)
+        {
+            decimal sum = order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
+            decimal moneySum = sum - points;
+            order.User.Points += Convert.ToInt32(moneySum * pointsCoef);
         }
 
         /// <summary>
