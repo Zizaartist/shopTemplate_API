@@ -25,6 +25,7 @@ namespace ApiClick.Models
 
         //Nullable
         public string Street { get; set; }
+        public int CategoryId { get; set; }
         public int? House { get; set; }
         public int? Padik { get; set; }
         public int? Etash { get; set; }

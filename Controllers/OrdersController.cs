@@ -380,5 +380,122 @@ namespace ApiClick.Controllers
         {
             return _context.OrdersCl.Any(e => e.OrdersId == id);
         }
+
+        [Route("api/GetOrdersByCategory/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<OrdersCl>>> GetBrandsByCategory(int id)
+        {
+            var orders = await _context.OrdersCl.Where(p => p.CategoryId == id).ToListAsync();
+
+            if (orders == null)
+            {
+                return NotFound();
+            }
+
+            return orders;
+        }
+
+
+        [Route("api/PostVodaOrders")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpPost]
+        public async Task<ActionResult<OrdersCl>> PostVodaOrdersCl(OrdersCl ordersCl)
+        {
+            if (ordersCl == null || ordersCl.OrderDetails == null || ordersCl.OrderDetails.Count < 1)
+            {
+                return BadRequest();
+            }
+
+            foreach (OrderDetailCl detail in ordersCl.OrderDetails)
+            {
+                if (detail.Count < 1)
+                {
+                    return BadRequest();
+                }
+            }
+
+            //filling blanks and sending to DB
+            ordersCl.CreatedDate = DateTime.Now;
+            ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
+            ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
+            ordersCl.UserId = identityToUser(User.Identity).UserId;
+            ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
+            ordersCl.PaymentMethodId = 1;
+
+            if (ordersCl.PointsUsed)
+            {
+                PointsController pointsController = new PointsController();
+                var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
+                if (register == null)
+                {
+                    return BadRequest();
+                }
+                ordersCl.PointRegisterId = register.PointRegisterId;
+            }
+
+            _context.OrdersCl.Add(ordersCl);
+            //await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
+
+            //NotificationsController notificationsController = new NotificationsController();
+            //await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
+
+            return Ok();
+        }
+
+        [Route("api/PutVodaOrders")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpPut]
+        public async Task<ActionResult> PutVodaOrdersCl(int id, UserCl brandOwner)
+        {
+            //Сперва проверяем на физическую возможность смены статуса
+            var order = await _context.OrdersCl.FindAsync(id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            //Только пользователь и владелец бренда имеют доступ к смене статуса
+            var identity = identityToUser(User.Identity);
+            if (!(order.UserId == identity.UserId || order.BrandOwnerId == identity.UserId))
+            {
+                return Forbid();
+            }
+
+            if (order.BrandOwner == null)
+            {
+                order.BrandOwnerId = brandOwner.UserId;
+                order.BrandOwner = await _context.UserCl.FindAsync(brandOwner.UserId);
+            }
+            else
+            {
+                return Forbid();
+            }
+
+            //Затем проверяем права на смену статуса
+            int userRole = identityToUser(User.Identity).Role;
+            int futureStatusId = order.StatusId + 1;
+            OrderStatusCl futureOrderStatusCl = await _context.OrderStatusCl.FindAsync(futureStatusId);
+
+            //Изменить статус могут лишь указанная роль или суперАдмин
+            if (userRole == futureOrderStatusCl.MasterRoleId ||
+                userRole == _context.UserRolesCl.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
+            {
+                order.StatusId++;
+                order.OrderStatus = futureOrderStatusCl;
+            }
+            else
+            {
+                return Unauthorized();
+            }
+
+            await _context.SaveChangesAsync();
+
+            NotificationsController notificationsController = new NotificationsController();
+            await notificationsController.ToSendNotificationAsync(order.User.DeviceType, "Ваш заказ приняли", order.User.NotificationRegistration);
+
+            return Ok();
+        }
     }
 }

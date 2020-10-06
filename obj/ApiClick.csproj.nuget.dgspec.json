@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj": {}
+    "C:\\Users\\Syberia-11\\Source\\Repos\\ClickAPI\\ApiClick.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj": {
+    "C:\\Users\\Syberia-11\\Source\\Repos\\ClickAPI\\ApiClick.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
+        "projectUniqueName": "C:\\Users\\Syberia-11\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
         "projectName": "ApiClick",
-        "projectPath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
-        "packagesPath": "C:\\Users\\Syberia-7\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\obj\\",
+        "projectPath": "C:\\Users\\Syberia-11\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
+        "packagesPath": "C:\\Users\\Syberia-11\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Syberia-11\\Source\\Repos\\ClickAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
         ],
         "configFilePaths": [
-          "C:\\Users\\Syberia-7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Syberia-11\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
@@ -99,7 +99,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.402\\RuntimeIdentifierGraph.json"
         }
       }
     }
