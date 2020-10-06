@@ -91,6 +91,9 @@ namespace ApiClick.Migrations
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<string>("Rules")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UrlImg1")
                         .HasColumnType("nvarchar(250)")
                         .HasMaxLength(250);
@@ -145,15 +148,14 @@ namespace ApiClick.Migrations
                     b.Property<int>("BrandId")
                         .HasColumnType("int");
 
+                    b.Property<string>("BrandMenuName")
+                        .HasColumnType("nvarchar(250)")
+                        .HasMaxLength(250);
+
                     b.Property<DateTime>("CreatedDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
 
                     b.Property<int>("ImgId")
                         .HasColumnType("int");
@@ -194,12 +196,32 @@ namespace ApiClick.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("MasterRoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("OrderStatusName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("OrderStatusId");
 
+                    b.HasIndex("MasterRoleId");
+
                     b.ToTable("OrderStatusCl");
+                });
+
+            modelBuilder.Entity("ApiClick.Models.EnumModels.PaymentMethodCl", b =>
+                {
+                    b.Property<int>("PaymentMethodId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("PaymentMethodName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PaymentMethodId");
+
+                    b.ToTable("PaymentMethodCl");
                 });
 
             modelBuilder.Entity("ApiClick.Models.EnumModels.UserRolesCl", b =>
@@ -214,7 +236,7 @@ namespace ApiClick.Migrations
 
                     b.HasKey("UserRoleId");
 
-                    b.ToTable("UserRolesCls");
+                    b.ToTable("UserRolesCl");
                 });
 
             modelBuilder.Entity("ApiClick.Models.ImageCl", b =>
@@ -315,11 +337,14 @@ namespace ApiClick.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Price")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
@@ -343,13 +368,46 @@ namespace ApiClick.Migrations
                     b.Property<int>("BrandOwnerId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Commentary")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<int?>("Etash")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("House")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Kv")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Padik")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PointRegisterId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PointsUsed")
+                        .HasColumnType("bit");
+
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Street")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -358,6 +416,14 @@ namespace ApiClick.Migrations
                         .HasName("DF_OrdersCl_OrdersId");
 
                     b.HasIndex("BrandOwnerId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("PaymentMethodId");
+
+                    b.HasIndex("PointRegisterId")
+                        .IsUnique()
+                        .HasFilter("[PointRegisterId] IS NOT NULL");
 
                     b.HasIndex("StatusId");
 
@@ -376,30 +442,25 @@ namespace ApiClick.Migrations
                     b.Property<int>("BrandMenuId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(250)")
                         .HasMaxLength(250);
 
                     b.Property<int>("ImgId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("PriceDiscount")
                         .HasColumnType("int");
 
                     b.Property<string>("ProductName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(250)")
                         .HasMaxLength(250);
 
@@ -408,12 +469,36 @@ namespace ApiClick.Migrations
 
                     b.HasIndex("BrandMenuId");
 
-                    b.HasIndex("CategoryId");
-
                     b.HasIndex("ImgId")
                         .IsUnique();
 
                     b.ToTable("ProductCl","dbo");
+                });
+
+            modelBuilder.Entity("ApiClick.Models.RegisterModels.PointRegister", b =>
+                {
+                    b.Property<int>("PointRegisterId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Points")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("TransactionCompleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("PointRegisterId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("PointRegisterCl");
                 });
 
             modelBuilder.Entity("ApiClick.Models.UserCl", b =>
@@ -427,6 +512,9 @@ namespace ApiClick.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("DeviceType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Etash")
                         .HasColumnType("int");
@@ -445,6 +533,9 @@ namespace ApiClick.Migrations
                         .HasColumnType("nvarchar(250)")
                         .HasMaxLength(250);
 
+                    b.Property<string>("NotificationRegistration")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("Padik")
                         .HasColumnType("int");
 
@@ -454,6 +545,9 @@ namespace ApiClick.Migrations
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Points")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -517,6 +611,16 @@ namespace ApiClick.Migrations
                         .WithOne()
                         .HasForeignKey("ApiClick.Models.BrandMenuCl", "ImgId")
                         .HasConstraintName("FK_BrandMenuCl_ImgId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ApiClick.Models.EnumModels.OrderStatusCl", b =>
+                {
+                    b.HasOne("ApiClick.Models.EnumModels.UserRolesCl", "MasterRole")
+                        .WithMany()
+                        .HasForeignKey("MasterRoleId")
+                        .HasConstraintName("FK_OrderStatusCl_MasterRoleId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -589,6 +693,26 @@ namespace ApiClick.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("ApiClick.Models.CategoryCl", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .HasConstraintName("FK_OrderCl_CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ApiClick.Models.EnumModels.PaymentMethodCl", "PaymentMethod")
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .HasConstraintName("FK_OrderCl_PaymentMethodId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ApiClick.Models.RegisterModels.PointRegister", "PointRegister")
+                        .WithOne("Order")
+                        .HasForeignKey("ApiClick.Models.OrdersCl", "PointRegisterId")
+                        .HasConstraintName("FK_OrderCl_PointRegisterId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("ApiClick.Models.EnumModels.OrderStatusCl", "OrderStatus")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -613,18 +737,20 @@ namespace ApiClick.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ApiClick.Models.CategoryCl", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .HasConstraintName("FK_ProductCl_CategoryId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("ApiClick.Models.ImageCl", "Image")
                         .WithOne()
                         .HasForeignKey("ApiClick.Models.ProductCl", "ImgId")
                         .HasConstraintName("FK_ProductCl_ImgId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ApiClick.Models.RegisterModels.PointRegister", b =>
+                {
+                    b.HasOne("ApiClick.Models.UserCl", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

@@ -261,6 +261,12 @@ namespace ApiClick
                     .HasConstraintName("FK_OrderCl_PointRegisterId")
                     .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne(e => e.Category)
+                    .WithMany()
+                    .HasForeignKey(k => k.CategoryId)
+                    .HasConstraintName("FK_OrderCl_CategoryId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
             });
 
             modelBuilder.Entity<OrderDetailCl>(entity =>

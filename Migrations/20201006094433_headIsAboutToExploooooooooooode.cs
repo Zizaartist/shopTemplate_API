@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ApiClick.Migrations
 {
-    public partial class sufferingNeverEnds : Migration
+    public partial class headIsAboutToExploooooooooooode : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -36,7 +36,9 @@ namespace ApiClick.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Phone = table.Column<string>(nullable: true),
                     Role = table.Column<int>(nullable: false),
-                    Points = table.Column<int>(nullable: false),
+                    Points = table.Column<decimal>(nullable: false),
+                    NotificationRegistration = table.Column<string>(nullable: true),
+                    DeviceType = table.Column<string>(nullable: true),
                     Login = table.Column<string>(maxLength: 250, nullable: true),
                     Password = table.Column<string>(maxLength: 250, nullable: true),
                     Name = table.Column<string>(maxLength: 250, nullable: true),
@@ -103,6 +105,30 @@ namespace ApiClick.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PointRegisterCl",
+                schema: "u0906946_u0906946",
+                columns: table => new
+                {
+                    PointRegisterId = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderId = table.Column<int>(nullable: false),
+                    OwnerId = table.Column<int>(nullable: false),
+                    Points = table.Column<decimal>(nullable: false),
+                    TransactionCompleted = table.Column<bool>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PointRegisterCl", x => x.PointRegisterId);
+                    table.ForeignKey(
+                        name: "FK_PointRegisterCl_UserCl_OwnerId",
+                        column: x => x.OwnerId,
+                        principalSchema: "dbo",
+                        principalTable: "UserCl",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderStatusCl",
                 schema: "u0906946_u0906946",
                 columns: table => new
@@ -142,6 +168,7 @@ namespace ApiClick.Migrations
                     Address = table.Column<string>(maxLength: 250, nullable: true),
                     WorkTime = table.Column<string>(unicode: false, maxLength: 250, nullable: true),
                     Rating = table.Column<int>(nullable: true),
+                    Rules = table.Column<string>(nullable: true),
                     Hashtag1 = table.Column<string>(maxLength: 250, nullable: true),
                     Hashtag2 = table.Column<string>(maxLength: 250, nullable: true),
                     Hashtag3 = table.Column<string>(maxLength: 250, nullable: true),
@@ -193,14 +220,17 @@ namespace ApiClick.Migrations
                     UserId = table.Column<int>(nullable: false),
                     StatusId = table.Column<int>(nullable: false),
                     BrandOwnerId = table.Column<int>(nullable: false),
+                    CategoryId = table.Column<int>(nullable: false),
                     PaymentMethodId = table.Column<int>(nullable: false),
                     PointsUsed = table.Column<bool>(nullable: false),
                     Phone = table.Column<string>(nullable: true),
+                    Commentary = table.Column<string>(nullable: true),
                     Street = table.Column<string>(nullable: true),
                     House = table.Column<int>(nullable: true),
                     Padik = table.Column<int>(nullable: true),
                     Etash = table.Column<int>(nullable: true),
                     Kv = table.Column<int>(nullable: true),
+                    PointRegisterId = table.Column<int>(nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "(getdate())")
                 },
                 constraints: table =>
@@ -213,11 +243,23 @@ namespace ApiClick.Migrations
                         principalTable: "UserCl",
                         principalColumn: "UserId");
                     table.ForeignKey(
+                        name: "FK_OrderCl_CategoryId",
+                        column: x => x.CategoryId,
+                        principalSchema: "dbo",
+                        principalTable: "CategoryCl",
+                        principalColumn: "CategoryId");
+                    table.ForeignKey(
                         name: "FK_OrderCl_PaymentMethodId",
                         column: x => x.PaymentMethodId,
                         principalSchema: "u0906946_u0906946",
                         principalTable: "PaymentMethodCl",
                         principalColumn: "PaymentMethodId");
+                    table.ForeignKey(
+                        name: "FK_OrderCl_PointRegisterId",
+                        column: x => x.PointRegisterId,
+                        principalSchema: "u0906946_u0906946",
+                        principalTable: "PointRegisterCl",
+                        principalColumn: "PointRegisterId");
                     table.ForeignKey(
                         name: "FK_OrderCl_StatusId",
                         column: x => x.StatusId,
@@ -295,37 +337,6 @@ namespace ApiClick.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PointRegisterCl",
-                schema: "u0906946_u0906946",
-                columns: table => new
-                {
-                    PointRegisterId = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OrderId = table.Column<int>(nullable: false),
-                    OwnerId = table.Column<int>(nullable: false),
-                    Points = table.Column<int>(nullable: false),
-                    TransactionCompleted = table.Column<bool>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PointRegisterCl", x => x.PointRegisterId);
-                    table.ForeignKey(
-                        name: "FK_PointRegisterCl_OrdersCl_OrderId",
-                        column: x => x.OrderId,
-                        principalSchema: "dbo",
-                        principalTable: "OrdersCl",
-                        principalColumn: "OrdersId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PointRegisterCl_UserCl_OwnerId",
-                        column: x => x.OwnerId,
-                        principalSchema: "dbo",
-                        principalTable: "UserCl",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductCl",
                 schema: "dbo",
                 columns: table => new
@@ -333,7 +344,7 @@ namespace ApiClick.Migrations
                     ProductId = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BrandMenuId = table.Column<int>(nullable: false),
-                    Price = table.Column<int>(nullable: false),
+                    Price = table.Column<decimal>(nullable: false),
                     ImgId = table.Column<int>(nullable: false),
                     ProductName = table.Column<string>(maxLength: 250, nullable: true),
                     Description = table.Column<string>(maxLength: 250, nullable: true),
@@ -396,7 +407,7 @@ namespace ApiClick.Migrations
                     OrderId = table.Column<int>(nullable: false),
                     Count = table.Column<int>(nullable: false),
                     ProductId = table.Column<int>(nullable: true),
-                    Price = table.Column<int>(nullable: true)
+                    Price = table.Column<decimal>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -475,10 +486,24 @@ namespace ApiClick.Migrations
                 column: "BrandOwnerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrdersCl_CategoryId",
+                schema: "dbo",
+                table: "OrdersCl",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrdersCl_PaymentMethodId",
                 schema: "dbo",
                 table: "OrdersCl",
                 column: "PaymentMethodId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdersCl_PointRegisterId",
+                schema: "dbo",
+                table: "OrdersCl",
+                column: "PointRegisterId",
+                unique: true,
+                filter: "[PointRegisterId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrdersCl_StatusId",
@@ -550,12 +575,6 @@ namespace ApiClick.Migrations
                 column: "MasterRoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PointRegisterCl_OrderId",
-                schema: "u0906946_u0906946",
-                table: "PointRegisterCl",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PointRegisterCl_OwnerId",
                 schema: "u0906946_u0906946",
                 table: "PointRegisterCl",
@@ -573,15 +592,7 @@ namespace ApiClick.Migrations
                 schema: "u0906946_u0906946");
 
             migrationBuilder.DropTable(
-                name: "PointRegisterCl",
-                schema: "u0906946_u0906946");
-
-            migrationBuilder.DropTable(
                 name: "MessageCl",
-                schema: "dbo");
-
-            migrationBuilder.DropTable(
-                name: "ProductCl",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -589,7 +600,7 @@ namespace ApiClick.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "BrandMenuCl",
+                name: "ProductCl",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -597,16 +608,24 @@ namespace ApiClick.Migrations
                 schema: "u0906946_u0906946");
 
             migrationBuilder.DropTable(
+                name: "PointRegisterCl",
+                schema: "u0906946_u0906946");
+
+            migrationBuilder.DropTable(
                 name: "OrderStatusCl",
                 schema: "u0906946_u0906946");
 
             migrationBuilder.DropTable(
-                name: "BrandCL",
+                name: "BrandMenuCl",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
                 name: "UserRolesCl",
                 schema: "u0906946_u0906946");
+
+            migrationBuilder.DropTable(
+                name: "BrandCL",
+                schema: "dbo");
 
             migrationBuilder.DropTable(
                 name: "CategoryCl",
