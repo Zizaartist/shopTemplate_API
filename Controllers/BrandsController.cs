@@ -10,6 +10,7 @@ using ApiClick.Models;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
+using System.Reflection;
 
 namespace ApiClick.Controllers
 {
@@ -40,17 +41,17 @@ namespace ApiClick.Controllers
         [Route("api/GetMyBrandsByFilter/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<BrandCl>>> GetBrandsByFilter(int id, List<string> HashTagsStrings)
+        public async Task<ActionResult<List<BrandCl>>> GetBrandsByFilter(int id, List<int?> HashTags)
         {
-            //HashTagsStrings.Add("");
             var brands = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
-            for (int i = 0; i < HashTagsStrings.Count; i++)
+            foreach (int? hashTagId in HashTags)
             {
-                brands = brands.Where(p => HashTagsStrings[i]==p.Hashtag1 ||
-                        HashTagsStrings[i] == p.Hashtag2 ||
-                        HashTagsStrings[i] == p.Hashtag3 ||
-                        HashTagsStrings[i] == p.Hashtag4 ||
-                        HashTagsStrings[i] == p.Hashtag5).ToList();
+                //Оставляет те бренды, в которых имеется текущий хэштег итерации
+                brands = brands.Where(p => hashTagId == p.Hashtag1Id ||
+                                            hashTagId == p.Hashtag2Id ||
+                                            hashTagId == p.Hashtag3Id ||
+                                            hashTagId == p.Hashtag4Id ||
+                                            hashTagId == p.Hashtag5Id).ToList();
             }
 
 
@@ -189,6 +190,7 @@ namespace ApiClick.Controllers
 
             if (IsItMyBrand(identityToUser(User.Identity), brandCl))
             {
+                insertTagsCorrectly(brandCl);
                 var existingBrand = await _context.BrandCl.FindAsync(brandCl.BrandId);
 
                 existingBrand.Address = brandCl.Address;
@@ -233,6 +235,8 @@ namespace ApiClick.Controllers
             brandCl.UserId = brandCl.User.UserId;
             brandCl.CreatedDate = DateTime.Now;
 
+            insertTagsCorrectly(brandCl);
+
             _context.BrandCl.Add(brandCl);
             await _context.SaveChangesAsync();
 
@@ -274,6 +278,36 @@ namespace ApiClick.Controllers
             else
             {
                 return true;
+            }
+        }
+
+        private void insertTagsCorrectly(BrandCl brand)
+        {
+            //Ставим теги в нужном порядке
+            var tagList = new List<int?>();
+            var propertyList = new List<System.Reflection.PropertyInfo?>();
+
+            propertyList = brand.GetType()
+                                    .GetProperties()
+                                    .Where(e => e.Name.Contains("Hashtag") && e.Name.Contains("Id"))
+                                    .ToList();
+            tagList = propertyList.Where(e => e.GetValue(brand) != null)
+                                    .Select(e => (int?)e.GetValue(brand))
+                                    .Distinct()
+                                    .OrderBy(e => e.Value)
+                                    .ToList();
+
+            for (int i = 0; i < 5; i++)
+            {
+                //Если элемент существует - добавить в свойство
+                if (i < tagList.Count)
+                {
+                    propertyList[i].SetValue(brand, tagList[i]);
+                }
+                else
+                {
+                    propertyList[i].SetValue(brand, null);
+                }
             }
         }
 
