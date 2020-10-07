@@ -3,6 +3,7 @@ using System.Linq;
 using ApiClick.Models;
 using ApiClick.Models.EnumModels;
 using ApiClick.Models.RegisterModels;
+using Click.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -38,6 +39,7 @@ namespace ApiClick
         public virtual DbSet<OrderStatusCl> OrderStatusCl { get; set; }
         public virtual DbSet<UserRolesCl> UserRolesCl { get; set; }
         public virtual DbSet<PaymentMethodCl> PaymentMethodCl { get; set; }
+        public virtual DbSet<HashTagCl> HashtagCl { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -85,26 +87,6 @@ namespace ApiClick
                     .HasMaxLength(250)
                     .IsUnicode(false);
 
-                entity.Property(e => e.Hashtag1).HasMaxLength(250);
-
-                entity.Property(e => e.Hashtag2).HasMaxLength(250);
-
-                entity.Property(e => e.Hashtag3).HasMaxLength(250);
-
-                entity.Property(e => e.Hashtag4).HasMaxLength(250);
-
-                entity.Property(e => e.Hashtag5).HasMaxLength(250);
-
-                entity.Property(e => e.UrlImg1).HasMaxLength(250);
-
-                entity.Property(e => e.UrlImg2).HasMaxLength(250);
-
-                entity.Property(e => e.UrlImg3).HasMaxLength(250);
-
-                entity.Property(e => e.UrlImg4).HasMaxLength(250);
-
-                entity.Property(e => e.UrlImg5).HasMaxLength(250);
-
                 entity.Property(e => e.ImgLogoId).IsRequired();
 
                 entity.Property(e => e.ImgBannerId).IsRequired();
@@ -135,6 +117,36 @@ namespace ApiClick
                     .WithOne()
                     .HasForeignKey<BrandCl>(e => e.ImgBannerId)
                     .HasConstraintName("FK_BrandCl_ImgBannerId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.HashTag1)
+                    .WithMany()
+                    .HasForeignKey(e => e.Hashtag1Id)
+                    .HasConstraintName("FK_BrandCl_Hashtag1Id")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.HashTag2)
+                    .WithMany()
+                    .HasForeignKey(e => e.Hashtag2Id)
+                    .HasConstraintName("FK_BrandCl_Hashtag2Id")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.HashTag3)
+                    .WithMany()
+                    .HasForeignKey(e => e.Hashtag3Id)
+                    .HasConstraintName("FK_BrandCl_Hashtag3Id")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.HashTag4)
+                    .WithMany()
+                    .HasForeignKey(e => e.Hashtag4Id)
+                    .HasConstraintName("FK_BrandCl_Hashtag4Id")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.HashTag5)
+                    .WithMany()
+                    .HasForeignKey(e => e.Hashtag5Id)
+                    .HasConstraintName("FK_BrandCl_Hashtag5Id")
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
@@ -390,6 +402,16 @@ namespace ApiClick
             modelBuilder.Entity<PaymentMethodCl>(entity => 
             {
                 entity.HasKey(k => k.PaymentMethodId);
+            });
+
+            modelBuilder.Entity<HashTagCl>(entity => 
+            {
+                entity.HasKey(e => e.HashTagId);
+
+                entity.HasOne(e => e.Category)
+                    .WithMany()
+                    .HasForeignKey(e => e.CategoryId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             OnModelCreatingPartial(modelBuilder);

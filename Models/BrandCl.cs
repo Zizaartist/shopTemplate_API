@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Click.Models;
+using System;
 using System.Collections.Generic;
 
 namespace ApiClick.Models
@@ -27,18 +28,18 @@ namespace ApiClick.Models
         public string WorkTime { get; set; }
         public int? Rating { get; set; } //null if no reviews
         public string Rules { get; set; }
-        public string Hashtag1 { get; set; } 
-        public string Hashtag2 { get; set; }
-        public string Hashtag3 { get; set; }
-        public string Hashtag4 { get; set; }
-        public string Hashtag5 { get; set; }
-        public string UrlImg1 { get; set; } //?
-        public string UrlImg2 { get; set; } //?
-        public string UrlImg3 { get; set; } //?
-        public string UrlImg4 { get; set; } //?
-        public string UrlImg5 { get; set; } //?
+        public int? Hashtag1Id { get; set; } 
+        public int? Hashtag2Id { get; set; }
+        public int? Hashtag3Id { get; set; }
+        public int? Hashtag4Id { get; set; }
+        public int? Hashtag5Id { get; set; }
         public DateTime CreatedDate { get; set; }
 
+        public virtual HashTagCl HashTag1 { get; set; }
+        public virtual HashTagCl HashTag2 { get; set; }
+        public virtual HashTagCl HashTag3 { get; set; }
+        public virtual HashTagCl HashTag4 { get; set; }
+        public virtual HashTagCl HashTag5 { get; set; }
         public virtual UserCl User { get; set; }
         public virtual CategoryCl Category { get; set; }
         public virtual ImageCl ImgLogo { get; set; }

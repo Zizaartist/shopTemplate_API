@@ -14,17 +14,16 @@ namespace ApiClick.Models
         public int OrdersId { get; set; }
         public int UserId { get; set; }
         public int StatusId { get; set; }
-
-        /// <summary>
-        /// Хранит id владельца бренда просто для логгирования
-        /// </summary>
-        public int BrandOwnerId { get; set; }
         public int CategoryId { get; set; }
         public int PaymentMethodId { get; set; }
         public bool PointsUsed { get; set; }
         public string Phone { get; set; }
 
         //Nullable
+        /// <summary>
+        /// Хранит id владельца бренда просто для логгирования
+        /// </summary>
+        public int? BrandOwnerId { get; set; }
         public string Commentary { get; set; }
         public string Street { get; set; }
         public int? House { get; set; }
