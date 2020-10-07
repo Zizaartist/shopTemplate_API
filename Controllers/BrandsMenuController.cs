@@ -119,7 +119,7 @@ namespace ApiClick.Controllers
             _context.BrandMenuCl.Add(brandMenuCl);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return brandMenuCl;
         }
 
         // DELETE: api/BrandsMenu/5

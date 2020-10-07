@@ -240,7 +240,7 @@ namespace ApiClick.Controllers
             _context.BrandCl.Add(brandCl);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return brandCl;
         }
 
         // DELETE: api/Brands/5
