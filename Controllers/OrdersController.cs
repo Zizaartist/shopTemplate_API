@@ -394,7 +394,8 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<OrdersCl>>> GetBrandsByCategory(int id)
         {
-            var orders = await _context.OrdersCl.Where(p => p.CategoryId == id).ToListAsync();
+            var orders = await _context.OrdersCl.Where(p => p.CategoryId == id && p.BrandOwnerId == null).ToListAsync();
+
 
             if (orders == null)
             {
