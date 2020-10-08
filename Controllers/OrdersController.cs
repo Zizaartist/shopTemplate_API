@@ -83,19 +83,35 @@ namespace ApiClick.Controllers
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //Получаем список брендов которые ему принадлежат, а должен быть один единственный
-                ownerBuffer = new UserCl()
+                if (ownerBuffer != null)
                 {
-                    Brands = _context.BrandCl.Where(e => e.UserId == ownerBuffer.UserId).ToList()
-                };
+                    ownerBuffer = new UserCl()
+                    {
+                        Brands = _context.BrandCl.Where(e => e.UserId == ownerBuffer.UserId).ToList()
+                    };
+                    order.BrandOwner = ownerBuffer;
+                    order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
+                    order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
+                    foreach (BrandCl brand in order.BrandOwner.Brands)
+                    {
+                        brand.User = null;
+                        brand.ImgLogo.User = null;
+                        brand.ImgBanner.User = null;
+                    }
+
+                    foreach (OrderDetailCl detail in order.OrderDetails)
+                    {
+                        detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
+                        detail.Product.Image.User = null;
+                    }
+                }
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                order.BrandOwner = ownerBuffer;
-                order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
-                order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
+               
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -104,17 +120,9 @@ namespace ApiClick.Controllers
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 order.User = null;
-                foreach (BrandCl brand in order.BrandOwner.Brands) 
-                {
-                    brand.User = null;
-                    brand.ImgLogo.User = null;
-                    brand.ImgBanner.User = null;
-                }
-                foreach (OrderDetailCl detail in order.OrderDetails) 
-                {
-                    detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
-                    detail.Product.Image.User = null;
-                }
+                
+
+                
             }
 
             return orders;
