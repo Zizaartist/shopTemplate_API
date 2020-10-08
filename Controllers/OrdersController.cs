@@ -395,7 +395,10 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<List<OrdersCl>>> GetBrandsByCategory(int id)
         {
             var orders = await _context.OrdersCl.Where(p => p.CategoryId == id && p.BrandOwnerId == null).ToListAsync();
-
+            foreach (var item in orders)
+            {
+                item.OrderStatus = _context.OrderStatusCl.Find(item.StatusId);
+            }
 
             if (orders == null)
             {
