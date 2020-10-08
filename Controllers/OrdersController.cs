@@ -435,7 +435,7 @@ namespace ApiClick.Controllers
             }
 
             _context.OrdersCl.Add(ordersCl);
-            //await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
+            await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
 
             //NotificationsController notificationsController = new NotificationsController();
             //await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
