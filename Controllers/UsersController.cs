@@ -35,6 +35,23 @@ namespace ApiClick.Controllers
             return await _context.UserCl.ToListAsync();
         }
 
+        // GET: api/Users
+        [Route("api/GetMyPoints")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet]
+        public async Task<ActionResult<decimal>> GetMyPoints()
+        {
+            var user = identityToUser(User.Identity);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            else 
+            {
+                return user.Points;
+            }
+        }
+
         // GET: api/Users/5PhoneAuth
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [Route("api/[controller]/{id}")]
