@@ -172,6 +172,15 @@ namespace ApiClick.Controllers
             {
                 brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+                switch (brand.CategoryId)
+                {
+                    case 2:
+                    case 3:
+                        brand.BrandMenus = _context.BrandMenuCl.Where(e => e.BrandId == brand.BrandId).ToList();
+                        brand.BrandMenus.First().Products = _context.ProductCl.Where(e => e.BrandMenuId == brand.BrandMenus.First().BrandMenuId).ToList();
+                        break;
+                    default: break;
+                }
             }
 
             return brands;
