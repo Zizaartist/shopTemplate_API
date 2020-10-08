@@ -458,7 +458,7 @@ namespace ApiClick.Controllers
         [Route("api/PutVodaOrders")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPut]
-        public async Task<ActionResult> PutVodaOrdersCl(int id, UserCl brandOwner)
+        public async Task<ActionResult> PutVodaOrdersCl(int id)
         {
             //Сперва проверяем на физическую возможность смены статуса
             var order = await _context.OrdersCl.FindAsync(id);
@@ -477,8 +477,8 @@ namespace ApiClick.Controllers
 
             if (order.BrandOwner == null)
             {
-                order.BrandOwnerId = brandOwner.UserId;
-                order.BrandOwner = await _context.UserCl.FindAsync(brandOwner.UserId);
+                order.BrandOwnerId = identity.UserId;
+                order.BrandOwner = await _context.UserCl.FindAsync(identity.UserId);
             }
             else
             {
