@@ -85,9 +85,11 @@ namespace ApiClick.Controllers
                 //Получаем список брендов которые ему принадлежат, а должен быть один единственный
                 if (ownerBuffer != null)
                 {
+                    ICollection<BrandCl> brands = new List<BrandCl>();
+                    brands.Add(_context.BrandCl.Where(e => e.UserId == ownerBuffer.UserId).First());
                     ownerBuffer = new UserCl()
                     {
-                        Brands = _context.BrandCl.Where(e => e.UserId == ownerBuffer.UserId).ToList()
+                        Brands = brands
                     };
                     order.BrandOwner = ownerBuffer;
                     order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
@@ -98,11 +100,14 @@ namespace ApiClick.Controllers
                         brand.ImgLogo.User = null;
                         brand.ImgBanner.User = null;
                     }
-
+                    
                     foreach (OrderDetailCl detail in order.OrderDetails)
                     {
-                        detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
-                        detail.Product.Image.User = null;
+                        if (detail.Product != null)
+                        {
+                            detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
+                            detail.Product.Image.User = null;
+                        }
                     }
                 }
                 //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -330,8 +335,11 @@ namespace ApiClick.Controllers
             ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
             ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
 
+            _context.OrdersCl.Add(ordersCl);
+            await _context.SaveChangesAsync();
             if (ordersCl.PointsUsed)
             {
+
                 PointsController pointsController = new PointsController();
                 var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
                 if (register == null) 
@@ -350,11 +358,8 @@ namespace ApiClick.Controllers
             //TODO!!!!!!!!!!!!!!!!!
             //TODO!!!!!!!!!!!!!!!!!
 
-            _context.OrdersCl.Add(ordersCl);
-            await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
-
-
             ordersCl.BrandOwner = await _context.UserCl.FindAsync(ordersCl.BrandOwnerId);
+            await _context.SaveChangesAsync();
             NotificationsController notificationsController = new NotificationsController();
             await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
 
