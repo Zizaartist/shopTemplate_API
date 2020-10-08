@@ -455,7 +455,7 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
-        [Route("api/PutVodaOrders")]
+        [Route("api/PutVodaOrders/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPut]
         public async Task<ActionResult> PutVodaOrdersCl(int id)
