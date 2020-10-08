@@ -394,7 +394,8 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<OrdersCl>>> GetBrandsByCategory(int id)
         {
-            var orders = await _context.OrdersCl.Where(p => p.CategoryId == id && p.BrandOwnerId == null).ToListAsync();
+            var identity = identityToUser(User.Identity);
+            var orders = await _context.OrdersCl.Where(p => p.CategoryId == id && (p.BrandOwnerId == null || p.BrandOwnerId == identity.UserId)).ToListAsync();
             foreach (var item in orders)
             {
                 item.OrderStatus = _context.OrderStatusCl.Find(item.StatusId);
