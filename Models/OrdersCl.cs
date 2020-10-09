@@ -26,7 +26,7 @@ namespace ApiClick.Models
         public int? BrandOwnerId { get; set; }
         public string Commentary { get; set; }
         public string Street { get; set; }
-        public int? House { get; set; }
+        public string House { get; set; }
         public int? Padik { get; set; }
         public int? Etash { get; set; }
         public int? Kv { get; set; }

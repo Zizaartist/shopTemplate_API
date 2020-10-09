@@ -29,7 +29,7 @@ namespace ApiClick.Models
         public string Password { get; set; }
         public string Name { get; set; }
         public string Street { get; set; }
-        public int? House { get; set; }
+        public string House { get; set; }
         public int? Padik { get; set; }
         public int? Etash { get; set; }
         public int? Kv { get; set; }
