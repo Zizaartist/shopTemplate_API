@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using Microsoft.EntityFrameworkCore.Internal;
 using ApiClick.Models.EnumModels;
+using ApiClick.Models.RegisterModels;
 
 namespace ApiClick.Controllers
 {
@@ -18,6 +19,7 @@ namespace ApiClick.Controllers
     public class OrdersController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
 
         // GET: api/Orders
         [Route("api/[controller]")]
@@ -59,53 +61,42 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<List<OrdersCl>>> GetMyOrders()
         {
             //Находит заказы принадлежащие пользователю и отсеивает заказы со статусом "Завершенный"
-            var orders = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId &&
+            var ordersFound = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId &&
                                                         e.StatusId != _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
-            if (orders == null)
+            if (ordersFound == null)
             {
                 return NotFound();
             }
 
+            var orders = funcs.getCleanListOfModels(ordersFound);
+
             foreach (OrdersCl order in orders)
             {
-                List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
-                order.OrderDetails = relatedOrderDetails;
+                order.OrderDetails = funcs.getCleanListOfModels(_context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList());
                 foreach (OrderDetailCl detail in order.OrderDetails) 
                 {
-                    detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
+                    if (detail.ProductId != null) //Если продукта больше не существует
+                    {
+                        detail.Product = funcs.getCleanModel(await _context.ProductCl.FindAsync(detail.ProductId));
+                        detail.Product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(detail.Product.ImgId));
+                    } 
                 }
                 var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
-                //Получаем список брендов которые ему принадлежат, а должен быть один единственный
+                //Если бренд не "мокрый"
                 if (ownerBuffer != null)
                 {
-                    ICollection<BrandCl> brands = new List<BrandCl>();
-                    brands.Add(_context.BrandCl.Where(e => e.UserId == ownerBuffer.UserId).First());
-                    ownerBuffer = new UserCl()
-                    {
-                        Brands = brands
-                    };
-                    order.BrandOwner = ownerBuffer;
-                    order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
-                    order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
-                    foreach (BrandCl brand in order.BrandOwner.Brands)
-                    {
-                        brand.User = null;
-                        brand.ImgLogo.User = null;
-                        brand.ImgBanner.User = null;
-                    }
-                    
-                    foreach (OrderDetailCl detail in order.OrderDetails)
-                    {
-                        if (detail.Product != null)
-                        {
-                            detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
-                            detail.Product.Image.User = null;
-                        }
-                    }
+                    order.BrandOwner = new UserCl();
+                    order.BrandOwner.Brands = funcs.getCleanListOfModels(new List<BrandCl>() { _context.BrandCl.First(e => e.UserId == order.BrandOwnerId) });
+                    order.BrandOwner.Brands.First().ImgBanner = funcs.getCleanModel(await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId));
+                    order.BrandOwner.Brands.First().ImgLogo = funcs.getCleanModel(await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId));
                 }
-                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-                order.User = null;
+                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatusCl.FindAsync(order.StatusId));
+                order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
+                if (order.PointsUsed)
+                {
+                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                }
             }
 
             return orders;
@@ -119,43 +110,34 @@ namespace ApiClick.Controllers
         {
             //Получаем заказы, где владелец токена обозначен как владелец бренда
             //+ статус не является завершенным
-            var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+            var ordersFound = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
                                           .Where(e => e.OrderStatus.OrderStatusId != _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
-            if (orders == null)
+            if (ordersFound == null)
             {
                 return NotFound();
             }
 
+            var orders = funcs.getCleanListOfModels(ordersFound);
+
             foreach (OrdersCl order in orders)
             {
-                List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
-                order.OrderDetails = relatedOrderDetails;
+                order.OrderDetails = funcs.getCleanListOfModels(_context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList());
                 foreach (OrderDetailCl detail in order.OrderDetails)
                 {
-                    detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
+                    if (detail.ProductId != null) //Если продукта больше не существует
+                    {
+                        detail.Product = funcs.getCleanModel(await _context.ProductCl.FindAsync(detail.ProductId));
+                        detail.Product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(detail.Product.ImgId));
+                    }
                 }
-                order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
-                order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
-                order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
-                order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
-                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-                var userFromContext = await _context.UserCl.FindAsync(order.UserId);
-                order.User = new UserCl()
+                order.User = funcs.getCleanUser(await _context.UserCl.FindAsync(order.UserId));
+                var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatusCl.FindAsync(order.StatusId));
+                order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
+                if (order.PointsUsed)
                 {
-                    Name = userFromContext.Name,
-                    Phone = userFromContext.Phone
-                };
-                foreach (BrandCl brand in order.BrandOwner.Brands)
-                {
-                    brand.User = null;
-                    brand.ImgLogo.User = null;
-                    brand.ImgBanner.User = null;
-                }
-                foreach (OrderDetailCl detail in order.OrderDetails)
-                {
-                    detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
-                    detail.Product.Image.User = null;
+                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
                 }
             }
 
@@ -170,42 +152,34 @@ namespace ApiClick.Controllers
         {
             //Получаем заказы, где владелец токена обозначен как владелец бренда
             //+ статус должен быть завершенным
-            var orders = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+            var ordersFound = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
                                           .Where(e => e.OrderStatus.OrderStatusId == _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
-            if (orders == null)
+            if (ordersFound == null)
             {
                 return NotFound();
             }
 
+            var orders = funcs.getCleanListOfModels(ordersFound);
+
             foreach (OrdersCl order in orders)
             {
-                List<OrderDetailCl> relatedOrderDetails = _context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList();
-                order.OrderDetails = relatedOrderDetails;
+                order.OrderDetails = funcs.getCleanListOfModels(_context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList());
                 foreach (OrderDetailCl detail in order.OrderDetails)
                 {
-                    detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
+                    if (detail.ProductId != null) //Если продукта больше не существует
+                    {
+                        detail.Product = funcs.getCleanModel(await _context.ProductCl.FindAsync(detail.ProductId));
+                        detail.Product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(detail.Product.ImgId));
+                    }
                 }
-                order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
-                order.BrandOwner.Brands = _context.BrandCl.Where(e => e.UserId == order.BrandOwnerId).ToList();
-                order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
-                order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
-                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-                var userFromContext = await _context.UserCl.FindAsync(order.UserId);
-                order.User = new UserCl()
+                order.User = funcs.getCleanUser(await _context.UserCl.FindAsync(order.UserId));
+                var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatusCl.FindAsync(order.StatusId));
+                order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
+                if (order.PointsUsed)
                 {
-                    Name = userFromContext.Name
-                };
-                foreach (BrandCl brand in order.BrandOwner.Brands)
-                {
-                    brand.User = null;
-                    brand.ImgLogo.User = null;
-                    brand.ImgBanner.User = null;
-                }
-                foreach (OrderDetailCl detail in order.OrderDetails)
-                {
-                    detail.Product.Image = await _context.ImageCl.FindAsync(detail.Product.ImgId);
-                    detail.Product.Image.User = null;
+                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
                 }
             }
 
@@ -364,18 +338,41 @@ namespace ApiClick.Controllers
         [Route("api/GetOrdersByCategory/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<OrdersCl>>> GetBrandsByCategory(int id)
+        public async Task<ActionResult<List<OrdersCl>>> GetOrdersByCategory(int id)
         {
             var identity = identityToUser(User.Identity);
-            var orders = await _context.OrdersCl.Where(p => p.CategoryId == id && (p.BrandOwnerId == null || p.BrandOwnerId == identity.UserId)).ToListAsync();
-            foreach (var item in orders)
-            {
-                item.OrderStatus = _context.OrderStatusCl.Find(item.StatusId);
-            }
+            var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && (p.BrandOwnerId == null || p.BrandOwnerId == identity.UserId)).ToListAsync();
 
-            if (orders == null)
+            if (ordersFound == null)
             {
                 return NotFound();
+            }
+
+            var orders = funcs.getCleanListOfModels(ordersFound);
+
+            foreach (OrdersCl order in orders)
+            {
+                order.OrderDetails = funcs.getCleanListOfModels(_context.OrderDetailCl.Where(d => d.OrderId == order.OrdersId).ToList());
+                foreach (OrderDetailCl detail in order.OrderDetails)
+                {
+                    if (detail.ProductId != null) //Если продукта больше не существует
+                    {
+                        detail.Product = funcs.getCleanModel(await _context.ProductCl.FindAsync(detail.ProductId));
+                        detail.Product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(detail.Product.ImgId));
+                    }
+                }
+                order.User = funcs.getCleanUser(await _context.UserCl.FindAsync(order.UserId));
+                var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatusCl.FindAsync(order.StatusId));
+                order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
+                if(order.PointsUsed)
+                {
+                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                }
+                if (order.BrandOwnerId != null)
+                {
+                    order.BrandOwner = funcs.getCleanUser(identity); //Не равен null если заказ взят отправившим запрос
+                }
             }
 
             return orders;
