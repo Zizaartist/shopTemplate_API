@@ -32,6 +32,11 @@ namespace ApiClick.Controllers
             {
                 brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
+                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
+                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
+                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
             }
 
             return brands;
@@ -84,6 +89,11 @@ namespace ApiClick.Controllers
             {
                 brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
+                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
+                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
+                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
@@ -128,6 +138,11 @@ namespace ApiClick.Controllers
             {
                 brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
+                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
+                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
+                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
@@ -172,6 +187,11 @@ namespace ApiClick.Controllers
             {
                 brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
+                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
+                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
+                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
+                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
                 switch (brand.CategoryId)
                 {
                     case 2:
@@ -262,6 +282,17 @@ namespace ApiClick.Controllers
 
             if (IsItMyBrand(identityToUser(User.Identity), brandCl))
             {
+                var menus = _context.BrandMenuCl.Where(e => e.BrandId == brandCl.BrandId);
+                var menusNoLazyLoading = menus.ToList();
+                foreach (BrandMenuCl menu in menusNoLazyLoading) 
+                {
+                    var products = _context.ProductCl.Where(e => e.BrandMenuId == menu.BrandMenuId);
+                    foreach (ProductCl product in products) 
+                    {
+                        _context.ProductCl.Remove(product);
+                    }
+                    _context.BrandMenuCl.Remove(menu);
+                }
                 _context.BrandCl.Remove(brandCl);
 
                 await _context.SaveChangesAsync();
@@ -294,7 +325,7 @@ namespace ApiClick.Controllers
         {
             //Ставим теги в нужном порядке
             var tagList = new List<int?>();
-            var propertyList = new List<System.Reflection.PropertyInfo?>();
+            var propertyList = new List<System.Reflection.PropertyInfo>();
 
             propertyList = brand.GetType()
                                     .GetProperties()

@@ -54,12 +54,11 @@ namespace ApiClick.Controllers
 
         // GET: api/Users/5PhoneAuth
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [Route("api/[controller]/{id}")]
+        [Route("api/GetMyData")]
         [HttpGet]
         public async Task<ActionResult<UserCl>> GetUserCl(int id)
         {
-            var userCl = await _context.UserCl.FindAsync(id);
-            var userCl2 = _context.UserCl.FirstOrDefault(e => e.UserId == id);
+            var userCl = identityToUser(User.Identity);
 
             if (userCl == null)
             {
@@ -107,9 +106,15 @@ namespace ApiClick.Controllers
         public async Task<IActionResult> ChangeUserNumber(string newPhoneNumber, string code)
         {
             var userCl = identityToUser(User.Identity);
-            if (userCl == null)
+            if (userCl == null || userCl.Phone == newPhoneNumber)
             {
                 return BadRequest();
+            }
+
+            //Такой номер уже занят
+            if (_context.UserCl.FirstOrDefault(e => e.Phone == newPhoneNumber) != null) 
+            {
+                return Forbid();
             }
 
             _context.Entry(userCl).State = EntityState.Modified;
@@ -139,7 +144,7 @@ namespace ApiClick.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST:

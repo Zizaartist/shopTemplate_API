@@ -131,13 +131,21 @@ namespace ApiClick.Controllers
             var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
 
             //if menu belongs to user - allow removal
-            if (!IsItMyMenu(identityToUser(User.Identity), brandMenuCl))
+            if (IsItMyMenu(identityToUser(User.Identity), brandMenuCl))
             {
-                return BadRequest(); //idk maybe wrong return code but who cares
-            }
+                var products = _context.ProductCl.Where(e => e.BrandMenuId == brandMenuCl.BrandMenuId);
+                foreach (ProductCl product in products)
+                {
+                    _context.ProductCl.Remove(product);
+                }
+                _context.BrandMenuCl.Remove(brandMenuCl);
 
-            _context.BrandMenuCl.Remove(brandMenuCl);
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+            }
+            else 
+            {
+                return BadRequest();
+            }
 
             return Ok();
         }

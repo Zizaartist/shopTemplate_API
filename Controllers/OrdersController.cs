@@ -30,7 +30,7 @@ namespace ApiClick.Controllers
 
         // GET: api/Orders/5
         [Route("api/[controller]/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
         public async Task<ActionResult<OrdersCl>> GetOrdersCl(int id)
         {
@@ -76,12 +76,6 @@ namespace ApiClick.Controllers
                     detail.Product = await _context.ProductCl.FindAsync(detail.ProductId);
                 }
                 var ownerBuffer = await _context.UserCl.FindAsync(order.BrandOwnerId);
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //Получаем список брендов которые ему принадлежат, а должен быть один единственный
                 if (ownerBuffer != null)
                 {
@@ -110,24 +104,8 @@ namespace ApiClick.Controllers
                         }
                     }
                 }
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-               
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 order.User = null;
-                
-
-                
             }
 
             return orders;
@@ -162,13 +140,12 @@ namespace ApiClick.Controllers
                 order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
                 order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                order.User = null;
+                var userFromContext = await _context.UserCl.FindAsync(order.UserId);
+                order.User = new UserCl()
+                {
+                    Name = userFromContext.Name,
+                    Phone = userFromContext.Phone
+                };
                 foreach (BrandCl brand in order.BrandOwner.Brands)
                 {
                     brand.User = null;
@@ -214,13 +191,11 @@ namespace ApiClick.Controllers
                 order.BrandOwner.Brands.First().ImgLogo = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgLogoId);
                 order.BrandOwner.Brands.First().ImgBanner = await _context.ImageCl.FindAsync(order.BrandOwner.Brands.First().ImgBannerId);
                 order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //FIX THIS SHIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                order.User = null;
+                var userFromContext = await _context.UserCl.FindAsync(order.UserId);
+                order.User = new UserCl()
+                {
+                    Name = userFromContext.Name
+                };
                 foreach (BrandCl brand in order.BrandOwner.Brands)
                 {
                     brand.User = null;
@@ -333,6 +308,7 @@ namespace ApiClick.Controllers
             ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
             ordersCl.UserId = identityToUser(User.Identity).UserId;
             ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
+            ordersCl.Phone = ordersCl.User.Phone;
             ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
 
             _context.OrdersCl.Add(ordersCl);
@@ -348,15 +324,6 @@ namespace ApiClick.Controllers
                 }
                 ordersCl.PointRegisterId = register.PointRegisterId;
             }
-
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
-            //TODO!!!!!!!!!!!!!!!!!
 
             ordersCl.BrandOwner = await _context.UserCl.FindAsync(ordersCl.BrandOwnerId);
             await _context.SaveChangesAsync();
@@ -413,7 +380,6 @@ namespace ApiClick.Controllers
 
             return orders;
         }
-
 
         [Route("api/PostVodaOrders")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
