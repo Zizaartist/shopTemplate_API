@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
@@ -47,6 +48,17 @@ namespace ApiClick.Controllers
                 Phone = input.Phone
             };
             return cleanObj;
+        }
+
+        /// <summary>
+        /// Возвращает владельца личности токена
+        /// </summary>
+        /// <param name="identity">Данные личности, взятые из токена</param>
+        /// <param name="_context">Контекст, в котором производится поиск</param>
+        /// <returns></returns>
+        public UserCl identityToUser(IIdentity identity, ClickContext _context)
+        {
+            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
     }
 }

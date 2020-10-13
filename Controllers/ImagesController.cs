@@ -17,6 +17,7 @@ namespace ApiClick.Controllers
     {
         private readonly IWebHostEnvironment _appEnvironment;
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
         public ImagesController(IWebHostEnvironment appEnvironment)
         {
             _appEnvironment = appEnvironment;
@@ -61,7 +62,7 @@ namespace ApiClick.Controllers
                 // создаем энтити image для учета файла, чтобы срач с блоба быстрее убирать
                 var imageEntity = new ImageCl()
                 {
-                    UserId = identityToUser(User.Identity).UserId,
+                    UserId = funcs.identityToUser(User.Identity, _context).UserId,
                     Path = path
                 };
                 _context.ImageCl.Add(imageEntity);
@@ -87,7 +88,7 @@ namespace ApiClick.Controllers
                 // создаем энтити image для учета файла, чтобы срач с блоба быстрее убирать
                 var imageEntity = new ImageCl()
                 {
-                    UserId = identityToUser(User.Identity).UserId,
+                    UserId = funcs.identityToUser(User.Identity, _context).UserId,
                     Path = path
                 };
                 _context.ImageCl.Add(imageEntity);
@@ -95,11 +96,6 @@ namespace ApiClick.Controllers
                 await _context.SaveChangesAsync();
             }
             return imageRegisters;
-        }
-
-        private UserCl identityToUser(IIdentity identity)
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
     }
 }

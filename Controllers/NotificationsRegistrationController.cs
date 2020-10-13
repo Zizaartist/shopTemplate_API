@@ -20,6 +20,7 @@ namespace ApiClick.Controllers
         private readonly IHttpContextAccessor _contextAccessor;
         private NotificationHubClient hub;
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
 
         public NotificationsRegistrationController(IHttpContextAccessor contextAccessor)
         {
@@ -92,7 +93,7 @@ namespace ApiClick.Controllers
             // add check if user is allowed to add these tags
             registration.Tags = new HashSet<string>(deviceUpdate.Tags);
             registration.Tags.Add("username:" + id);
-            var userCl = identityToUser(User.Identity);
+            var userCl = funcs.identityToUser(User.Identity, _context);
             userCl.DeviceType = deviceUpdate.Platform;
             userCl.NotificationRegistration = "username:" + id;
             await _context.SaveChangesAsync();
@@ -127,11 +128,6 @@ namespace ApiClick.Controllers
                 if (response.StatusCode == HttpStatusCode.Gone)
                     throw new HttpRequestException(HttpStatusCode.Gone.ToString());
             }
-        }
-
-        private UserCl identityToUser(IIdentity identity)
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
     }
 }

@@ -18,6 +18,7 @@ namespace ApiClick.Controllers
     public class BrandsController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
 
         // GET: api/Brands
         //Debug
@@ -176,7 +177,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BrandCl>>> GetMyBrands() //хз пока как маршрутизировать
         {
-            var brands = await _context.BrandCl.Where(p => p.UserId == identityToUser(User.Identity).UserId).ToListAsync();
+            var brands = await _context.BrandCl.Where(p => p.UserId == funcs.identityToUser(User.Identity, _context).UserId).ToListAsync();
 
             if (brands == null)
             {
@@ -217,7 +218,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            if (IsItMyBrand(identityToUser(User.Identity), brandCl))
+            if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brandCl))
             {
                 insertTagsCorrectly(brandCl);
                 var existingBrand = await _context.BrandCl.FindAsync(brandCl.BrandId);
@@ -260,7 +261,7 @@ namespace ApiClick.Controllers
             }
 
             //Заполняем пробелы
-            brandCl.User = identityToUser(User.Identity);
+            brandCl.User = funcs.identityToUser(User.Identity, _context);
             brandCl.UserId = brandCl.User.UserId;
             brandCl.CreatedDate = DateTime.Now;
 
@@ -280,7 +281,7 @@ namespace ApiClick.Controllers
         {
             var brandCl = await _context.BrandCl.FindAsync(id);
 
-            if (IsItMyBrand(identityToUser(User.Identity), brandCl))
+            if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brandCl))
             {
                 var menus = _context.BrandMenuCl.Where(e => e.BrandId == brandCl.BrandId);
                 var menusNoLazyLoading = menus.ToList();
@@ -311,7 +312,7 @@ namespace ApiClick.Controllers
         private bool IsItMyBrand(UserCl user, BrandCl brand)
         {
             var brandBuffer = _context.BrandCl.Find(brand.BrandId);
-            if ((brandBuffer == null) || (brandBuffer.UserId != identityToUser(User.Identity).UserId))
+            if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
             {
                 return false;
             }
@@ -349,11 +350,6 @@ namespace ApiClick.Controllers
                     propertyList[i].SetValue(brand, null);
                 }
             }
-        }
-
-        private UserCl identityToUser(IIdentity identity) 
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         private bool BrandClExists(int id)

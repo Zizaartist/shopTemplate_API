@@ -16,6 +16,7 @@ namespace ApiClick.Controllers
     public class BrandsMenuController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
 
         // GET: api/BrandsMenu
         //Debug
@@ -86,7 +87,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            if (IsItMyMenu(identityToUser(User.Identity), brandMenuCl))
+            if (IsItMyMenu(funcs.identityToUser(User.Identity, _context), brandMenuCl))
             {
                 var existingMenu = await _context.BrandMenuCl.FindAsync(brandMenuCl.BrandMenuId);
 
@@ -131,7 +132,7 @@ namespace ApiClick.Controllers
             var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
 
             //if menu belongs to user - allow removal
-            if (IsItMyMenu(identityToUser(User.Identity), brandMenuCl))
+            if (IsItMyMenu(funcs.identityToUser(User.Identity, _context), brandMenuCl))
             {
                 var products = _context.ProductCl.Where(e => e.BrandMenuId == brandMenuCl.BrandMenuId);
                 foreach (ProductCl product in products)
@@ -150,11 +151,6 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
-        private UserCl identityToUser(IIdentity identity)
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
-        }
-
         /// <summary>
         /// Проверяет является ли меню собственностью этого пользователя
         /// </summary>
@@ -167,7 +163,7 @@ namespace ApiClick.Controllers
             }
 
             var brandBuffer = _context.BrandCl.Find(menuBuffer.BrandId);
-            if ((brandBuffer == null) || (brandBuffer.UserId != identityToUser(User.Identity).UserId))
+            if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
             {
                 return false;
             }

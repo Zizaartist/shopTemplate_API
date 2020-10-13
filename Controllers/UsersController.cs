@@ -19,6 +19,7 @@ namespace ApiClick.Controllers
     public class UsersController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
         IMemoryCache _cache;
 
         public UsersController(IMemoryCache memoryCache)
@@ -41,7 +42,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<decimal>> GetMyPoints()
         {
-            var user = identityToUser(User.Identity);
+            var user = funcs.identityToUser(User.Identity, _context);
             if (user == null)
             {
                 return NotFound();
@@ -58,7 +59,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<UserCl>> GetUserCl(int id)
         {
-            var userCl = identityToUser(User.Identity);
+            var userCl = funcs.identityToUser(User.Identity, _context);
 
             if (userCl == null)
             {
@@ -105,7 +106,7 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<IActionResult> ChangeUserNumber(string newPhoneNumber, string code)
         {
-            var userCl = identityToUser(User.Identity);
+            var userCl = funcs.identityToUser(User.Identity, _context);
             if (userCl == null || userCl.Phone == newPhoneNumber)
             {
                 return BadRequest();
@@ -256,11 +257,6 @@ namespace ApiClick.Controllers
         private bool UserClExists(int id)
         {
             return _context.UserCl.Any(e => e.UserId == id);
-        }
-
-        private UserCl identityToUser(IIdentity identity)
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
     }
 }

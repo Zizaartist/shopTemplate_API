@@ -16,6 +16,7 @@ namespace ApiClick.Controllers
     public class MessagesController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
 
         // POST: api/Messages
         /// <summary>
@@ -28,7 +29,7 @@ namespace ApiClick.Controllers
         {
 
             bool opinionValue = true;
-            int userId = identityToUser(User.Identity).UserId;
+            int userId = funcs.identityToUser(User.Identity, _context).UserId;
             var opinion = _context.MessageOpinionCl.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
 
             if (opinion != null)
@@ -86,7 +87,7 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<MessageCl>> DislikeMessage(int id)
         {
             bool opinionValue = false;
-            int userId = identityToUser(User.Identity).UserId;
+            int userId = funcs.identityToUser(User.Identity, _context).UserId;
             var opinion = _context.MessageOpinionCl.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
 
             if (opinion != null)
@@ -227,11 +228,6 @@ namespace ApiClick.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
-        }
-
-        private UserCl identityToUser(IIdentity identity)
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         private bool MessageClExists(int id)

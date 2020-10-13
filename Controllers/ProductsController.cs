@@ -16,6 +16,7 @@ namespace ApiClick.Controllers
     public class ProductsController : ControllerBase
     {
         ClickContext _context = new ClickContext();
+        Functions funcs = new Functions();
 
         // GET: api/Products
         [Route("api/[controller]")]
@@ -85,7 +86,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            if (IsItMyProduct(identityToUser(User.Identity), productCl))
+            if (IsItMyProduct(funcs.identityToUser(User.Identity, _context), productCl))
             {
                 var existingProduct = await _context.ProductCl.FindAsync(productCl.ProductId);
 
@@ -132,7 +133,7 @@ namespace ApiClick.Controllers
         {
             var productCl = await _context.ProductCl.FindAsync(id);
 
-            if (!IsItMyProduct(identityToUser(User.Identity), productCl)) 
+            if (!IsItMyProduct(funcs.identityToUser(User.Identity, _context), productCl)) 
             {
                 return BadRequest();
             }
@@ -166,7 +167,7 @@ namespace ApiClick.Controllers
             }
 
             var brandBuffer = _context.BrandCl.Find(menuBuffer.BrandId);
-            if ((brandBuffer == null) || (brandBuffer.UserId != identityToUser(User.Identity).UserId))
+            if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
             {
                 return false;
             }

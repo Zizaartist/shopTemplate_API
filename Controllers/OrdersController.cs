@@ -43,7 +43,7 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            if (ordersCl.BrandOwnerId != identityToUser(User.Identity).UserId) 
+            if (ordersCl.BrandOwnerId != funcs.identityToUser(User.Identity, _context).UserId) 
             {
                 return Forbid();
             }
@@ -61,7 +61,7 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<List<OrdersCl>>> GetMyOrders()
         {
             //Находит заказы принадлежащие пользователю и отсеивает заказы со статусом "Завершенный"
-            var ordersFound = _context.OrdersCl.Where(e => e.UserId == identityToUser(User.Identity).UserId &&
+            var ordersFound = _context.OrdersCl.Where(e => e.UserId == funcs.identityToUser(User.Identity, _context).UserId &&
                                                         e.StatusId != _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
             if (ordersFound == null)
@@ -110,7 +110,7 @@ namespace ApiClick.Controllers
         {
             //Получаем заказы, где владелец токена обозначен как владелец бренда
             //+ статус не является завершенным
-            var ordersFound = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+            var ordersFound = _context.OrdersCl.Where(e => e.BrandOwnerId == funcs.identityToUser(User.Identity, _context).UserId)
                                           .Where(e => e.OrderStatus.OrderStatusId != _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
             if (ordersFound == null)
@@ -152,7 +152,7 @@ namespace ApiClick.Controllers
         {
             //Получаем заказы, где владелец токена обозначен как владелец бренда
             //+ статус должен быть завершенным
-            var ordersFound = _context.OrdersCl.Where(e => e.BrandOwnerId == identityToUser(User.Identity).UserId)
+            var ordersFound = _context.OrdersCl.Where(e => e.BrandOwnerId == funcs.identityToUser(User.Identity, _context).UserId)
                                           .Where(e => e.OrderStatus.OrderStatusId == _context.OrderStatusCl.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
 
             if (ordersFound == null)
@@ -207,14 +207,14 @@ namespace ApiClick.Controllers
             }
 
             //Только пользователь и владелец бренда имеют доступ к смене статуса
-            var identity = identityToUser(User.Identity);
+            var identity = funcs.identityToUser(User.Identity, _context);
             if (!(order.UserId == identity.UserId || order.BrandOwnerId == identity.UserId)) 
             {
                 return Forbid();
             }
 
             //Затем проверяем права на смену статуса
-            int userRole = identityToUser(User.Identity).Role;
+            int userRole = funcs.identityToUser(User.Identity, _context).Role;
             int futureStatusId = order.StatusId + 1;
             OrderStatusCl futureOrderStatusCl = await _context.OrderStatusCl.FindAsync(futureStatusId);
 
@@ -280,7 +280,7 @@ namespace ApiClick.Controllers
             ordersCl.CreatedDate = DateTime.Now;
             ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
             ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
-            ordersCl.UserId = identityToUser(User.Identity).UserId;
+            ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
             ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
             ordersCl.Phone = ordersCl.User.Phone;
             ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
@@ -340,7 +340,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<OrdersCl>>> GetOrdersByCategory(int id)
         {
-            var identity = identityToUser(User.Identity);
+            var identity = funcs.identityToUser(User.Identity, _context);
             var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && (p.BrandOwnerId == null || p.BrandOwnerId == identity.UserId)).ToListAsync();
 
             if (ordersFound == null)
@@ -400,7 +400,7 @@ namespace ApiClick.Controllers
             ordersCl.CreatedDate = DateTime.Now;
             ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
             ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
-            ordersCl.UserId = identityToUser(User.Identity).UserId;
+            ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
             ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
             ordersCl.PaymentMethodId = 1;
 
@@ -438,7 +438,7 @@ namespace ApiClick.Controllers
             }
 
             //Только пользователь и владелец бренда имеют доступ к смене статуса
-            var identity = identityToUser(User.Identity);
+            var identity = funcs.identityToUser(User.Identity, _context);
             if (!(order.UserId == identity.UserId || order.BrandOwnerId == identity.UserId))
             {
                 return Forbid();
@@ -455,7 +455,7 @@ namespace ApiClick.Controllers
             }
 
             //Затем проверяем права на смену статуса
-            int userRole = identityToUser(User.Identity).Role;
+            int userRole = funcs.identityToUser(User.Identity, _context).Role;
             int futureStatusId = order.StatusId + 1;
             OrderStatusCl futureOrderStatusCl = await _context.OrderStatusCl.FindAsync(futureStatusId);
 
