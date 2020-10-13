@@ -132,7 +132,7 @@ namespace ApiClick.Controllers
         {
             try
             {
-                string value = _cache.Get<string>(phone);
+                string value = _cache.Get<string>(funcs.convertNormalPhoneNumber(phone));
                 return value;
             }
             catch (Exception) 

@@ -57,14 +57,17 @@ namespace ApiClick.Controllers
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [Route("api/GetMyData")]
         [HttpGet]
-        public async Task<ActionResult<UserCl>> GetUserCl(int id)
+        public async Task<ActionResult<UserCl>> GetMyData()
         {
-            var userCl = funcs.identityToUser(User.Identity, _context);
+            var userCl = funcs.getCleanModel(funcs.identityToUser(User.Identity, _context));
 
             if (userCl == null)
             {
                 return NotFound();
             }
+            userCl.Login = null;
+            userCl.Password = null;
+            userCl.Role = -1;
 
             return userCl;
         }
@@ -104,24 +107,30 @@ namespace ApiClick.Controllers
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [Route("api/ChangeNumber")]
         [HttpPut]
-        public async Task<IActionResult> ChangeUserNumber(string newPhoneNumber, string code)
+        public async Task<ActionResult<string>> ChangeUserNumber(string newPhoneNumber, string code)
         {
             var userCl = funcs.identityToUser(User.Identity, _context);
-            if (userCl == null || userCl.Phone == newPhoneNumber)
+            var newPhoneNum = funcs.convertNormalPhoneNumber(newPhoneNumber);
+            if (funcs.IsPhoneNumber(newPhoneNum))
+            {
+                return BadRequest();
+            }
+
+            if (userCl == null || userCl.Phone == newPhoneNum)
             {
                 return BadRequest();
             }
 
             //Такой номер уже занят
-            if (_context.UserCl.FirstOrDefault(e => e.Phone == newPhoneNumber) != null) 
+            if (_context.UserCl.FirstOrDefault(e => e.Phone == newPhoneNum) != null) 
             {
                 return Forbid();
             }
 
             _context.Entry(userCl).State = EntityState.Modified;
-            if (_cache.Get(newPhoneNumber).ToString() == code)
+            if (_cache.Get(newPhoneNum).ToString() == code)
             {
-                userCl.Phone = newPhoneNumber;
+                userCl.Phone = newPhoneNum;
             }
 
             else
@@ -145,7 +154,7 @@ namespace ApiClick.Controllers
                 }
             }
 
-            return Ok();
+            return newPhoneNum;
         }
 
         // POST:
@@ -236,7 +245,7 @@ namespace ApiClick.Controllers
                 {
                     return Forbid();
                 }
-                return Ok();
+                return userCl; //без очистки, чтобы заполнить поля в приложении
             }
         }
 
