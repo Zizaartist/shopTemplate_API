@@ -17,6 +17,7 @@ namespace ApiClick.Controllers
     public class AccountController : Controller
     {
         private IMemoryCache _cache;
+        Functions funcs = new Functions();
 
         public AccountController(IMemoryCache memoryCache)
         {
@@ -92,12 +93,12 @@ namespace ApiClick.Controllers
             string PhoneLoc = phone;
             if (phone != null)
             {
-                if (IsPhoneNumber(PhoneLoc))
+                if (funcs.IsPhoneNumber(PhoneLoc))
                 {
                     //HttpClient client = new HttpClient();
                     //HttpResponseMessage response = await client.GetAsync("https://smsc.ru/sys/send.php?login=syberia&psw=K1e2s3k4i5l6&phones=" + PhoneLoc + "&mes=" + randomNumer);
                     //await response.Content.ReadAsStringAsync();
-                    _cache.Set(phone, randomNumber, new MemoryCacheEntryOptions
+                    _cache.Set(funcs.convertNormalPhoneNumber(phone), randomNumber, new MemoryCacheEntryOptions
                     {
                         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
                     });
@@ -115,7 +116,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public IActionResult CodeCheck(string code, string phone)
         {
-            if (code == _cache.Get(phone).ToString())
+            if (code == _cache.Get(funcs.convertNormalPhoneNumber(phone)).ToString())
             {
                 return Ok();
             }
@@ -138,11 +139,6 @@ namespace ApiClick.Controllers
             {
                 return BadRequest();
             }
-        }
-
-        public static bool IsPhoneNumber(string number)
-        {
-            return Regex.Match(number, @"^(\+*[0-9]{11})$").Success;
         }
 
         //identity with user rights

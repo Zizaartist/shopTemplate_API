@@ -189,6 +189,12 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
+            userCl.Phone = funcs.convertNormalPhoneNumber(userCl.Phone);
+            if (!funcs.IsPhoneNumber(userCl.Phone))
+            {
+                return BadRequest(new { errorText = "Не является номером телефона." });
+            }
+
             string localCode;
             try
             {

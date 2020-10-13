@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
@@ -55,10 +56,33 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="identity">Данные личности, взятые из токена</param>
         /// <param name="_context">Контекст, в котором производится поиск</param>
-        /// <returns></returns>
+        /// <returns>Пользователь, найденный в контексте</returns>
         public UserCl identityToUser(IIdentity identity, ClickContext _context)
         {
             return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
+        }
+
+        public bool IsPhoneNumber(string number)
+        {
+            return Regex.Match(number, @"^((8|\+7|7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$").Success;
+        }
+
+        /// <summary>
+        /// Конвертирует телефон в единый формат
+        /// </summary>
+        public string convertNormalPhoneNumber(string originalNumber) 
+        {
+            //Базировал на https://bit.ly/3lEsT2R
+            string processedNumber = originalNumber;
+            //Сперва удаляем лишние символы
+            List<string> junkSymbols = new List<string>() 
+            {
+                "(", ")", "+", "-"
+            };
+            junkSymbols.ForEach(e => processedNumber = processedNumber.Replace(e, ""));
+            //Если в начале нет 7 или 8 - вставить код самому. Пока плевать на интернационализацию
+            return "7" + ((processedNumber.StartsWith("7") || processedNumber.StartsWith("8")) ? 
+                                        processedNumber.Substring(1) : processedNumber);
         }
     }
 }
