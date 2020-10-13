@@ -87,7 +87,7 @@ namespace ApiClick.Controllers
         [Route("api/SmsCheck")]
         [HttpPost]
         public IActionResult SmsCheck(string phone)
-        {
+            {
             Random rand = new Random();
             string randomNumber = rand.Next(1000, 9999).ToString();
             string PhoneLoc = phone;

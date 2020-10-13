@@ -109,9 +109,14 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<ActionResult<string>> ChangeUserNumber(string newPhoneNumber, string code)
         {
+            if (newPhoneNumber == null || code == null)
+            {
+                return BadRequest();
+            }
+
             var userCl = funcs.identityToUser(User.Identity, _context);
             var newPhoneNum = funcs.convertNormalPhoneNumber(newPhoneNumber);
-            if (funcs.IsPhoneNumber(newPhoneNum))
+            if (!funcs.IsPhoneNumber(newPhoneNum))
             {
                 return BadRequest();
             }
@@ -127,16 +132,27 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            _context.Entry(userCl).State = EntityState.Modified;
-            if (_cache.Get(newPhoneNum).ToString() == code)
+            string localCode = null;
+
+            try
+            {
+                localCode = _cache.Get(newPhoneNum).ToString();
+            }
+            catch 
+            {
+                return BadRequest();
+            } 
+
+            if (localCode == code)
             {
                 userCl.Phone = newPhoneNum;
             }
-
             else
             {
                 return BadRequest();
             }
+
+            _context.Entry(userCl).State = EntityState.Modified;
 
             try
             {
