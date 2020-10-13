@@ -12,7 +12,8 @@ namespace ApiClick.Controllers
     {
         private List<Type> allowedTypes = new List<Type>() { typeof(int?), 
                                                             typeof(string), 
-                                                            typeof(decimal) };
+                                                            typeof(decimal),
+                                                            typeof(DateTime)};
 
         /// <summary>
         /// Создает новый экземпляр модели и заполняет его только примитивными типами, без навигационных свойств
