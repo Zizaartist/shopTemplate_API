@@ -425,7 +425,7 @@ namespace ApiClick.Controllers
         }
 
         [Route("api/PutVodaOrders/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
         public async Task<ActionResult> PutVodaOrdersCl(int id)
         {
@@ -439,42 +439,20 @@ namespace ApiClick.Controllers
 
             //Только пользователь и владелец бренда имеют доступ к смене статуса
             var identity = funcs.identityToUser(User.Identity, _context);
-            if (!(order.UserId == identity.UserId || order.BrandOwnerId == identity.UserId))
+
+            //Если заказ занят - посылать куда подальше
+            if (order.BrandOwnerId != null)
             {
                 return Forbid();
             }
 
-            if (order.BrandOwner == null)
-            {
-                order.BrandOwnerId = identity.UserId;
-                order.BrandOwner = await _context.UserCl.FindAsync(identity.UserId);
-            }
-            else
-            {
-                return Forbid();
-            }
-
-            //Затем проверяем права на смену статуса
-            int userRole = funcs.identityToUser(User.Identity, _context).Role;
-            int futureStatusId = order.StatusId + 1;
-            OrderStatusCl futureOrderStatusCl = await _context.OrderStatusCl.FindAsync(futureStatusId);
-
-            //Изменить статус могут лишь указанная роль или суперАдмин
-            if (userRole == futureOrderStatusCl.MasterRoleId ||
-                userRole == _context.UserRolesCl.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
-            {
-                order.StatusId++;
-                order.OrderStatus = futureOrderStatusCl;
-            }
-            else
-            {
-                return Unauthorized();
-            }
+            order.BrandOwnerId = identity.UserId;
+            order.BrandOwner = await _context.UserCl.FindAsync(identity.UserId);
+            order.User = await _context.UserCl.FindAsync(order.UserId);
 
             await _context.SaveChangesAsync();
 
-            NotificationsController notificationsController = new NotificationsController();
-            await notificationsController.ToSendNotificationAsync(order.User.DeviceType, "Ваш заказ приняли", order.User.NotificationRegistration);
+            await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Ваш заказ приняли", order.User.NotificationRegistration);
 
             return Ok();
         }
