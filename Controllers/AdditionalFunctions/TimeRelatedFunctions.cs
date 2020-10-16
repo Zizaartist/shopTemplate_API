@@ -46,16 +46,21 @@ namespace ApiClick.Controllers.AdditionalFunctions
         /// <summary>
         /// Запускается при достижении таймером времени текущего задания
         /// </summary>
-        public async Task OrderTaskExecuted(Action replaceAction, System.Threading.Timer sender)
+        public async Task OrderTaskExecuted(System.Threading.Timer sender)
         {
+            var expiredTasks = orderTasks.Where(task => task.ExprirationTime.Equals(orderTasks));
+
             var timeNow = DateTime.Now;
-            TimeSpan timeLeft = newFirstTask.ExprirationTime.TimeOfDay - timeNow.TimeOfDay;
+            TimeSpan timeLeft = orderTasks.First().ExprirationTime.TimeOfDay - timeNow.TimeOfDay;
 
             sender = new System.Threading.Timer(x =>
             {
                 //Удаление устаревшего задания, запуск последствий окончания задания, установка нового задания 
-                
+                OrderTaskExecuted(sender);
             }, null, timeLeft, Timeout.InfiniteTimeSpan);
+
+
+            ordersFuncs.orderExpired();
         }
 
     }

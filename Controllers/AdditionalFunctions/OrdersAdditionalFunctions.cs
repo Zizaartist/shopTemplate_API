@@ -26,6 +26,12 @@ namespace ApiClick.Controllers.AdditionalFunctions
                     e.OrderStatusName == "Завершено").OrderStatusId).ToList();
         }
 
+        public async Task orderExpired(int id) 
+        {
+            var order = await _context.OrdersCl.FindAsync(id);
+
+        }
+
         /// <summary>
         /// Сценарий 1 
         /// Жалоба клиента была ложной
