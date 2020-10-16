@@ -16,6 +16,17 @@ namespace ApiClick.Controllers.AdditionalFunctions
         }
 
         /// <summary>
+        /// Возвращает заказы без окончательного статуса
+        /// </summary>
+        /// <returns></returns>
+        public List<OrdersCl> getAllUnfinishedOrders() 
+        {
+            return _context.OrdersCl.Where(e => 
+                e.StatusId != _context.OrderStatusCl.First(e => 
+                    e.OrderStatusName == "Завершено").OrderStatusId).ToList();
+        }
+
+        /// <summary>
         /// Сценарий 1 
         /// Жалоба клиента была ложной
         /// </summary>

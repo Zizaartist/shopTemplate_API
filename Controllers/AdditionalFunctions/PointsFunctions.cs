@@ -27,6 +27,39 @@ namespace ApiClick.Controllers
             outsideContext = _context;
         }
 
+
+
+        /// <summary>
+        /// Удаляет все связанные с заказом регистры баллов
+        /// Выполняется по достижению статуса "Завершено"
+        /// </summary>
+        /// <param name="order">Заказ, регистры которого будут удалены</param>
+        /// <returns>Успешность операции</returns>
+        public bool RemoveAllRegisters(OrdersCl order) 
+        {
+            if (order == null || order.OrdersId <= 0) 
+            {
+                return false;
+            }
+
+            //Найти все связанные с заказом регистры и удалить
+            var registers = registersContext.PointRegisters.Where(e => e.OrderId == order.OrdersId);
+            foreach (PointRegister register in registers) 
+            {
+                registersContext.PointRegisters.Remove(register);
+            }
+
+            try
+            {
+                registersContext.SaveChanges();
+                return true;
+            }
+            catch (Exception) 
+            {
+                return false; //Oh well, простите сис. админ, я вас подвел
+            }
+        }
+
         /// <summary>
         /// Добавляет баллы пользователю
         /// </summary>

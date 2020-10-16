@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ApiClick.Controllers.AdditionalFunctions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,9 +19,14 @@ namespace ApiClick
 {
     public class Startup
     {
+        private System.Threading.Timer scheduledOrdersTimer;
+        private ScheduleFunctions scheduleFunctions;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            scheduleFunctions = new ScheduleFunctions();
+            scheduleFunctions.FormSchedules(scheduledOrdersTimer);
         }
 
         public IConfiguration Configuration { get; }

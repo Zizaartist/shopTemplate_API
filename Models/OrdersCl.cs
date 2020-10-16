@@ -18,6 +18,11 @@ namespace ApiClick.Models
         public int PaymentMethodId { get; set; }
         public bool PointsUsed { get; set; }
         public string Phone { get; set; }
+        public DateTime CreatedDate { get; set; }
+        /// <summary>
+        /// Срок, по истечении которого, производится оценка результата
+        /// </summary>
+        public DateTime ExpiresAt { get; set; }
 
         //Nullable
         /// <summary>
@@ -31,7 +36,6 @@ namespace ApiClick.Models
         public int? Etash { get; set; }
         public int? Kv { get; set; }
         public int? DigitalBillId { get; set; }
-        public DateTime CreatedDate { get; set; }
 
         public virtual CategoryCl Category { get; set; }
         public virtual UserCl User { get; set; }
