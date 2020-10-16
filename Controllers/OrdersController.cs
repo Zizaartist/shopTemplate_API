@@ -95,7 +95,7 @@ namespace ApiClick.Controllers
                 order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
                 if (order.PointsUsed)
                 {
-                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                    order.PointRegister = funcs.getCleanModel(await _context.DigitalBill.FindAsync(order.PointRegisterId));
                 }
             }
 
@@ -137,7 +137,7 @@ namespace ApiClick.Controllers
                 order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
                 if (order.PointsUsed)
                 {
-                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                    order.PointRegister = funcs.getCleanModel(await _context.DigitalBill.FindAsync(order.PointRegisterId));
                 }
             }
 
@@ -179,7 +179,7 @@ namespace ApiClick.Controllers
                 order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
                 if (order.PointsUsed)
                 {
-                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                    order.PointRegister = funcs.getCleanModel(await _context.DigitalBill.FindAsync(order.PointRegisterId));
                 }
             }
 
@@ -232,13 +232,13 @@ namespace ApiClick.Controllers
 
             if (order.OrderStatus.OrderStatusName == "Завершено") 
             {
-                PointsController pointsController = new PointsController();
+                PointsFunctions pointsController = new PointsFunctions(_context);
                 if (order.PointsUsed)
                 {
-                    order.PointRegister = await _context.PointRegisterCl.FindAsync(order.PointRegisterId);
+                    order.PointRegister = await _context.DigitalBill.FindAsync(order.PointRegisterId);
                     order.OrderDetails = _context.OrderDetailCl.Where(e => e.OrderId == order.OrdersId).ToList();
                     pointsController.RemovePoints(order);
-                    pointsController.GetPoints(order, (await _context.PointRegisterCl.FindAsync(order.PointRegisterId)).Points);
+                    pointsController.GetPoints(order, (await _context.DigitalBill.FindAsync(order.PointRegisterId)).Points);
                 }
                 else
                 {
@@ -290,18 +290,18 @@ namespace ApiClick.Controllers
             if (ordersCl.PointsUsed)
             {
 
-                PointsController pointsController = new PointsController();
+                PointsFunctions pointsController = new PointsFunctions(_context);
                 var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
                 if (register == null) 
                 {
                     return BadRequest();
                 }
-                ordersCl.PointRegisterId = register.PointRegisterId;
+                ordersCl.PointRegisterId = register.DigitalBillId;
             }
 
             ordersCl.BrandOwner = await _context.UserCl.FindAsync(ordersCl.BrandOwnerId);
             await _context.SaveChangesAsync();
-            NotificationsController notificationsController = new NotificationsController();
+            NotificationsFunctions notificationsController = new NotificationsFunctions();
             await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
 
             return Ok();
@@ -323,16 +323,6 @@ namespace ApiClick.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
-        }
-
-        private UserCl identityToUser(IIdentity identity)
-        {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
-        }
-
-        private bool OrdersClExists(int id)
-        {
-            return _context.OrdersCl.Any(e => e.OrdersId == id);
         }
 
         [Route("api/GetOrdersByCategory/{id}")]
@@ -367,7 +357,7 @@ namespace ApiClick.Controllers
                 order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
                 if(order.PointsUsed)
                 {
-                    order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                    order.PointRegister = funcs.getCleanModel(await _context.DigitalBill.FindAsync(order.PointRegisterId));
                 }
                 if (order.BrandOwnerId != null)
                 {
@@ -406,13 +396,13 @@ namespace ApiClick.Controllers
 
             if (ordersCl.PointsUsed)
             {
-                PointsController pointsController = new PointsController();
+                PointsFunctions pointsController = new PointsFunctions(_context);
                 var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
                 if (register == null)
                 {
                     return BadRequest();
                 }
-                ordersCl.PointRegisterId = register.PointRegisterId;
+                ordersCl.PointRegisterId = register.DigitalBillId;
             }
 
             _context.OrdersCl.Add(ordersCl);
@@ -452,7 +442,7 @@ namespace ApiClick.Controllers
 
             await _context.SaveChangesAsync();
 
-            await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Ваш заказ приняли", order.User.NotificationRegistration);
+            await new NotificationsFunctions().ToSendNotificationAsync(order.User.DeviceType, "Ваш заказ приняли", order.User.NotificationRegistration);
 
             return Ok();
         }

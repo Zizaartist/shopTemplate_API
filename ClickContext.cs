@@ -32,7 +32,8 @@ namespace ApiClick
         //Модели-регистры
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
         public virtual DbSet<ImageCl> ImageCl { get; set; }
-        public virtual DbSet<PointRegister> PointRegisterCl { get; set; }
+        public virtual DbSet<DigitalBill> DigitalBill { get; set; }
+        public virtual DbSet<PointRegister> PointRegisters { get; set; }
 
         //Enum модели
         public virtual DbSet<CategoryCl> CategoryCl { get; set; }
@@ -267,9 +268,9 @@ namespace ApiClick
                     .HasConstraintName("FK_OrderCl_BrandOwnerId")
                     .OnDelete(DeleteBehavior.NoAction);
 
-                entity.HasOne(e => e.PointRegister)
+                entity.HasOne(e => e.DigitalBill)
                     .WithOne(e => e.Order)
-                    .HasForeignKey<OrdersCl>(e => e.PointRegisterId)
+                    .HasForeignKey<OrdersCl>(e => e.DigitalBillId)
                     .HasConstraintName("FK_OrderCl_PointRegisterId")
                     .OnDelete(DeleteBehavior.NoAction);
 
@@ -411,6 +412,40 @@ namespace ApiClick
                 entity.HasOne(e => e.Category)
                     .WithMany()
                     .HasForeignKey(e => e.CategoryId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            modelBuilder.Entity<DigitalBill>(entity => 
+            {
+                entity.HasKey(e => e.DigitalBillId);
+
+                entity.HasOne(e => e.Order)
+                    .WithOne()
+                    .HasForeignKey<DigitalBill>(e => e.OrderId)
+                    .HasConstraintName("FK_DigitalBill_OrderId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Owner)
+                    .WithMany()
+                    .HasForeignKey(e => e.OwnerId)
+                    .HasConstraintName("FK_DigitalBill_OnwerId")
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            modelBuilder.Entity<PointRegister>(entity =>
+            {
+                entity.HasKey(e => e.PointRegisterId);
+
+                entity.HasOne(e => e.Order)
+                    .WithMany()
+                    .HasForeignKey(e => e.OrderId)
+                    .HasConstraintName("FK_PointRegister_OrderId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .HasConstraintName("FK_PointRegister_UserId")
                     .OnDelete(DeleteBehavior.NoAction);
             });
 

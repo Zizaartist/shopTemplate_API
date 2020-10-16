@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 namespace ApiClick.Models.RegisterModels
 {
     /// <summary>
-    /// Производит учет трат баллов для возможности возврата
+    /// Учет абсолютно всех операций с баллами, 
+    /// хранится только до тех пор пока у заказа не будет достигнут финальный статус
+    /// после чего - удаляется
     /// </summary>
     public class PointRegister
     {
-        //Non-nullable
         public int PointRegisterId { get; set; }
-        public int OrderId { get; set; }
-        public int OwnerId { get; set; }
-        public Decimal Points { get; set; }
+        public int? OrderId { get; set; }
+        public int? UserId { get; set; }
         /// <summary>
-        /// Указывает на завершенность траты баллов, true - лишь в случае успешного выполнения
+        /// Определяет в какую сторону изменяется счет: true + | false -
         /// </summary>
-        public bool TransactionCompleted { get; set; }
+        public bool ValueChange { get; set; }
+        public Decimal Sum { get; set; }
 
-        //Navigation properties
         public virtual OrdersCl Order { get; set; }
-        public virtual UserCl Owner { get; set; }
+        public virtual UserCl User { get; set; } 
     }
 }
