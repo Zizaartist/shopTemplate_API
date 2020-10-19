@@ -8,21 +8,23 @@ using Microsoft.EntityFrameworkCore;
 using ApiClick;
 using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
+using ApiClick.Models.EnumModels;
 
 namespace ApiClick.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class PaymentMethodsController : ControllerBase
     {
         ClickContext _context = new ClickContext();
 
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryCl>>> GetCategoryCl()
+        public async Task<ActionResult<IEnumerable<PaymentMethodCl>>> GetCategoryCl()
         {
-            return await _context.CategoryCl.ToListAsync();
+            return await _context.PaymentMethodCl.ToListAsync();
         }
     }
 }
+
