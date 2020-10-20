@@ -410,9 +410,9 @@ namespace ApiClick.Controllers
             //Категория совпадает с указанной
             //Владелец бренда еще не привязан
             //В "мокрых" запросах нет записи с id заказа текущей итерации
-            var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && 
-                                                                    p.BrandOwnerId == null && 
-                                                                    !_context.WaterRequests.Any(e => e.OrderId == p.OrdersId)).ToListAsync();
+            var allOrdersFound = _context.OrdersCl.Where(p => p.CategoryId == id && 
+                                                                    p.BrandOwnerId == null);
+            var ordersFound = allOrdersFound.Where(p => !_context.WaterRequests.Any(e => e.OrderId == p.OrdersId)).ToList();
 
             if (ordersFound == null)
             {
