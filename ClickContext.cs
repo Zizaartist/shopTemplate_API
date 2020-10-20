@@ -28,6 +28,7 @@ namespace ApiClick
         public virtual DbSet<OrderDetailCl> OrderDetailCl { get; set; }
         public virtual DbSet<ProductCl> ProductCl { get; set; }
         public virtual DbSet<UserCl> UserCl { get; set; }
+        public virtual DbSet<WaterRequest> WaterRequests { get; set; }
 
         //Модели-регистры
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
@@ -411,6 +412,21 @@ namespace ApiClick
                 entity.HasOne(e => e.Category)
                     .WithMany()
                     .HasForeignKey(e => e.CategoryId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            modelBuilder.Entity<WaterRequest>(entity => 
+            {
+                entity.HasKey(e => e.WaterRequestId);
+
+                entity.HasOne(e => e.Order)
+                    .WithMany()
+                    .HasForeignKey(k => k.OrderId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Brand)
+                    .WithMany()
+                    .HasForeignKey(k => k.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
 

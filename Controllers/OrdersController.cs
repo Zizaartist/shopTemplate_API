@@ -325,14 +325,109 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
-        private UserCl identityToUser(IIdentity identity)
+        /// <summary>
+        /// Получение списка запросов на выбранный заказ
+        /// </summary>
+        /// <param name="id">Id заказа</param>
+        /// <returns>Список запросов</returns>
+        [Route("api/GetRequestsByOrder/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet]
+        public async Task<ActionResult<List<WaterRequest>>> GetRequestsByOrder(int id)
         {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
+            var identity = funcs.identityToUser(User.Identity, _context);
+            var order = await _context.OrdersCl.FindAsync(id);
+
+            if (order.UserId != identity.UserId) 
+            {
+                return Forbid();
+            }
+
+            var requests = funcs.getCleanListOfModels(_context.WaterRequests.Where(e => e.OrderId == order.OrdersId).ToList());
+            return requests;
         }
 
-        private bool OrdersClExists(int id)
+        /// <summary>
+        /// Выбирает запрос и назначает бренд 
+        /// </summary>
+        /// <param name="id">Id запроса на прием заказа</param>
+        /// <param name="pointsUsed">Были ли использованы баллы для оплаты</param>
+        [Route("api/SelectVodaBrand/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpPut]
+        public async Task<ActionResult> SelectVodaBrand(int id, bool pointsUsed)
         {
-            return _context.OrdersCl.Any(e => e.OrdersId == id);
+            var request = await _context.WaterRequests.FindAsync(id);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            var identity = funcs.identityToUser(User.Identity, _context);
+            var order = await _context.OrdersCl.FindAsync(request.OrderId);
+            var brand = await _context.BrandCl.FindAsync(request.BrandId);
+
+            //Если клиент не является владельцем заказа - посылать подальше
+            if (order.UserId != identity.UserId)
+            {
+                return Forbid();
+            }
+
+            order.User = await _context.UserCl.FindAsync(order.UserId);
+            order.BrandOwnerId = brand.UserId;
+            order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
+
+            if (pointsUsed) 
+            {
+                order.PointsUsed = true;
+                PointsController pointsController = new PointsController();
+                var register = await pointsController.CreatePointRegister(order.User, order);
+                if (register == null) 
+                {
+                    return BadRequest();
+                }
+                order.PointRegisterId = register.PointRegisterId;
+            }
+
+            await _context.SaveChangesAsync();
+            await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "Ваш запрос на доставку был принят!", order.BrandOwner.NotificationRegistration);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Получение свободных "мокрых" заказов
+        /// </summary>
+        /// <param name="id">Id категории</param>
+        /// <returns>Список заказов</returns>
+        [Route("api/GetOpenVodaOrders/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<OrdersCl>>> GetOpenVodaOrders(int id)
+        {
+            var identity = funcs.identityToUser(User.Identity, _context);
+            //Категория совпадает с указанной
+            //Владелец бренда еще не привязан
+            //В "мокрых" запросах нет записи с id заказа текущей итерации
+            var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && 
+                                                                    p.BrandOwnerId == null && 
+                                                                    !_context.WaterRequests.Any(e => e.OrderId == p.OrdersId)).ToListAsync();
+
+            if (ordersFound == null)
+            {
+                return NotFound();
+            }
+
+            var orders = funcs.getCleanListOfModels(ordersFound);
+
+            foreach (OrdersCl order in orders)
+            {
+                //Нифига, кроме пользовательских данных неизвестно
+                order.User = funcs.getCleanUser(await _context.UserCl.FindAsync(order.UserId));
+            }
+
+            return orders;
         }
 
         [Route("api/GetOrdersByCategory/{id}")]
@@ -378,10 +473,66 @@ namespace ApiClick.Controllers
             return orders;
         }
 
+        /// <summary>
+        /// Создает запрос на исполнение заказа
+        /// </summary>
+        /// <param name="waterRequest">Неполная модель с указанием предлагаемой цены</param>
+        /// <param name="id">Id заказа, на который претендует отправитель</param>
+        [Route("api/PostVodaRequest/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpPost]
+        public async Task<ActionResult> PostVodaRequest(WaterRequest waterRequest, int id)
+        {
+            if (waterRequest == null || id <= 0) 
+            {
+                return BadRequest();
+            }
+
+            OrdersCl order;
+
+            try
+            {
+                order = await _context.OrdersCl.FindAsync(id);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+
+            //Если заказ занят - запретить
+            if (order.BrandOwnerId != null) 
+            {
+                return Forbid();
+            }
+
+            //получаем первый бренд отправителя
+            var user = funcs.identityToUser(User.Identity, _context);
+            var brands = _context.BrandCl.Where(e => e.UserId == user.UserId);
+            var brand = brands.First();
+
+            //... и проверяем наличие хотя бы одной записи с id этого бренда, подавляем попытку создать дубликат
+            if (_context.WaterRequests.Any(e => e.BrandId == brand.BrandId)) 
+            {
+                return Forbid();
+            }
+
+            var request = new WaterRequest() 
+            {
+                BrandId = brand.BrandId,
+                OrderId = order.OrdersId,
+                SuggestedPrice = waterRequest.SuggestedPrice
+            };
+
+            _context.WaterRequests.Add(request);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [Route("api/PostVodaOrders")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<OrdersCl>> PostVodaOrdersCl(OrdersCl ordersCl)
+        public async Task<ActionResult<OrdersCl>> PostVodaOrders(OrdersCl ordersCl)
         {
             if (ordersCl == null || ordersCl.OrderDetails == null || ordersCl.OrderDetails.Count < 1)
             {
@@ -402,18 +553,7 @@ namespace ApiClick.Controllers
             ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
             ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
             ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
-            ordersCl.PaymentMethodId = 1;
-
-            if (ordersCl.PointsUsed)
-            {
-                PointsController pointsController = new PointsController();
-                var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
-                if (register == null)
-                {
-                    return BadRequest();
-                }
-                ordersCl.PointRegisterId = register.PointRegisterId;
-            }
+            ordersCl.PaymentMethodId = 1; //Только налик
 
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
