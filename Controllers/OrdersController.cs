@@ -12,6 +12,8 @@ using System.Security.Principal;
 using Microsoft.EntityFrameworkCore.Internal;
 using ApiClick.Models.EnumModels;
 using ApiClick.Models.RegisterModels;
+using ApiClick.StaticValues;
+using System.ComponentModel;
 
 namespace ApiClick.Controllers
 {
@@ -338,6 +340,11 @@ namespace ApiClick.Controllers
             var identity = funcs.identityToUser(User.Identity, _context);
             var order = await _context.OrdersCl.FindAsync(id);
 
+            if (order == null || id <= 0) 
+            {
+                return BadRequest();
+            }
+
             if (order.UserId != identity.UserId) 
             {
                 return Forbid();
@@ -377,12 +384,30 @@ namespace ApiClick.Controllers
             order.User = await _context.UserCl.FindAsync(order.UserId);
             order.BrandOwnerId = brand.UserId;
             order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
+            order.OrderDetails = _context.OrderDetailCl.Where(e => e.OrderId == order.OrdersId).ToList();
+            request.Suggestions = _context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList();
+
+            //Присваиваем стоимость
+            switch (order.CategoryId) 
+            {
+                case 2:
+                    order.OrderDetails.First(e => e.ProductId == Constants.PRODUCT_ID_BOTTLED_WATER).Price =
+                        request.Suggestions.First(e => e.ProductId == Constants.PRODUCT_ID_BOTTLED_WATER).SuggestedPrice;
+                    order.OrderDetails.First(e => e.ProductId == Constants.PRODUCT_ID_CONTAINER).Price =
+                        request.Suggestions.First(e => e.ProductId == Constants.PRODUCT_ID_CONTAINER).SuggestedPrice;
+                    break;
+                case 3:
+                    order.OrderDetails.First(e => e.ProductId == Constants.PRODUCT_ID_WATER).Price =
+                        request.Suggestions.First(e => e.ProductId == Constants.PRODUCT_ID_WATER).SuggestedPrice;
+                    break;
+                default: return BadRequest();
+            }
 
             if (pointsUsed) 
             {
                 order.PointsUsed = true;
                 PointsController pointsController = new PointsController();
-                var register = await pointsController.CreatePointRegister(order.User, order);
+                PointRegister register = await pointsController.CreatePointRegister(order.User, order);
                 if (register == null) 
                 {
                     return BadRequest();
@@ -483,7 +508,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult> PostVodaRequest(WaterRequest waterRequest, int id)
         {
-            if (waterRequest == null || id <= 0) 
+            if (waterRequest == null || id <= 0 || waterRequest.Suggestions == null || waterRequest.Suggestions.Count == 0) 
             {
                 return BadRequest();
             }
@@ -516,11 +541,11 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            var request = new WaterRequest() 
+            var request = new WaterRequest()
             {
                 BrandId = brand.BrandId,
                 OrderId = order.OrdersId,
-                SuggestedPrice = waterRequest.SuggestedPrice
+                Suggestions = waterRequest.Suggestions
             };
 
             _context.WaterRequests.Add(request);

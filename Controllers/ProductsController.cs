@@ -9,6 +9,7 @@ using ApiClick;
 using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
+using ApiClick.StaticValues;
 
 namespace ApiClick.Controllers
 {
@@ -54,6 +55,34 @@ namespace ApiClick.Controllers
             }
 
             return products;
+        }
+
+        // GET: api/GetProductsByMenu/5
+        //Возвращает список продуктов принадлежащих меню с указаным id
+        [Route("api/GetVodaProductsByCategory/{id}")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ProductCl>>> GetVodaProductsByCategory(int id)
+        {
+            var result = new List<ProductCl>();
+            switch (id) 
+            {
+                case 2:
+                    result.Add(funcs.getCleanModel(await _context.ProductCl.FindAsync(Constants.PRODUCT_ID_BOTTLED_WATER)));
+                    result.Add(funcs.getCleanModel(await _context.ProductCl.FindAsync(Constants.PRODUCT_ID_CONTAINER)));
+                    break;
+                case 3:
+                    result.Add(funcs.getCleanModel(await _context.ProductCl.FindAsync(Constants.PRODUCT_ID_WATER)));
+                    break;
+                default: return BadRequest();
+            }
+
+            foreach (ProductCl product in result)
+            {
+                product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(product.ImgId));
+            }
+
+            return result;
         }
 
         // GET: api/Products/5

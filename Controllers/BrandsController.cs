@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using System.Reflection;
+using ApiClick.StaticValues;
 
 namespace ApiClick.Controllers
 {
@@ -36,8 +37,6 @@ namespace ApiClick.Controllers
                 brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
                 brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
                 brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
-                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
-                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
             }
 
             return brands;
@@ -55,9 +54,7 @@ namespace ApiClick.Controllers
                 //Оставляет те бренды, в которых имеется текущий хэштег итерации
                 brands = brands.Where(p => hashTagId == p.Hashtag1Id ||
                                             hashTagId == p.Hashtag2Id ||
-                                            hashTagId == p.Hashtag3Id ||
-                                            hashTagId == p.Hashtag4Id ||
-                                            hashTagId == p.Hashtag5Id).ToList();
+                                            hashTagId == p.Hashtag3Id).ToList();
             }
 
 
@@ -72,17 +69,7 @@ namespace ApiClick.Controllers
             {
                 foreach (BrandCl brand in brands)
                 {
-                    //Если все идет по правильному сценарию, то у бренда будет не более 1 меню и 1 товара 
-                    brand.BrandMenus = _context.BrandMenuCl.Where(e => e.BrandId == brand.BrandId).ToList();
-                    if (brand.BrandMenus != null)
-                    {
-                        brand.BrandMenus.First().Image = null;
-                        brand.BrandMenus.First().Products = _context.ProductCl.Where(e => e.BrandMenuId == brand.BrandMenus.First().BrandMenuId).ToList();
-                        if (brand.BrandMenus.First().Products != null)
-                        {
-                            brand.BrandMenus.First().Products.First().Image = null;
-                        }
-                    }
+                    attachDefaultMenuToVodaBrand(brand);
                 }
             }
 
@@ -93,8 +80,6 @@ namespace ApiClick.Controllers
                 brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
                 brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
                 brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
-                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
-                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
@@ -121,17 +106,7 @@ namespace ApiClick.Controllers
             {
                 foreach (BrandCl brand in brands) 
                 {
-                    //Если все идет по правильному сценарию, то у бренда будет не более 1 меню и 1 товара 
-                    brand.BrandMenus = _context.BrandMenuCl.Where(e => e.BrandId == brand.BrandId).ToList();
-                    if (brand.BrandMenus != null)
-                    {
-                        brand.BrandMenus.First().Image = null;
-                        brand.BrandMenus.First().Products = _context.ProductCl.Where(e => e.BrandMenuId == brand.BrandMenus.First().BrandMenuId).ToList();
-                        if (brand.BrandMenus.First().Products != null)
-                        {
-                            brand.BrandMenus.First().Products.First().Image = null;
-                        }
-                    }
+                    attachDefaultMenuToVodaBrand(brand);
                 }
             }
 
@@ -142,8 +117,6 @@ namespace ApiClick.Controllers
                 brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
                 brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
                 brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
-                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
-                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
@@ -191,14 +164,11 @@ namespace ApiClick.Controllers
                 brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
                 brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
                 brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
-                brand.HashTag4 = await _context.HashtagCl.FindAsync(brand.Hashtag4Id);
-                brand.HashTag5 = await _context.HashtagCl.FindAsync(brand.Hashtag5Id);
                 switch (brand.CategoryId)
                 {
                     case 2:
                     case 3:
-                        brand.BrandMenus = _context.BrandMenuCl.Where(e => e.BrandId == brand.BrandId).ToList();
-                        brand.BrandMenus.First().Products = _context.ProductCl.Where(e => e.BrandMenuId == brand.BrandMenus.First().BrandMenuId).ToList();
+                        attachDefaultMenuToVodaBrand(brand);
                         break;
                     default: break;
                 }
@@ -266,8 +236,8 @@ namespace ApiClick.Controllers
             brandCl.CreatedDate = DateTime.Now;
 
             insertTagsCorrectly(brandCl);
-
             _context.BrandCl.Add(brandCl);
+
             await _context.SaveChangesAsync();
 
             return brandCl;
@@ -324,6 +294,8 @@ namespace ApiClick.Controllers
 
         private void insertTagsCorrectly(BrandCl brand)
         {
+            int TAGS_COUNT = 3;
+
             //Ставим теги в нужном порядке
             var tagList = new List<int?>();
             var propertyList = new List<System.Reflection.PropertyInfo>();
@@ -338,7 +310,7 @@ namespace ApiClick.Controllers
                                     .OrderBy(e => e.Value)
                                     .ToList();
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < TAGS_COUNT; i++)
             {
                 //Если элемент существует - добавить в свойство
                 if (i < tagList.Count)
@@ -352,9 +324,31 @@ namespace ApiClick.Controllers
             }
         }
 
-        private bool BrandClExists(int id)
+        /// <summary>
+        /// Присоединяет к отправляемому бренду единственное меню с соответствующими категории товарами
+        /// </summary>
+        /// <param name="brand">Бренд, к которому будут привязаны данные</param>
+        private void attachDefaultMenuToVodaBrand(BrandCl brand)
         {
-            return _context.BrandCl.Any(e => e.BrandId == id);
+            var ListOfProducts = new List<ProductCl>();
+
+            switch (brand.CategoryId)
+            {
+                //Бутилированная вода
+                case 2:
+                    ListOfProducts.Add(funcs.getCleanModel(_context.ProductCl.Find(Constants.PRODUCT_ID_BOTTLED_WATER)));
+                    ListOfProducts.Add(funcs.getCleanModel(_context.ProductCl.Find(Constants.PRODUCT_ID_CONTAINER)));
+                    break;
+                //Водовоз
+                case 3:
+                    ListOfProducts.Add(funcs.getCleanModel(_context.ProductCl.Find(Constants.PRODUCT_ID_WATER)));
+                    break;
+                //Error
+                default: return;
+            }
+
+            brand.BrandMenus = new List<BrandMenuCl>() { new BrandMenuCl() };
+            brand.BrandMenus.First().Products = ListOfProducts;
         }
     }
 }

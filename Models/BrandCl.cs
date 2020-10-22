@@ -20,6 +20,10 @@ namespace ApiClick.Models
         public string BrandName { get; set; }
         public string Description { get; set; }
         public string DescriptionMax { get; set; }
+        /// <summary>
+        /// Определяет видимость бренда для пользователей
+        /// </summary>
+        public bool Available { get; set; }
 
         //Nullable
         public string Contact { get; set; }
@@ -31,15 +35,11 @@ namespace ApiClick.Models
         public int? Hashtag1Id { get; set; } 
         public int? Hashtag2Id { get; set; }
         public int? Hashtag3Id { get; set; }
-        public int? Hashtag4Id { get; set; }
-        public int? Hashtag5Id { get; set; }
         public DateTime CreatedDate { get; set; }
 
         public virtual HashTagCl HashTag1 { get; set; }
         public virtual HashTagCl HashTag2 { get; set; }
         public virtual HashTagCl HashTag3 { get; set; }
-        public virtual HashTagCl HashTag4 { get; set; }
-        public virtual HashTagCl HashTag5 { get; set; }
         public virtual UserCl User { get; set; }
         public virtual CategoryCl Category { get; set; }
         public virtual ImageCl ImgLogo { get; set; }

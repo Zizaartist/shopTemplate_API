@@ -10,10 +10,13 @@ namespace ApiClick.Models
         public int WaterRequestId { get; set; }
         public int OrderId { get; set; }
         public int BrandId { get; set; }
-        public decimal SuggestedPrice { get; set; }
-        
 
         public virtual OrdersCl Order { get; set; }
         public virtual BrandCl Brand { get; set; }
+
+        /// <summary>
+        /// Cодержат предлагаемые цены на соответствующие товары
+        /// </summary>
+        public virtual ICollection<RequestDetail> Suggestions { get; set; }
     }
 }

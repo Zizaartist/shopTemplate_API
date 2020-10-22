@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ApiClick.StaticValues;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,6 +22,8 @@ namespace ApiClick
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            //Инициализация конструктора статических значений
+            _ = Constants.CONSTRUCTOR_CALLER;
         }
 
         public IConfiguration Configuration { get; }

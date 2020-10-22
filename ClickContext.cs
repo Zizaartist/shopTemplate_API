@@ -29,6 +29,7 @@ namespace ApiClick
         public virtual DbSet<ProductCl> ProductCl { get; set; }
         public virtual DbSet<UserCl> UserCl { get; set; }
         public virtual DbSet<WaterRequest> WaterRequests { get; set; }
+        public virtual DbSet<RequestDetail> RequestDetails { get; set; }
 
         //Модели-регистры
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
@@ -55,6 +56,8 @@ namespace ApiClick
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasAnnotation("Relational:DefaultSchema", "u0906946_u0906946");
+
+            //modelBuilder.UseCollation("SQL_Latin1_General_CP1_CS_AS");
 
             modelBuilder.Entity<BrandCl>(entity =>
             {
@@ -136,18 +139,6 @@ namespace ApiClick
                     .WithMany()
                     .HasForeignKey(e => e.Hashtag3Id)
                     .HasConstraintName("FK_BrandCl_Hashtag3Id")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.HashTag4)
-                    .WithMany()
-                    .HasForeignKey(e => e.Hashtag4Id)
-                    .HasConstraintName("FK_BrandCl_Hashtag4Id")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.HashTag5)
-                    .WithMany()
-                    .HasForeignKey(e => e.Hashtag5Id)
-                    .HasConstraintName("FK_BrandCl_Hashtag5Id")
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
@@ -429,6 +420,21 @@ namespace ApiClick
                     .HasForeignKey(k => k.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
+
+            modelBuilder.Entity<RequestDetail>(entity => 
+            {
+                entity.HasKey(e => e.RequestDetailId);
+
+                entity.HasOne(e => e.Request)
+                    .WithMany()
+                    .HasForeignKey(e => e.RequestId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Product)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            }); 
 
             OnModelCreatingPartial(modelBuilder);
         }
