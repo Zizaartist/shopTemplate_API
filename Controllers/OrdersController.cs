@@ -351,6 +351,10 @@ namespace ApiClick.Controllers
             }
 
             var requests = funcs.getCleanListOfModels(_context.WaterRequests.Where(e => e.OrderId == order.OrdersId).ToList());
+            foreach (WaterRequest request in requests) 
+            {
+                request.Suggestions = funcs.getCleanListOfModels(_context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList());
+            }
             return requests;
         }
 
@@ -418,6 +422,14 @@ namespace ApiClick.Controllers
             await _context.SaveChangesAsync();
             await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "Ваш запрос на доставку был принят!", order.BrandOwner.NotificationRegistration);
 
+            //Удаление ненужных записей
+            //foreach (RequestDetail detail in request.Suggestions)
+            //{
+            //    _context.RequestDetails.Remove(detail);
+            //}
+            //_context.WaterRequests.Remove(request);
+            //await _context.SaveChangesAsync();
+
             return Ok();
         }
 
@@ -429,7 +441,7 @@ namespace ApiClick.Controllers
         [Route("api/GetOpenVodaOrders/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<OrdersCl>>> GetOpenVodaOrders(int id)
+        public async Task<ActionResult<List<OrdersCl>>> GetOpenVodaOrders(int id) //category id
         {
             var identity = funcs.identityToUser(User.Identity, _context);
             //Категория совпадает с указанной
@@ -509,12 +521,12 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="waterRequest">Неполная модель с указанием предлагаемой цены</param>
         /// <param name="id">Id заказа, на который претендует отправитель</param>
-        [Route("api/PostVodaRequest/{id}")]
+        [Route("api/PostVodaRequest")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public async Task<ActionResult> PostVodaRequest(WaterRequest waterRequest, int id)
+        public async Task<ActionResult> PostVodaRequest(WaterRequest waterRequest)
         {
-            if (waterRequest == null || id <= 0 || waterRequest.Suggestions == null || waterRequest.Suggestions.Count == 0) 
+            if (waterRequest == null || waterRequest.Suggestions == null || waterRequest.Suggestions.Count == 0) 
             {
                 return BadRequest();
             }
@@ -523,7 +535,7 @@ namespace ApiClick.Controllers
 
             try
             {
-                order = await _context.OrdersCl.FindAsync(id);
+                order = await _context.OrdersCl.FindAsync(waterRequest.OrderId);
             }
             catch (Exception)
             {
@@ -569,11 +581,16 @@ namespace ApiClick.Controllers
             var request = new WaterRequest()
             {
                 BrandId = brand.BrandId,
-                OrderId = order.OrdersId,
-                Suggestions = waterRequest.Suggestions
+                OrderId = order.OrdersId
             };
-
             _context.WaterRequests.Add(request);
+            await _context.SaveChangesAsync();
+
+            foreach (RequestDetail detail in waterRequest.Suggestions) 
+            {
+                detail.RequestId = request.WaterRequestId;
+                _context.RequestDetails.Add(detail);
+            }
             await _context.SaveChangesAsync();
 
             return Ok();
