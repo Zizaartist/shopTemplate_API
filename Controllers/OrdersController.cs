@@ -450,6 +450,12 @@ namespace ApiClick.Controllers
             {
                 //Нифига, кроме пользовательских данных неизвестно
                 order.User = funcs.getCleanUser(await _context.UserCl.FindAsync(order.UserId));
+                order.OrderDetails = funcs.getCleanListOfModels(await _context.OrderDetailCl.Where(e => e.OrderId == order.OrdersId).ToListAsync());
+                foreach (OrderDetailCl detail in order.OrderDetails) 
+                {
+                    detail.Product = funcs.getCleanModel(await _context.ProductCl.FindAsync(detail.ProductId));
+                    detail.Product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(detail.Product.ImgId));
+                }
             }
 
             return orders;
@@ -528,6 +534,25 @@ namespace ApiClick.Controllers
             if (order.BrandOwnerId != null) 
             {
                 return Forbid();
+            }
+
+            order.OrderDetails = await _context.OrderDetailCl.Where(e => e.OrderId == order.OrdersId).ToListAsync();
+
+            //Если количество предложений не соответствует
+            if (order.OrderDetails.Count != waterRequest.Suggestions.Count)
+            {
+                return BadRequest();
+            }
+            else 
+            {
+                var listOfSuggestions = new List<RequestDetail>(waterRequest.Suggestions);
+                //Проверка на соответствие соответствие каждой детали заказа с деталью запроса
+                //Если не найдено детали запроса для соответствующей детали заказа - badrequest
+                foreach (OrderDetailCl detail in order.OrderDetails) 
+                {
+                    if (!listOfSuggestions.Any(e => e.ProductId == detail.ProductId))
+                        return BadRequest();
+                }
             }
 
             //получаем первый бренд отправителя
