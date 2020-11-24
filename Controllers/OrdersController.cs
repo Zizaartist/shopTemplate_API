@@ -354,6 +354,9 @@ namespace ApiClick.Controllers
             foreach (WaterRequest request in requests) 
             {
                 request.Suggestions = funcs.getCleanListOfModels(_context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList());
+                request.Brand = funcs.getCleanModel(_context.BrandCl.Find(request.BrandId));
+                request.Brand.ImgBanner = funcs.getCleanModel(_context.ImageCl.Find(request.Brand.ImgBannerId));
+                request.Brand.ImgLogo = funcs.getCleanModel(_context.ImageCl.Find(request.Brand.ImgLogoId));
             }
             return requests;
         }

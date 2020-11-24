@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj": {}
+    "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj": {
+    "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
+        "projectUniqueName": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
         "projectName": "ApiClick",
-        "projectPath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
+        "projectPath": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
         "packagesPath": "C:\\Users\\Syberia-7\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\obj\\",
+        "outputPath": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Microsoft\\Xamarin\\NuGet\\"
