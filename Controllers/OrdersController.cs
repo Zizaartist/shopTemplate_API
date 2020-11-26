@@ -394,20 +394,18 @@ namespace ApiClick.Controllers
             order.OrderDetails = _context.OrderDetailCl.Where(e => e.OrderId == order.OrdersId).ToList();
             request.Suggestions = _context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList();
 
-            //Присваиваем стоимость
-            switch (order.CategoryId) 
+            //Для каждой продукции найти пару и присвоить стоимость указанную в запросе
+            try
             {
-                case 2:
-                    order.OrderDetails.First(e => e.ProductId == Constants.PRODUCT_ID_BOTTLED_WATER).Price =
-                        request.Suggestions.First(e => e.ProductId == Constants.PRODUCT_ID_BOTTLED_WATER).SuggestedPrice;
-                    order.OrderDetails.First(e => e.ProductId == Constants.PRODUCT_ID_CONTAINER).Price =
-                        request.Suggestions.First(e => e.ProductId == Constants.PRODUCT_ID_CONTAINER).SuggestedPrice;
-                    break;
-                case 3:
-                    order.OrderDetails.First(e => e.ProductId == Constants.PRODUCT_ID_WATER).Price =
-                        request.Suggestions.First(e => e.ProductId == Constants.PRODUCT_ID_WATER).SuggestedPrice;
-                    break;
-                default: return BadRequest();
+                foreach (OrderDetailCl detail in order.OrderDetails)
+                {
+                    detail.Price = request.Suggestions.First(e => e.ProductId == detail.ProductId).SuggestedPrice;
+                }
+            }
+            catch 
+            {
+                //Полученый запрос не имеет соответствующего списка деталей
+                return BadRequest(); 
             }
 
             if (pointsUsed) 
