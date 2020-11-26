@@ -576,7 +576,7 @@ namespace ApiClick.Controllers
             var brand = brands.First();
 
             //... и проверяем наличие хотя бы одной записи с id этого бренда, подавляем попытку создать дубликат
-            if (_context.WaterRequests.Any(e => e.BrandId == brand.BrandId)) 
+            if (_context.WaterRequests.Where(e => e.OrderId == order.OrdersId).Any(e => e.BrandId == brand.BrandId)) 
             {
                 return Forbid();
             }
@@ -624,6 +624,12 @@ namespace ApiClick.Controllers
             ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
             ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
             ordersCl.PaymentMethodId = 1; //Только налик
+
+            //foreach (OrderDetailCl detail in ordersCl.OrderDetails) 
+            //{
+            //    _context.OrderDetailCl.Add(detail);
+            //}
+            //await _context.SaveChangesAsync();
 
             _context.OrdersCl.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
