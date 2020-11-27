@@ -445,12 +445,17 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<List<OrdersCl>>> GetOpenVodaOrders(int id) //category id
         {
             var identity = funcs.identityToUser(User.Identity, _context);
+            var myFirstBrand = _context.BrandCl.First(e => e.UserId == identity.UserId);
+            var myRequests = _context.WaterRequests.Where(e => e.BrandId == myFirstBrand.BrandId);
+            
             //Категория совпадает с указанной
             //Владелец бренда еще не привязан
             //В "мокрых" запросах нет записи с id заказа текущей итерации
             var allOrdersFound = _context.OrdersCl.Where(p => p.CategoryId == id && 
                                                                     p.BrandOwnerId == null);
-            var ordersFound = allOrdersFound.Where(p => !_context.WaterRequests.Any(e => e.OrderId == p.OrdersId)).ToList();
+            var test = allOrdersFound.ToList();
+            //найти все те заказы, в которых отсутствует связь с "моими запросами"
+            var ordersFound = allOrdersFound.Where(p => !myRequests.Any(e => p.OrdersId == e.OrderId)).ToList();
 
             if (ordersFound == null)
             {
