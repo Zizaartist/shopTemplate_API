@@ -485,7 +485,8 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<List<OrdersCl>>> GetOrdersByCategory(int id)
         {
             var identity = funcs.identityToUser(User.Identity, _context);
-            var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && (p.BrandOwnerId == null || p.BrandOwnerId == identity.UserId)).ToListAsync();
+            //Возвращать только те заказы, где ты являешься исполнителем
+            var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && p.BrandOwnerId == identity.UserId).ToListAsync();
 
             if (ordersFound == null)
             {
