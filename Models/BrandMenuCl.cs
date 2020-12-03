@@ -8,11 +8,6 @@ namespace ApiClick.Models
     /// </summary>
     public partial class BrandMenuCl
     {
-        public BrandMenuCl()
-        {
-            Products = new HashSet<ProductCl>();
-        }
-
         //Not nullable
         public int BrandMenuId { get; set; }
 

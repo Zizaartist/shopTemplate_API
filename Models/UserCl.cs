@@ -9,13 +9,6 @@ namespace ApiClick.Models
     [Serializable]
     public partial class UserCl
     {
-        public UserCl()
-        {
-            Brands = new HashSet<BrandCl>();
-            Messages = new HashSet<MessageCl>();
-            Orders = new HashSet<OrdersCl>();
-        }
-
         //Not nullable
         public int UserId { get; set; } 
         public string Phone { get; set; }
