@@ -6,6 +6,11 @@ namespace ApiClick.Models
 {
     public partial class BrandCl
     {
+        public BrandCl() 
+        {
+            BrandMenus = new List<BrandMenuCl>();
+        }
+
         //Not nullable
         public int BrandId { get; set; }
         public int CategoryId { get; set; }

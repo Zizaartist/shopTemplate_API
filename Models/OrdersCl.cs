@@ -10,6 +10,11 @@ namespace ApiClick.Models
     /// </summary>
     public partial class OrdersCl
     {
+        public OrdersCl() 
+        {
+            OrderDetails = new List<OrderDetailCl>();
+        }
+
         //Not nullable
         public int OrdersId { get; set; }
         public int UserId { get; set; }
