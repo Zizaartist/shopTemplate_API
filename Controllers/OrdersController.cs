@@ -254,58 +254,126 @@ namespace ApiClick.Controllers
 
         // POST: api/Orders
         [Route("api/[controller]")]
+
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<OrdersCl>> PostOrdersCl(OrdersCl ordersCl)
+        public async Task<ActionResult<List<OrdersCl>>> PostOrdersCl(OrdersCl orderContainer)
         {
-            if (ordersCl == null || ordersCl.OrderDetails == null || ordersCl.OrderDetails.Count < 1)
+            if (orderContainer == null || orderContainer.OrderDetails == null || orderContainer.OrderDetails.Count < 1)
             {
                 return BadRequest();
             }
 
-            foreach (OrderDetailCl detail in ordersCl.OrderDetails) 
+            //Формируем заказы по критерию принадлежности бренду
+            List<List<OrderDetailCl>> brandOrders = new List<List<OrderDetailCl>>();
+            List<OrdersCl> orders = new List<OrdersCl>();
+            foreach (OrderDetailCl detail in orderContainer.OrderDetails)
             {
-                if (detail.Count < 1)
+                detail.Product = _context.ProductCl.Find(detail.ProductId);
+                detail.Product.BrandMenu = _context.BrandMenuCl.Find(detail.Product.BrandMenuId);
+                detail.Price = detail.Product.Price;
+
+                bool found = false;
+                foreach (List<OrderDetailCl> brandOrder in brandOrders)
                 {
-                    return BadRequest();
+                    //Если бренд первого элемента списка совпадает с брендом текущей детали - добавить в список и перейти на следущую деталь 
+                    if (brandOrder[0].Product.BrandMenu.BrandId == detail.Product.BrandMenu.BrandId)
+                    {
+                        brandOrder.Add(detail);
+                        found = true;
+                        break;
+                    }
+                }
+                //Если не найден во время циклов - добавить список
+                if (!found)
+                {
+                    List<OrderDetailCl> buffer = new List<OrderDetailCl>();
+                    buffer.Add(detail);
+                    brandOrders.Add(buffer);
                 }
             }
 
-            var responsibleBrandOwnerId = await _context.BrandCl.FindAsync(
-                                                  (await  _context.BrandMenuCl.FindAsync(
-                                                       (await _context.ProductCl.FindAsync(
-                                                            ordersCl.OrderDetails.First().ProductId)
-                                                       ).BrandMenuId)
-                                                  ).BrandId);
+            //Создаем заказ из имеющихся списков деталей
+            //foreach (List<OrderDetailCl> brandOrder in brandOrders)
+            //{
+            //    int categoryId = brandOrder.First().Product.BrandMenu.Brand.CategoryId;
+            //    foreach (OrderDetailCl detail in brandOrder)
+            //    {
+            //        detail.Product = null;
+            //    }
+            //    OrdersCl order = new OrdersCl()
+            //    {
+            //        OrderDetails = brandOrder
+            //    };
+            //    orders.Add(order);
+            //    orders.Last().CategoryId = categoryId;
+            //}
 
-            //filling blanks and sending to DB
-            ordersCl.CreatedDate = DateTime.Now;
-            ordersCl.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
-            ordersCl.OrderStatus = await _context.OrderStatusCl.FindAsync(ordersCl.StatusId);
-            ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
-            ordersCl.User = await _context.UserCl.FindAsync(ordersCl.UserId);
-            ordersCl.Phone = ordersCl.User.Phone;
-            ordersCl.BrandOwnerId = responsibleBrandOwnerId.UserId;
-
-            _context.OrdersCl.Add(ordersCl);
-            await _context.SaveChangesAsync();
-            if (ordersCl.PointsUsed)
+            brandOrders.ForEach(listOfDetails => 
             {
+                OrdersCl newOrder = new OrdersCl();
+                newOrder.CategoryId = _context.BrandCl.Find(listOfDetails.First().Product.BrandMenu.BrandId).CategoryId;
+                newOrder.UserId = funcs.identityToUser(User.Identity, _context).UserId;
+                listOfDetails.ForEach(detail => newOrder.OrderDetails.Add(detail));
+                orders.Add(newOrder);
+            });
 
-                PointsController pointsController = new PointsController();
-                var register = await pointsController.CreatePointRegister(ordersCl.User, ordersCl);
-                if (register == null) 
-                {
-                    return BadRequest();
-                }
-                ordersCl.PointRegisterId = register.PointRegisterId;
+            //Determine which orders will be paid with points and which will not
+            PointsController pointsController = new PointsController();
+            List<PointsController.OrderExtended> ordersWithPoints = new List<PointsController.OrderExtended>();
+            if (orderContainer.PointsUsed)
+            {
+                ordersWithPoints = pointsController.DistributePoints(orders);
             }
 
-            ordersCl.BrandOwner = await _context.UserCl.FindAsync(ordersCl.BrandOwnerId);
-            await _context.SaveChangesAsync();
-            NotificationsController notificationsController = new NotificationsController();
-            await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
+            //Заполни пробелы и 
+            foreach (OrdersCl order in orders)
+            {
+                var responsibleBrandOwnerId = await _context.BrandCl.FindAsync(
+                                                   (await _context.BrandMenuCl.FindAsync(
+                                                        (await _context.ProductCl.FindAsync(
+                                                             order.OrderDetails.First().ProductId)
+                                                        ).BrandMenuId)
+                                                   ).BrandId);
 
+                //filling blanks and sending to DB
+                decimal pointsInvested = default;
+                if (orderContainer.PointsUsed) 
+                {
+                    pointsInvested = ordersWithPoints.Find(e => e.order.OrdersId == order.OrdersId).pointsInvested;
+                } 
+                order.Street = orderContainer.Street;
+                //order.House = orderContainer.House;
+                //order.Kv = orderContainer.Kv;
+                //order.Padik = orderContainer.Padik;
+                //order.Etash = orderContainer.Etash;
+                order.PointsUsed = orderContainer.PointsUsed && (pointsInvested > 0);
+                order.PaymentMethodId = orderContainer.PaymentMethodId;
+
+                order.CreatedDate = DateTime.Now;
+                order.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
+                order.OrderStatus = await _context.OrderStatusCl.FindAsync(order.StatusId);
+                order.User = await _context.UserCl.FindAsync(order.UserId);
+                order.Phone = order.User.Phone;
+                order.BrandOwnerId = responsibleBrandOwnerId.UserId;
+
+                _context.OrdersCl.Add(order);
+                await _context.SaveChangesAsync();
+                if (order.PointsUsed)
+                {
+                    var register = await pointsController.CreatePointRegister(order.User, order, pointsInvested);
+                    if (register == null)
+                    {
+                        return BadRequest();
+                    }
+                    order.PointRegisterId = register.PointRegisterId;
+                }
+
+                order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
+                await _context.SaveChangesAsync();
+                NotificationsController notificationsController = new NotificationsController();
+                await notificationsController.ToSendNotificationAsync(order.BrandOwner.DeviceType, "У Вас новый заказ", order.BrandOwner.NotificationRegistration);
+            }
             return Ok();
         }
 
