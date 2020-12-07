@@ -78,5 +78,17 @@ namespace ApiClick.Controllers
             _context.SaveChanges();
             return Ok();
         }
+
+        [Route("api/SendNotification")]
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpPost]
+        public async Task<ActionResult> SendNotification(string phone, string text)
+        {
+            string correctPhone = new Functions().convertNormalPhoneNumber(phone);
+            var user = _context.UserCl.First(e => e.Phone == correctPhone);
+            await new NotificationsController().ToSendNotificationAsync(user.DeviceType, text, user.NotificationRegistration);
+            
+            return Ok();
+        }
     }
 }

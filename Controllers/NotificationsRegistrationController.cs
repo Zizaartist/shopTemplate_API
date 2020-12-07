@@ -31,7 +31,7 @@ namespace ApiClick.Controllers
         // POST api/register
         // This creates a registration id
         [Route("api/[controller]")]
-        //[Authorize(Roles = "User, Admin, SuperAdmin")]
+        [Authorize(Roles = "User, Admin, SuperAdmin")]
         [HttpPost]
         //Handle содержит в себе токен, который пользователь получил от firebase
         public async Task<string> Post(string handle = null)
@@ -110,12 +110,17 @@ namespace ApiClick.Controllers
         }
 
         // DELETE api/register/5
+        //Чуток изменил функционал, удаляется только запись в бд
         [Route("api/[controller]")]
-        //[Authorize(Roles = "User, Admin, SuperAdmin")]
+        [Authorize(Roles = "User, Admin, SuperAdmin")]
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete(string id)
+        public async Task<HttpResponseMessage> Delete()
         {
-            await hub.DeleteRegistrationAsync(id);
+            //await hub.DeleteRegistrationAsync(id);
+            //return new HttpResponseMessage(HttpStatusCode.OK);
+            var user = funcs.identityToUser(User.Identity, _context);
+            user.NotificationRegistration = null;
+            await _context.SaveChangesAsync();
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
