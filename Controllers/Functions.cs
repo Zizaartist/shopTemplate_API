@@ -74,6 +74,10 @@ namespace ApiClick.Controllers
         /// </summary>
         public string convertNormalPhoneNumber(string originalNumber) 
         {
+            if (originalNumber == null) 
+            {
+                return null;
+            }
             //Базировал на https://bit.ly/3lEsT2R
             string processedNumber = originalNumber;
             //Сперва удаляем лишние символы
