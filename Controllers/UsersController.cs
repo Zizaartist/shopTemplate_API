@@ -196,7 +196,7 @@ namespace ApiClick.Controllers
 
         [Route("api/PhoneIsRegistered")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> PhoneIsRegistered(string phone)
+        public async Task<ActionResult<string>> PhoneIsRegistered(string phone)
         {
             string correctPhone = funcs.convertNormalPhoneNumber(phone);
             var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
@@ -206,7 +206,7 @@ namespace ApiClick.Controllers
                 return NotFound(); //"you should register"
             }
 
-            return Ok();
+            return correctPhone;
         }
 
         //returns ok if admin token is still valid
