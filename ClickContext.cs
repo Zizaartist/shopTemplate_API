@@ -42,6 +42,7 @@ namespace ApiClick
         public virtual DbSet<UserRolesCl> UserRolesCl { get; set; }
         public virtual DbSet<PaymentMethodCl> PaymentMethodCl { get; set; }
         public virtual DbSet<HashTagCl> HashtagCl { get; set; }
+        public virtual DbSet<BanknoteCl> BanknoteCl { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -272,6 +273,12 @@ namespace ApiClick
                     .HasConstraintName("FK_OrderCl_CategoryId")
                     .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne(e => e.Banknote)
+                    .WithMany()
+                    .HasForeignKey(k => k.BanknoteId)
+                    .HasConstraintName("FK_OrderCl_BanknoteId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
             });
 
             modelBuilder.Entity<OrderDetailCl>(entity =>
@@ -344,6 +351,8 @@ namespace ApiClick
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Street).HasMaxLength(250);
+
+                entity.Property(e => e.NotificationsEnabled).HasDefaultValue(true);
             });
 
             modelBuilder.Entity<OrderStatusCl>(entity =>
@@ -435,7 +444,12 @@ namespace ApiClick
                     .WithMany()
                     .HasForeignKey(e => e.ProductId)
                     .OnDelete(DeleteBehavior.NoAction);
-            }); 
+            });
+
+            modelBuilder.Entity<BanknoteCl>(entity => 
+            {
+                entity.HasKey(e => e.BanknoteId);
+            });
 
             OnModelCreatingPartial(modelBuilder);
         }

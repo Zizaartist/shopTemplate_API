@@ -36,6 +36,7 @@ namespace ApiClick.Models
         public int? Etash { get; set; }
         public int? Kv { get; set; }
         public int? PointRegisterId { get; set; }
+        public int? BanknoteId { get; set; }
         public DateTime CreatedDate { get; set; }
 
         public virtual CategoryCl Category { get; set; }
@@ -45,5 +46,6 @@ namespace ApiClick.Models
         public virtual PaymentMethodCl PaymentMethod { get; set; }
         public virtual ICollection<OrderDetailCl> OrderDetails { get; set; }
         public virtual PointRegister PointRegister { get; set; }
+        public virtual BanknoteCl Banknote { get; set; }
     }
 }

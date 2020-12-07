@@ -21,6 +21,7 @@ namespace ApiClick.Models
         public string Phone { get; set; }
         public int Role { get; set; }
         public Decimal Points { get; set; }
+        public bool NotificationsEnabled { get; set; }
 
         //Nullable
         public string NotificationRegistration { get; set; }
