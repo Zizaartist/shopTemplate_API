@@ -372,7 +372,7 @@ namespace ApiClick.Controllers
                 order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
                 await _context.SaveChangesAsync();
                 NotificationsController notificationsController = new NotificationsController();
-                await notificationsController.ToSendNotificationAsync(order.BrandOwner.DeviceType, "У Вас новый заказ", order.BrandOwner.NotificationRegistration);
+                await notificationsController.ToSendNotificationAsync(order.BrandOwner.DeviceType, "У вас новый заказ!", order.BrandOwner.NotificationRegistration);
             }
             return Ok();
         }
@@ -742,7 +742,7 @@ namespace ApiClick.Controllers
 
             await _context.SaveChangesAsync();
 
-            await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Ваш заказ приняли", order.User.NotificationRegistration);
+            await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Статус вашего заказа обновлен!", order.User.NotificationRegistration);
 
             return Ok();
         }
