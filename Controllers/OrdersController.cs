@@ -556,7 +556,7 @@ namespace ApiClick.Controllers
             //Возвращать только те заказы, где ты являешься исполнителем, и статус не является завершенным
             var ordersFound = await _context.OrdersCl.Where(p => p.CategoryId == id && 
                                                             p.BrandOwnerId == identity.UserId && 
-                                                            p.StatusId == _context.OrderStatusCl.First(s => s.OrderStatusName != "Завершено").OrderStatusId).ToListAsync();
+                                                            p.StatusId != _context.OrderStatusCl.First(s => s.OrderStatusName == "Завершено").OrderStatusId).ToListAsync();
 
             if (ordersFound == null)
             {
