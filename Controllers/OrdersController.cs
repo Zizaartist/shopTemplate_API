@@ -340,7 +340,7 @@ namespace ApiClick.Controllers
                 decimal pointsInvested = default;
                 if (orderContainer.PointsUsed) 
                 {
-                    pointsInvested = ordersWithPoints.Find(e => e.order.OrdersId == order.OrdersId).pointsInvested;
+                    pointsInvested = ordersWithPoints.Find(extendedOrder => extendedOrder.order.Equals(order)).pointsInvested;
                 } 
                 order.Street = orderContainer.Street;
                 //order.House = orderContainer.House;
