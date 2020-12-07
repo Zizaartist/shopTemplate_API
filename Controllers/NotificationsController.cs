@@ -62,6 +62,10 @@ namespace ApiClick.Controllers
 
         public async Task<NotificationOutcome> ToSendNotificationAsync(string pns, string message, string userTag)
         {
+            if (string.IsNullOrEmpty(pns) || string.IsNullOrEmpty(message) || string.IsNullOrEmpty(userTag)) 
+            {
+                return null;
+            }
             switch (pns.ToLower())
             {
                 case "apns":
