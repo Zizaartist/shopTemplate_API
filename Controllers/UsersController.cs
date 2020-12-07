@@ -179,8 +179,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<UserCl>> PhoneCheck(string phone)
         {
-            string correctPhone = funcs.convertNormalPhoneNumber(phone);
-            var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
+            var user = _context.UserCl.FirstOrDefault(u => u.Phone == phone);
 
             if (user == null)
             {
@@ -190,6 +189,21 @@ namespace ApiClick.Controllers
             if (!User.Identity.IsAuthenticated)
             {
                 return Unauthorized(); //"go grab token first"
+            }
+
+            return Ok();
+        }
+
+        [Route("api/PhoneIsRegistered")]
+        [HttpPost]
+        public async Task<ActionResult<UserCl>> PhoneIsRegistered(string phone)
+        {
+            string correctPhone = funcs.convertNormalPhoneNumber(phone);
+            var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
+
+            if (user == null)
+            {
+                return NotFound(); //"you should register"
             }
 
             return Ok();
