@@ -28,6 +28,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public IActionResult UserToken(string phone)
         {
+            //Поскольку вызов является автономным не вижу смысла конвертировать телефон, ибо берется из кэша, нежели пользовательского ввода
             var identity = GetIdentity(phone);
             if (identity == null)
             {

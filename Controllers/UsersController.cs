@@ -179,7 +179,8 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<UserCl>> PhoneCheck(string phone)
         {
-            var user = _context.UserCl.FirstOrDefault(u => u.Phone == phone);
+            string correctPhone = funcs.convertNormalPhoneNumber(phone);
+            var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
 
             if (user == null)
             {
