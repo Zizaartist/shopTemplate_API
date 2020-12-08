@@ -387,8 +387,11 @@ namespace ApiClick.Controllers
 
                 order.BrandOwner = await _context.UserCl.FindAsync(order.BrandOwnerId);
                 await _context.SaveChangesAsync();
-                NotificationsController notificationsController = new NotificationsController();
-                await notificationsController.ToSendNotificationAsync(order.BrandOwner.DeviceType, "У вас новый заказ!", order.BrandOwner.NotificationRegistration);
+
+                if (order.User.NotificationsEnabled)
+                {
+                    await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "У вас новый заказ!", order.BrandOwner.NotificationRegistration);
+                }
             }
             return Ok();
         }
@@ -505,15 +508,11 @@ namespace ApiClick.Controllers
             }
 
             await _context.SaveChangesAsync();
-            await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "Ваш запрос на доставку был принят!", order.BrandOwner.NotificationRegistration);
 
-            //Удаление ненужных записей
-            //foreach (RequestDetail detail in request.Suggestions)
-            //{
-            //    _context.RequestDetails.Remove(detail);
-            //}
-            //_context.WaterRequests.Remove(request);
-            //await _context.SaveChangesAsync();
+            if (order.User.NotificationsEnabled)
+            {
+                await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "Ваш запрос на доставку был принят!", order.BrandOwner.NotificationRegistration);
+            }
 
             return Ok();
         }
@@ -762,7 +761,10 @@ namespace ApiClick.Controllers
 
             await _context.SaveChangesAsync();
 
-            await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Статус вашего заказа обновлен!", order.User.NotificationRegistration);
+            if (order.User.NotificationsEnabled)
+            {
+                await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Статус вашего заказа обновлен!", order.User.NotificationRegistration);
+            }
 
             return Ok();
         }

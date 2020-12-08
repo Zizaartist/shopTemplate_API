@@ -86,7 +86,10 @@ namespace ApiClick.Controllers
         {
             string correctPhone = new Functions().convertNormalPhoneNumber(phone);
             var user = _context.UserCl.First(e => e.Phone == correctPhone);
-            await new NotificationsController().ToSendNotificationAsync(user.DeviceType, text, user.NotificationRegistration);
+            if (user.NotificationsEnabled)
+            {
+                await new NotificationsController().ToSendNotificationAsync(user.DeviceType, text, user.NotificationRegistration);
+            }
             
             return Ok();
         }

@@ -116,12 +116,21 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete()
         {
-            //await hub.DeleteRegistrationAsync(id);
-            //return new HttpResponseMessage(HttpStatusCode.OK);
-            var user = funcs.identityToUser(User.Identity, _context);
-            user.NotificationRegistration = null;
-            await _context.SaveChangesAsync();
+            await hub.DeleteRegistrationAsync(id);
             return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+
+        // POST api/ToggleNotifications
+        //Включает или выключает получение уведомлений пользователем
+        [Route("api/ToggleNotifications")]
+        [Authorize(Roles = "User, Admin, SuperAdmin")]
+        [HttpPost]
+        public async Task<ActionResult> ToggleNotifications(bool state)
+        {
+            var user = funcs.identityToUser(User.Identity, _context);
+            user.NotificationsEnabled = state;
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         private static void ReturnGoneIfHubResponseIsGone(MessagingException e)
