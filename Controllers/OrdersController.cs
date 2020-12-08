@@ -95,6 +95,10 @@ namespace ApiClick.Controllers
                 }
                 order.OrderStatus = funcs.getCleanModel(await _context.OrderStatusCl.FindAsync(order.StatusId));
                 order.PaymentMethod = await _context.PaymentMethodCl.FindAsync(order.PaymentMethodId);
+                if (order.BanknoteId != null) 
+                {
+                    order.Banknote = await _context.BanknoteCl.FindAsync(order.BanknoteId);
+                }
                 if (order.PointsUsed)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
@@ -140,6 +144,10 @@ namespace ApiClick.Controllers
                 if (order.PointsUsed)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisterCl.FindAsync(order.PointRegisterId));
+                }
+                if (order.BanknoteId != null)
+                {
+                    order.Banknote = await _context.BanknoteCl.FindAsync(order.BanknoteId);
                 }
             }
 
@@ -338,15 +346,22 @@ namespace ApiClick.Controllers
 
                 //filling blanks and sending to DB
                 decimal pointsInvested = default;
+                order.BanknoteId = orderContainer.BanknoteId;
                 if (orderContainer.PointsUsed) 
                 {
-                    pointsInvested = ordersWithPoints.Find(extendedOrder => extendedOrder.order.Equals(order)).pointsInvested;
+                    var currectOrder = ordersWithPoints.Find(extendedOrder => extendedOrder.order.Equals(order));
+                    pointsInvested = currectOrder.pointsInvested;
+                    //Если заказ бесплатный - убрать связь с банкнотами
+                    if (currectOrder.orderSum == currectOrder.pointsInvested) 
+                    {
+                        order.BanknoteId = null;
+                    }
                 } 
                 order.Street = orderContainer.Street;
-                //order.House = orderContainer.House;
-                //order.Kv = orderContainer.Kv;
-                //order.Padik = orderContainer.Padik;
-                //order.Etash = orderContainer.Etash;
+                order.House = orderContainer.House;
+                order.Kv = orderContainer.Kv;
+                order.Padik = orderContainer.Padik;
+                order.Etash = orderContainer.Etash;
                 order.PointsUsed = orderContainer.PointsUsed && (pointsInvested > 0);
                 order.PaymentMethodId = orderContainer.PaymentMethodId;
 
@@ -587,6 +602,10 @@ namespace ApiClick.Controllers
                 if (order.BrandOwnerId != null)
                 {
                     order.BrandOwner = funcs.getCleanUser(identity); //Не равен null если заказ взят отправившим запрос
+                }
+                if (order.BanknoteId != null)
+                {
+                    order.Banknote = await _context.BanknoteCl.FindAsync(order.BanknoteId);
                 }
             }
 
