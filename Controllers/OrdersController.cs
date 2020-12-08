@@ -364,6 +364,7 @@ namespace ApiClick.Controllers
                 order.Etash = orderContainer.Etash;
                 order.PointsUsed = orderContainer.PointsUsed && (pointsInvested > 0);
                 order.PaymentMethodId = orderContainer.PaymentMethodId;
+                order.Commentary = orderContainer.Commentary;
 
                 order.CreatedDate = DateTime.Now;
                 order.StatusId = _context.OrderStatusCl.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
