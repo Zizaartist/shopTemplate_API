@@ -116,7 +116,7 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete()
         {
-            await hub.DeleteRegistrationAsync(id);
+            //await hub.DeleteRegistrationAsync(id);
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
