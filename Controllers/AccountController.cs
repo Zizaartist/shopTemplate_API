@@ -1,5 +1,6 @@
 ﻿using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,7 @@ namespace ApiClick.Controllers
     public class AccountController : Controller
     {
         private IMemoryCache _cache;
+        private ClickContext _context = new ClickContext();
         Functions funcs = new Functions();
 
         public AccountController(IMemoryCache memoryCache)
@@ -87,22 +89,29 @@ namespace ApiClick.Controllers
 
         [Route("api/SmsCheck")]
         [HttpPost]
-        public IActionResult SmsCheck(string phone)
-            {
+        public async Task<IActionResult> SmsCheck(string phone)
+        {
+            string PhoneLoc = funcs.convertNormalPhoneNumber(phone);
             Random rand = new Random();
-            string randomNumber = rand.Next(1000, 9999).ToString();
-            string PhoneLoc = phone;
+            string generatedCode = rand.Next(1000, 9999).ToString();
             if (phone != null)
             {
                 if (funcs.IsPhoneNumber(PhoneLoc))
                 {
-                    //HttpClient client = new HttpClient();
-                    //HttpResponseMessage response = await client.GetAsync("https://smsc.ru/sys/send.php?login=syberia&psw=K1e2s3k4i5l6&phones=" + PhoneLoc + "&mes=" + randomNumer);
-                    //await response.Content.ReadAsStringAsync();
-                    _cache.Set(funcs.convertNormalPhoneNumber(phone), randomNumber, new MemoryCacheEntryOptions
+                    //Позволяет получать ip отправителя, можно добавить к запросу sms api для фильтрации спаммеров
+                    var senderIp = Request.HttpContext.Connection.RemoteIpAddress;
+                    string moreReadable = senderIp.ToString();
+
+                    HttpClient client = new HttpClient();
+                    HttpResponseMessage response = await client.GetAsync($"https://sms.ru/sms/send?api_id=0F4D5813-DEF7-5914-2D97-42D0FBA75865&to={PhoneLoc}&msg={generatedCode}&json=1");
+                    if (response.IsSuccessStatusCode)
                     {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-                    });
+                        //Добавляем код в кэш на 5 минут
+                        _cache.Set(funcs.convertNormalPhoneNumber(phone), generatedCode, new MemoryCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                        });
+                    }
                 }
                 else
                 {
