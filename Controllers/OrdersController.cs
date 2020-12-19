@@ -20,8 +20,13 @@ namespace ApiClick.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
+
+        public OrdersController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/Orders
         [Route("api/[controller]")]
@@ -240,9 +245,10 @@ namespace ApiClick.Controllers
                 return Unauthorized();
             }
 
-            if (order.OrderStatus.OrderStatusName == "Завершено") 
+            if (order.OrderStatus.OrderStatusName == "Завершено")
             {
-                PointsController pointsController = new PointsController();
+                await _context.SaveChangesAsync();
+                PointsController pointsController = new PointsController(_context);
                 if (order.PointsUsed)
                 {
                     order.PointRegister = await _context.PointRegisterCl.FindAsync(order.PointRegisterId);
@@ -327,7 +333,7 @@ namespace ApiClick.Controllers
             });
 
             //Determine which orders will be paid with points and which will not
-            PointsController pointsController = new PointsController();
+            PointsController pointsController = new PointsController(_context);
             List<PointsController.OrderExtended> ordersWithPoints = new List<PointsController.OrderExtended>();
             if (orderContainer.PointsUsed)
             {
@@ -495,10 +501,11 @@ namespace ApiClick.Controllers
                 return BadRequest(); 
             }
 
-            if (pointsUsed) 
+            if (pointsUsed)
             {
                 order.PointsUsed = true;
-                PointsController pointsController = new PointsController();
+                await _context.SaveChangesAsync();
+                PointsController pointsController = new PointsController(_context);
                 PointRegister register = await pointsController.CreatePointRegister(order.User, order);
                 if (register == null) 
                 {

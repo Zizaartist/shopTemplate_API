@@ -18,8 +18,13 @@ namespace ApiClick.Controllers
     [ApiController]
     public class BrandsController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
+        
+        public BrandsController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/Brands
         //Debug

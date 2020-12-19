@@ -16,11 +16,13 @@ namespace ApiClick.Controllers
     public class ImagesController : ControllerBase
     {
         private readonly IWebHostEnvironment _appEnvironment;
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
-        public ImagesController(IWebHostEnvironment appEnvironment)
+        
+        public ImagesController(IWebHostEnvironment appEnvironment, ClickContext _context)
         {
             _appEnvironment = appEnvironment;
+            this._context = _context;
         }
 
         // POST: api/Users

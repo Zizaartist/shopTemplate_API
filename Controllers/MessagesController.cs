@@ -15,8 +15,13 @@ namespace ApiClick.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
+        
+        public MessagesController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // POST: api/Messages
         /// <summary>

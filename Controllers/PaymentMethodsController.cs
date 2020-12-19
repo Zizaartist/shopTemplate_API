@@ -16,7 +16,12 @@ namespace ApiClick.Controllers
     [ApiController]
     public class PaymentMethodsController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
+
+        public PaymentMethodsController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]

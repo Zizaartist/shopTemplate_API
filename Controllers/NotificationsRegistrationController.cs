@@ -17,15 +17,14 @@ namespace ApiClick.Controllers
     [ApiController]
     public class NotificationsRegistrationController : ControllerBase
     {
-        private readonly IHttpContextAccessor _contextAccessor;
         private NotificationHubClient hub;
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
 
-        public NotificationsRegistrationController(IHttpContextAccessor contextAccessor)
+        public NotificationsRegistrationController(ClickContext _context)
         {
-            hub = Notifications.Instance.Hub; 
-            _contextAccessor = contextAccessor;
+            hub = Notifications.Instance.Hub;
+            this._context = _context;
         }
 
         // POST api/register

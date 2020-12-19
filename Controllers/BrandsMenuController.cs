@@ -15,8 +15,13 @@ namespace ApiClick.Controllers
     [ApiController]
     public class BrandsMenuController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
+
+        public BrandsMenuController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/BrandsMenu
         //Debug

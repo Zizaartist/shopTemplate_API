@@ -11,8 +11,13 @@ namespace ApiClick.Controllers
 {
     public class PointsController
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         const decimal pointsCoef = 0.05m;
+
+        public PointsController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         /// <summary>
         /// Снятие баллов со счета клиента и создание записи в регистре

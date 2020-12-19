@@ -15,7 +15,12 @@ namespace ApiClick.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
+        
+        public CategoryController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]

@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "mssql1": {
+    "mssql2": {
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/apiclickdbserver/databases/ApiClick_db",
       "type": "mssql.azure",
       "connectionId": "DebugSQL",

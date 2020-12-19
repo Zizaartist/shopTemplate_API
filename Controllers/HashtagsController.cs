@@ -13,7 +13,12 @@ namespace ApiClick.Controllers
     [ApiController]
     public class HashtagsController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
+        
+        public HashtagsController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/BrandsMenu
         //Debug

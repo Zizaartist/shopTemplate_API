@@ -13,7 +13,12 @@ namespace ApiClick.Controllers
     [ApiController]
     public class BanknoteController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        private ClickContext _context;
+        
+        public BanknoteController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]

@@ -11,7 +11,12 @@ namespace ApiClick.Controllers
     [ApiController]
     public class AdminShitController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        private ClickContext _context;
+
+        public AdminShitController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         [Route("api/DeleteAllOrders")]
         [Authorize(Roles = "SuperAdmin")]

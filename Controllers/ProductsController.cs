@@ -16,8 +16,13 @@ namespace ApiClick.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
+
+        public ProductsController(ClickContext _context)
+        {
+            this._context = _context;
+        }
 
         // GET: api/Products
         [Route("api/[controller]")]

@@ -18,13 +18,14 @@ namespace ApiClick.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        ClickContext _context = new ClickContext();
+        ClickContext _context;
         Functions funcs = new Functions();
         IMemoryCache _cache;
 
-        public UsersController(IMemoryCache memoryCache)
+        public UsersController(IMemoryCache memoryCache, ClickContext _context)
         {
             _cache = memoryCache;
+            this._context = _context;
         }
 
         // GET: api/Users

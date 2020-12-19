@@ -19,11 +19,12 @@ namespace ApiClick
 {
     public class Startup
     {
+        private IConfigurationRoot _confString;
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            //Инициализация конструктора статических значений
-            _ = Constants.CONSTRUCTOR_CALLER;
+            _confString = new ConfigurationBuilder().AddJsonFile("dbSettings.json").Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -31,6 +32,7 @@ namespace ApiClick
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<ClickContext>(options => options.UseSqlServer(_confString.GetConnectionString("DefaultConnection")));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
@@ -55,7 +57,6 @@ namespace ApiClick
                             ValidateIssuerSigningKey = true,
                         };
                     });
-            services.AddControllersWithViews();
             services.AddControllersWithViews()
                 .AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
@@ -77,7 +78,6 @@ namespace ApiClick
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
