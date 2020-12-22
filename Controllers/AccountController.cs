@@ -19,7 +19,6 @@ namespace ApiClick.Controllers
     {
         private ClickContext _context;
         private IMemoryCache _cache;
-        private ClickContext _context = new ClickContext();
         Functions funcs = new Functions();
 
         public AccountController(IMemoryCache memoryCache, ClickContext _context)
