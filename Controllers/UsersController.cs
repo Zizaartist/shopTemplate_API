@@ -200,13 +200,10 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<string>> PhoneIsRegistered(string phone)
         {
             string correctPhone = funcs.convertNormalPhoneNumber(phone);
-            var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
-
-            if (user == null)
+            if (!funcs.phoneIsRegistered(correctPhone, _context)) 
             {
-                return NotFound(); //"you should register"
+                return NotFound();
             }
-
             return correctPhone;
         }
 

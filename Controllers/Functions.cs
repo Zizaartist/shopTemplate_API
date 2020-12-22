@@ -90,5 +90,11 @@ namespace ApiClick.Controllers
             return "7" + ((processedNumber.StartsWith("7") || processedNumber.StartsWith("8")) ? 
                                         processedNumber.Substring(1) : processedNumber);
         }
+
+        public bool phoneIsRegistered(string correctPhone, ClickContext _context)
+        {
+            var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
+            return user != null;
+        }
     }
 }
