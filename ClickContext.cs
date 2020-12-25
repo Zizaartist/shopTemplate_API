@@ -30,6 +30,7 @@ namespace ApiClick
         public virtual DbSet<UserCl> UserCl { get; set; }
         public virtual DbSet<WaterRequest> WaterRequests { get; set; }
         public virtual DbSet<RequestDetail> RequestDetails { get; set; }
+        public virtual DbSet<AdBannerCl> AdBannerCl { get; set; }
 
         //Модели-регистры
         public virtual DbSet<MessageOpinionCl> MessageOpinionCl { get; set; }
@@ -350,6 +351,20 @@ namespace ApiClick
                 entity.Property(e => e.Street).HasMaxLength(250);
 
                 entity.Property(e => e.NotificationsEnabled).HasDefaultValue(true);
+            });
+            modelBuilder.Entity<AdBannerCl>(entity =>
+            {
+                entity.HasKey(e => e.AdBannerId);
+                entity.HasOne(e => e.Image)
+                    .WithOne()
+                    .HasForeignKey<AdBannerCl>(e => e.ImgId)
+                    .HasConstraintName("FK_AdBannerCl_ImgId")
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(e => e.Category)
+                    .WithMany()
+                    .HasForeignKey(e => e.CategoryId)
+                    .HasConstraintName("FK_AdBannerCl_CategoryId")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<OrderStatusCl>(entity =>
