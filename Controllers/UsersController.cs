@@ -32,9 +32,9 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserCl>>> GetUserCl()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.UserCl.ToListAsync();
+            return await _context.Users.ToListAsync();
         }
 
         // GET: api/Users
@@ -58,7 +58,7 @@ namespace ApiClick.Controllers
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [Route("api/GetMyData")]
         [HttpGet]
-        public async Task<ActionResult<UserCl>> GetMyData()
+        public async Task<ActionResult<User>> GetMyData()
         {
             var userCl = funcs.getCleanModel(funcs.identityToUser(User.Identity, _context));
 
@@ -68,7 +68,7 @@ namespace ApiClick.Controllers
             }
             userCl.Login = null;
             userCl.Password = null;
-            userCl.Role = -1;
+            userCl.UserRoleId = -1;
 
             return userCl;
         }
@@ -77,7 +77,7 @@ namespace ApiClick.Controllers
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [Route("api/[controller]/{id}")]
         [HttpPut]
-        public async Task<IActionResult> PutUserCl(int id, UserCl userCl)
+        public async Task<IActionResult> PutUsers(int id, User userCl)
         {
             if (id != userCl.UserId)
             {
@@ -92,7 +92,7 @@ namespace ApiClick.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserClExists(id))
+                if (!UsersExists(id))
                 {
                     return NotFound();
                 }
@@ -128,7 +128,7 @@ namespace ApiClick.Controllers
             }
 
             //Такой номер уже занят
-            if (_context.UserCl.FirstOrDefault(e => e.Phone == newPhoneNum) != null) 
+            if (_context.Users.FirstOrDefault(e => e.Phone == newPhoneNum) != null) 
             {
                 return Forbid();
             }
@@ -161,7 +161,7 @@ namespace ApiClick.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserClExists(userCl.UserId))
+                if (!UsersExists(userCl.UserId))
                 {
                     return NotFound();
                 }
@@ -178,9 +178,9 @@ namespace ApiClick.Controllers
         // Авторизация с помощью номера телефона
         [Route("api/PhoneCheck")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> PhoneCheck(string phone)
+        public async Task<ActionResult<User>> PhoneCheck(string phone)
         {
-            var user = _context.UserCl.FirstOrDefault(u => u.Phone == phone);
+            var user = _context.Users.FirstOrDefault(u => u.Phone == phone);
 
             if (user == null)
             {
@@ -211,7 +211,7 @@ namespace ApiClick.Controllers
         [Authorize(Roles = "SuperAdmin, Admin")]
         [Route("api/AdminCheck")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> AdminCheck()
+        public async Task<ActionResult<User>> AdminCheck()
         {
             return Ok();
         }
@@ -220,7 +220,7 @@ namespace ApiClick.Controllers
         // POST: api/Users
         [Route("api/[controller]")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> PostUserCl(UserCl userCl, string code)
+        public async Task<ActionResult<User>> PostUsers(User userCl, string code)
         {
             if (userCl == null)
             {
@@ -255,17 +255,17 @@ namespace ApiClick.Controllers
                 }
             }
 
-            if (_context.UserCl.Any(x => x.Phone == userCl.Phone))
+            if (_context.Users.Any(x => x.Phone == userCl.Phone))
             {
                 return BadRequest(new { errorText = "Такой номер уже зарегистрирован" });
             }
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.Role = _context.UserRolesCl.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.UserRoleId = _context.UserRoles.First(r => r.UserRoleName == "User").UserRoleId;
                 userCl.Points = 0;
 
-                _context.UserCl.Add(userCl);
+                _context.Users.Add(userCl);
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -281,7 +281,7 @@ namespace ApiClick.Controllers
         //ДОБАВЛЕНИЕ СУПЕРЮЗЕРА. УДАЛИТЬ ПО ВО ВРЕМЯ РЕЛИЗА
         [Route("api/AddSuperAdminTemp")]
         [HttpPost]
-        public async Task<ActionResult<UserCl>> AddSuperAdminTemp(UserCl userCl) 
+        public async Task<ActionResult<User>> AddSuperAdminTemp(User userCl) 
         {
             if (userCl == null)
             {
@@ -290,17 +290,17 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.Role = _context.UserRolesCl.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.UserRoleId = _context.UserRoles.First(r => r.UserRoleName == "User").UserRoleId;
 
-                _context.UserCl.Add(userCl);
+                _context.Users.Add(userCl);
                 await _context.SaveChangesAsync();
                 return Ok();
             }
         }
 
-        private bool UserClExists(int id)
+        private bool UsersExists(int id)
         {
-            return _context.UserCl.Any(e => e.UserId == id);
+            return _context.Users.Any(e => e.UserId == id);
         }
     }
 }

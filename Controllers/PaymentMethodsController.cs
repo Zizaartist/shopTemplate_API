@@ -26,9 +26,9 @@ namespace ApiClick.Controllers
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PaymentMethodCl>>> GetCategoryCl()
+        public async Task<ActionResult<IEnumerable<PaymentMethod>>> GetCategories()
         {
-            return await _context.PaymentMethodCl.ToListAsync();
+            return await _context.PaymentMethods.ToListAsync();
         }
     }
 }

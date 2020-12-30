@@ -23,13 +23,13 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<ActionResult> DeleteAllOrders()
         {
-            foreach (var entity in _context.OrderDetailCl) 
+            foreach (var entity in _context.OrderDetails) 
             {
-                _context.OrderDetailCl.Remove(entity);
+                _context.OrderDetails.Remove(entity);
             }
-            foreach (var entity in _context.OrdersCl)
+            foreach (var entity in _context.Orders)
             {
-                _context.OrdersCl.Remove(entity);
+                _context.Orders.Remove(entity);
             }
             _context.SaveChanges();
             return Ok();
@@ -40,15 +40,15 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<ActionResult> DeleteAllUselessImages()
         {
-            var images = _context.ImageCl.ToList();
+            var images = _context.Images.ToList();
 
-            var imagesToDelete = new List<ImageCl>();
+            var imagesToDelete = new List<Image>();
             //Сперва получаем список записей, которые не имеют зависимостей
-            foreach (ImageCl image in images) 
+            foreach (Image image in images) 
             {
-                if ((_context.BrandCl.FirstOrDefault(e => e.ImgBannerId == image.ImageId || e.ImgBannerId == image.ImageId) != null) || 
-                    (_context.BrandMenuCl.FirstOrDefault(e => e.ImgId == image.ImageId) != null) || 
-                    (_context.ProductCl.FirstOrDefault(e => e.ImgId == image.ImageId) != null))
+                if ((_context.Brands.FirstOrDefault(e => e.ImgBannerId == image.ImageId || e.ImgBannerId == image.ImageId) != null) || 
+                    (_context.BrandMenus.FirstOrDefault(e => e.ImgId == image.ImageId) != null) || 
+                    (_context.Products.FirstOrDefault(e => e.ImgId == image.ImageId) != null))
                 {
                     continue;
                 }
@@ -58,9 +58,9 @@ namespace ApiClick.Controllers
                 }
             }
             //Затем их удаляем
-            foreach (ImageCl image in imagesToDelete) 
+            foreach (Image image in imagesToDelete) 
             {
-                _context.ImageCl.Remove(image);
+                _context.Images.Remove(image);
             }
             _context.SaveChanges();
             return Ok();
@@ -90,7 +90,7 @@ namespace ApiClick.Controllers
         public async Task<ActionResult> SendNotification(string phone, string text)
         {
             string correctPhone = new Functions().convertNormalPhoneNumber(phone);
-            var user = _context.UserCl.First(e => e.Phone == correctPhone);
+            var user = _context.Users.First(e => e.Phone == correctPhone);
             if (user.NotificationsEnabled)
             {
                 await new NotificationsController().ToSendNotificationAsync(user.DeviceType, text, user.NotificationRegistration);

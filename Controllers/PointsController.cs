@@ -23,7 +23,7 @@ namespace ApiClick.Controllers
         /// Снятие баллов со счета клиента и создание записи в регистре
         /// </summary>
         /// <returns>Остаток, который нужно оплатить другими средствами</returns>
-        public async Task<PointRegister> CreatePointRegister(UserCl user, OrdersCl order)
+        public async Task<PointRegister> CreatePointRegister(User user, Order order)
         {
             decimal pointsSum = order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
             decimal points = pointsSum;
@@ -38,11 +38,11 @@ namespace ApiClick.Controllers
                 register = new PointRegister
                 {
                     OwnerId = user.UserId,
-                    OrderId = order.OrdersId,
+                    OrderId = order.OrderId,
                     Points = points,
                     TransactionCompleted = false
                 };
-                _context.PointRegisterCl.Add(register);
+                _context.PointRegisters.Add(register);
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -58,7 +58,7 @@ namespace ApiClick.Controllers
         }
 
 
-        public async Task<PointRegister> CreatePointRegister(UserCl user, OrdersCl order, decimal points)
+        public async Task<PointRegister> CreatePointRegister(User user, Order order, decimal points)
         {
             //Нет возможности оплатить баллами, не учитывать
             PointRegister register = null;
@@ -67,11 +67,11 @@ namespace ApiClick.Controllers
                 register = new PointRegister
                 {
                     OwnerId = user.UserId,
-                    OrderId = order.OrdersId,
+                    OrderId = order.OrderId,
                     Points = points,
                     TransactionCompleted = false
                 };
-                _context.PointRegisterCl.Add(register);
+                _context.PointRegisters.Add(register);
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -94,19 +94,19 @@ namespace ApiClick.Controllers
         /// Один из возможных исходов процесса выполнения заказа
         /// передача баллов владельцу бренда, начисление клиенту баллов, если была произведена оплата другими средствами
         /// </summary>
-        public void RemovePoints(OrdersCl order)
+        public void RemovePoints(Order order)
         {
-            var brandOwner = _context.UserCl.Find(order.BrandOwnerId);
+            var brandOwner = _context.Users.Find(order.BrandOwnerId);
             brandOwner.Points += order.PointRegister.Points;
             
-            var register = _context.PointRegisterCl.Find(order.PointRegisterId);
+            var register = _context.PointRegisters.Find(order.PointRegisterId);
             register.TransactionCompleted = true;
         }
 
         /// <summary>
         /// Вычисляет 5% от денежной суммы и переводит на счет пользователя баллами
         /// </summary>
-        public void GetPoints(OrdersCl order, decimal points)
+        public void GetPoints(Order order, decimal points)
         {
             decimal sum = order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
             decimal moneySum = sum - points;
@@ -120,7 +120,7 @@ namespace ApiClick.Controllers
         public async Task ReturnPoints(PointRegister pointRegister)
         {
             pointRegister.Owner.Points += pointRegister.Points;
-            var register = await _context.PointRegisterCl.FindAsync(pointRegister.PointRegisterId);
+            var register = await _context.PointRegisters.FindAsync(pointRegister.PointRegisterId);
             register.TransactionCompleted = true;
             await _context.SaveChangesAsync();
         }
@@ -129,10 +129,10 @@ namespace ApiClick.Controllers
         /// Распределеяет баллы равномерно по всем предъявленным заказам
         /// </summary>
         /// <returns>Список числовых значений баллов для каждого заказа</returns>
-        public List<OrderExtended> DistributePoints(List<OrdersCl> orders)
+        public List<OrderExtended> DistributePoints(List<Order> orders)
         {
 
-            decimal currentPoints = _context.UserCl.Find(orders.First().UserId).Points;
+            decimal currentPoints = _context.Users.Find(orders.First().UserId).Points;
             //Включает в себя те, заказы, которые оплачены полностью
             List<OrderExtended> notYetPaidOrders = new List<OrderExtended>();
             orders.ForEach(e => 
@@ -196,7 +196,7 @@ namespace ApiClick.Controllers
 
         public class OrderExtended
         {
-            public OrdersCl order { get; set; }
+            public Order order { get; set; }
             public decimal orderSum { get; set; }
             public decimal pointsInvested { get; set; }
         }

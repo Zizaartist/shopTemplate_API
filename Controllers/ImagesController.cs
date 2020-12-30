@@ -29,7 +29,7 @@ namespace ApiClick.Controllers
         [Route("api/PostImage")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<ImageCl>>> PostImage(IFormFileCollection uploadedFiles)
+        public async Task<ActionResult<List<Image>>> PostImage(IFormFileCollection uploadedFiles)
         {
             if (uploadedFiles == null || uploadedFiles.Count < 1) 
             {
@@ -49,7 +49,7 @@ namespace ApiClick.Controllers
                 } 
             }
 
-            List<ImageCl> imageRegisters = new List<ImageCl>();
+            List<Image> imageRegisters = new List<Image>();
 
             foreach (IFormFile uploadedFile in uploadedFiles)
             {
@@ -62,12 +62,12 @@ namespace ApiClick.Controllers
                     await uploadedFile.CopyToAsync(fileStream);
                 }
                 // создаем энтити image для учета файла, чтобы срач с блоба быстрее убирать
-                var imageEntity = new ImageCl()
+                var imageEntity = new Image()
                 {
                     UserId = funcs.identityToUser(User.Identity, _context).UserId,
                     Path = path
                 };
-                _context.ImageCl.Add(imageEntity);
+                _context.Images.Add(imageEntity);
                 imageRegisters.Add(imageEntity);
                 await _context.SaveChangesAsync();
             }
@@ -77,9 +77,9 @@ namespace ApiClick.Controllers
         [Route("api/AddFile")]
         [HttpPost]
         //api/<FilesController>
-        public async Task<ActionResult<List<ImageCl>>> AddFile(Stream uploadedFile)
+        public async Task<ActionResult<List<Image>>> AddFile(Stream uploadedFile)
         {
-            List<ImageCl> imageRegisters = new List<ImageCl>();
+            List<Image> imageRegisters = new List<Image>();
             if (uploadedFile != null)
             {
                 string path = Path.GetFileNameWithoutExtension(Path.GetTempFileName()) + ".png";
@@ -88,12 +88,12 @@ namespace ApiClick.Controllers
                     await uploadedFile.CopyToAsync(fileStream);
                 }
                 // создаем энтити image для учета файла, чтобы срач с блоба быстрее убирать
-                var imageEntity = new ImageCl()
+                var imageEntity = new Image()
                 {
                     UserId = funcs.identityToUser(User.Identity, _context).UserId,
                     Path = path
                 };
-                _context.ImageCl.Add(imageEntity);
+                _context.Images.Add(imageEntity);
                 imageRegisters.Add(imageEntity);
                 await _context.SaveChangesAsync();
             }

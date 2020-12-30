@@ -30,12 +30,12 @@ namespace ApiClick.Controllers
         [Route("api/LikeMessage")]
         [Authorize]
         [HttpPost("{id}")]
-        public async Task<ActionResult<MessageCl>> LikeMessage(int id)
+        public async Task<ActionResult<Message>> LikeMessage(int id)
         {
 
             bool opinionValue = true;
             int userId = funcs.identityToUser(User.Identity, _context).UserId;
-            var opinion = _context.MessageOpinionCl.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
+            var opinion = _context.MessageOpinions.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
 
             if (opinion != null)
             {
@@ -45,7 +45,7 @@ namespace ApiClick.Controllers
                 }
                 else //change dislike to like
                 {
-                    var message = _context.MessageCl.Find(id);
+                    var message = _context.Messages.Find(id);
                     _context.Entry(opinion).State = EntityState.Modified;
                     _context.Entry(message).State = EntityState.Modified;
                     opinion.Opinion = !opinionValue;
@@ -58,7 +58,7 @@ namespace ApiClick.Controllers
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        if (!MessageClExists(id))
+                        if (!MessagesExists(id))
                         {
                             return NotFound();
                         }
@@ -73,13 +73,13 @@ namespace ApiClick.Controllers
             }
 
             //if opinion is not present - create one
-            opinion = new MessageOpinionCl()
+            opinion = new MessageOpinion()
             {
                 MessageId = id,
                 UserId = userId,
                 Opinion = opinionValue
             };
-            _context.MessageOpinionCl.Add(opinion);
+            _context.MessageOpinions.Add(opinion);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -89,11 +89,11 @@ namespace ApiClick.Controllers
         [Route("api/DislikeMessage")]
         [Authorize]
         [HttpPost("{id}")]
-        public async Task<ActionResult<MessageCl>> DislikeMessage(int id)
+        public async Task<ActionResult<Message>> DislikeMessage(int id)
         {
             bool opinionValue = false;
             int userId = funcs.identityToUser(User.Identity, _context).UserId;
-            var opinion = _context.MessageOpinionCl.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
+            var opinion = _context.MessageOpinions.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
 
             if (opinion != null)
             {
@@ -103,7 +103,7 @@ namespace ApiClick.Controllers
                 }
                 else //changing like to a dislike
                 {
-                    var message = _context.MessageCl.Find(id);
+                    var message = _context.Messages.Find(id);
                     _context.Entry(opinion).State = EntityState.Modified;
                     _context.Entry(message).State = EntityState.Modified;
                     opinion.Opinion = !opinionValue;
@@ -116,7 +116,7 @@ namespace ApiClick.Controllers
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        if (!MessageClExists(id))
+                        if (!MessagesExists(id))
                         {
                             return NotFound();
                         }
@@ -131,13 +131,13 @@ namespace ApiClick.Controllers
             }
 
             //if opinion is not present - create one
-            opinion = new MessageOpinionCl()
+            opinion = new MessageOpinion()
             {
                 MessageId = id,
                 UserId = userId,
                 Opinion = opinionValue
             };
-            _context.MessageOpinionCl.Add(opinion);
+            _context.MessageOpinions.Add(opinion);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -147,18 +147,18 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SupeAdmin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MessageCl>>> GetMessageCl()
+        public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
         {
-            return await _context.MessageCl.ToListAsync();
+            return await _context.Messages.ToListAsync();
         }
 
         // GET: api/Messages/5
         [Route("api/[controller]")]
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult<MessageCl>> GetMessageCl(int id)
+        public async Task<ActionResult<Message>> GetMessages(int id)
         {
-            var messageCl = await _context.MessageCl.FindAsync(id);
+            var messageCl = await _context.Messages.FindAsync(id);
 
             if (messageCl == null)
             {
@@ -172,7 +172,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMessageCl(int id, MessageCl messageCl)
+        public async Task<IActionResult> PutMessages(int id, Message messageCl)
         {
             if (id != messageCl.MessageId)
             {
@@ -187,7 +187,7 @@ namespace ApiClick.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!MessageClExists(id))
+                if (!MessagesExists(id))
                 {
                     return NotFound();
                 }
@@ -204,14 +204,14 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<MessageCl>> PostMessageCl(MessageCl messageCl)
+        public async Task<ActionResult<Message>> PostMessages(Message messageCl)
         {
             if (messageCl == null) 
             {
                 return BadRequest();
             }
 
-            _context.MessageCl.Add(messageCl);
+            _context.Messages.Add(messageCl);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -221,23 +221,23 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<ActionResult<MessageCl>> DeleteMessageCl(int id)
+        public async Task<ActionResult<Message>> DeleteMessages(int id)
         {
-            var messageCl = await _context.MessageCl.FindAsync(id);
+            var messageCl = await _context.Messages.FindAsync(id);
             if (messageCl == null)
             {
                 return NotFound();
             }
 
-            _context.MessageCl.Remove(messageCl);
+            _context.Messages.Remove(messageCl);
             await _context.SaveChangesAsync();
 
             return Ok();
         }
 
-        private bool MessageClExists(int id)
+        private bool MessagesExists(int id)
         {
-            return _context.MessageCl.Any(e => e.MessageId == id);
+            return _context.Messages.Any(e => e.MessageId == id);
         }
     }
 }

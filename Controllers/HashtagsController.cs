@@ -25,9 +25,9 @@ namespace ApiClick.Controllers
         [Route("api/GetHashtagsByCategory/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<List<HashTagCl>>> GetHashtagsByCategory(int id)
+        public async Task<ActionResult<List<Hashtag>>> GetHashtagsByCategory(int id)
         {
-            return _context.HashtagCl.Where(e => e.CategoryId == id).ToList();
+            return _context.Hashtags.Where(e => e.CategoryId == id).ToList();
         }
     }
 }

@@ -43,9 +43,9 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает чистую модель пользователя без личных данных
         /// </summary>
-        public UserCl getCleanUser(UserCl input) 
+        public User getCleanUser(User input) 
         {
-            var cleanObj = new UserCl()
+            var cleanObj = new User()
             {
                 Name = input.Name,
                 Phone = input.Phone
@@ -59,9 +59,9 @@ namespace ApiClick.Controllers
         /// <param name="identity">Данные личности, взятые из токена</param>
         /// <param name="_context">Контекст, в котором производится поиск</param>
         /// <returns>Пользователь, найденный в контексте</returns>
-        public UserCl identityToUser(IIdentity identity, ClickContext _context)
+        public User identityToUser(IIdentity identity, ClickContext _context)
         {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
+            return _context.Users.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         public bool IsPhoneNumber(string number)
@@ -93,7 +93,7 @@ namespace ApiClick.Controllers
 
         public bool phoneIsRegistered(string correctPhone, ClickContext _context)
         {
-            var user = _context.UserCl.FirstOrDefault(u => u.Phone == correctPhone);
+            var user = _context.Users.FirstOrDefault(u => u.Phone == correctPhone);
             return user != null;
         }
     }

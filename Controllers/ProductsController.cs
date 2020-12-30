@@ -28,13 +28,13 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductCl>>> GetProductCl()
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            var products = await _context.ProductCl.ToListAsync();
+            var products = await _context.Products.ToListAsync();
 
-            foreach (ProductCl product in products)
+            foreach (Product product in products)
             {
-                product.Image = await _context.ImageCl.FindAsync(product.ImgId);
+                product.Image = await _context.Images.FindAsync(product.ImgId);
             }
 
             return products;
@@ -45,18 +45,18 @@ namespace ApiClick.Controllers
         [Route("api/GetProductsByMenu/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductCl>>> GetProductsByMenu(int id)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByMenu(int id)
         {
-            var products = await _context.ProductCl.Where(p => p.BrandMenuId == id).ToListAsync();
+            var products = await _context.Products.Where(p => p.BrandMenuId == id).ToListAsync();
 
             if (products == null)
             {
                 return NotFound();
             }
 
-            foreach (ProductCl product in products) 
+            foreach (Product product in products) 
             {
-                product.Image = await _context.ImageCl.FindAsync(product.ImgId);
+                product.Image = await _context.Images.FindAsync(product.ImgId);
             }
 
             return products;
@@ -67,24 +67,24 @@ namespace ApiClick.Controllers
         [Route("api/GetVodaProductsByCategory/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductCl>>> GetVodaProductsByCategory(int id)
+        public async Task<ActionResult<IEnumerable<Product>>> GetVodaProductsByCategory(int id)
         {
-            var result = new List<ProductCl>();
+            var result = new List<Product>();
             switch (id) 
             {
                 case 2:
-                    result.Add(funcs.getCleanModel(await _context.ProductCl.FindAsync(Constants.PRODUCT_ID_BOTTLED_WATER)));
-                    result.Add(funcs.getCleanModel(await _context.ProductCl.FindAsync(Constants.PRODUCT_ID_CONTAINER)));
+                    result.Add(funcs.getCleanModel(await _context.Products.FindAsync(Constants.PRODUCT_ID_BOTTLED_WATER)));
+                    result.Add(funcs.getCleanModel(await _context.Products.FindAsync(Constants.PRODUCT_ID_CONTAINER)));
                     break;
                 case 3:
-                    result.Add(funcs.getCleanModel(await _context.ProductCl.FindAsync(Constants.PRODUCT_ID_WATER)));
+                    result.Add(funcs.getCleanModel(await _context.Products.FindAsync(Constants.PRODUCT_ID_WATER)));
                     break;
                 default: return BadRequest();
             }
 
-            foreach (ProductCl product in result)
+            foreach (Product product in result)
             {
-                product.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(product.ImgId));
+                product.Image = funcs.getCleanModel(await _context.Images.FindAsync(product.ImgId));
             }
 
             return result;
@@ -95,16 +95,16 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<ProductCl>> GetProductCl(int id)
+        public async Task<ActionResult<Product>> GetProducts(int id)
         {
-            var productCl = await _context.ProductCl.FindAsync(id);
+            var productCl = await _context.Products.FindAsync(id);
 
             if (productCl == null)
             {
                 return NotFound();
             }
 
-            productCl.Image = await _context.ImageCl.FindAsync(productCl.ImgId);
+            productCl.Image = await _context.Images.FindAsync(productCl.ImgId);
 
             return productCl;
         }
@@ -113,7 +113,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutProductCl(ProductCl productCl)
+        public async Task<IActionResult> PutProducts(Product productCl)
         {
             if (productCl == null)
             {
@@ -122,7 +122,7 @@ namespace ApiClick.Controllers
 
             if (IsItMyProduct(funcs.identityToUser(User.Identity, _context), productCl))
             {
-                var existingProduct = await _context.ProductCl.FindAsync(productCl.ProductId);
+                var existingProduct = await _context.Products.FindAsync(productCl.ProductId);
 
                 existingProduct.Description = productCl.Description;
                 existingProduct.ImgId = productCl.ImgId;
@@ -144,7 +144,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public async Task<ActionResult<ProductCl>> PostProductCl(ProductCl productCl)
+        public async Task<ActionResult<Product>> PostProducts(Product productCl)
         {
             if (productCl == null) 
             {
@@ -153,7 +153,7 @@ namespace ApiClick.Controllers
 
             productCl.CreatedDate = DateTime.Now;
 
-            _context.ProductCl.Add(productCl);
+            _context.Products.Add(productCl);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -163,44 +163,44 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete]
-        public async Task<ActionResult<ProductCl>> DeleteProductCl(int id)
+        public async Task<ActionResult<Product>> DeleteProducts(int id)
         {
-            var productCl = await _context.ProductCl.FindAsync(id);
+            var productCl = await _context.Products.FindAsync(id);
 
             if (!IsItMyProduct(funcs.identityToUser(User.Identity, _context), productCl)) 
             {
                 return BadRequest();
             }
 
-            _context.ProductCl.Remove(productCl);
+            _context.Products.Remove(productCl);
             await _context.SaveChangesAsync();
 
             return Ok();
         }
 
-        private UserCl identityToUser(IIdentity identity)
+        private User identityToUser(IIdentity identity)
         {
-            return _context.UserCl.FirstOrDefault(u => u.Phone == identity.Name);
+            return _context.Users.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         /// <summary>
         /// Проверяет является ли продукт собственностью этого пользователя
         /// </summary>
-        private bool IsItMyProduct(UserCl user, ProductCl product)
+        private bool IsItMyProduct(User user, Product product)
         {
-            var productBuffer = _context.ProductCl.Find(product.ProductId);
+            var productBuffer = _context.Products.Find(product.ProductId);
             if (productBuffer == null)
             {
                 return false;
             }
 
-            var menuBuffer = _context.BrandMenuCl.Find(productBuffer.BrandMenuId);
+            var menuBuffer = _context.BrandMenus.Find(productBuffer.BrandMenuId);
             if (menuBuffer == null) 
             {
                 return false;
             }
 
-            var brandBuffer = _context.BrandCl.Find(menuBuffer.BrandId);
+            var brandBuffer = _context.Brands.Find(menuBuffer.BrandId);
             if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
             {
                 return false;
@@ -214,15 +214,15 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Находит продукт с таким же title
         /// </summary>
-        private bool SameNameProduct(ProductCl product)
+        private bool SameNameProduct(Product product)
         {
-            return _context.ProductCl.Where(m => m.BrandMenuId == product.BrandMenuId)
+            return _context.Products.Where(m => m.BrandMenuId == product.BrandMenuId)
                                      .Any(m => m.ProductName == product.ProductName);
         }
 
-        private bool ProductClExists(int id)
+        private bool ProductsExists(int id)
         {
-            return _context.ProductCl.Any(e => e.ProductId == id);
+            return _context.Products.Any(e => e.ProductId == id);
         }
     }
 }

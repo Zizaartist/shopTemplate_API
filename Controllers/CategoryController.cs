@@ -25,9 +25,9 @@ namespace ApiClick.Controllers
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryCl>>> GetCategoryCl()
+        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-            return await _context.CategoryCl.ToListAsync();
+            return await _context.Categories.ToListAsync();
         }
     }
 }

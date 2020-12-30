@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using System.Reflection;
+using ApiClick.Models.ArrayModels;
 using ApiClick.StaticValues;
 
 namespace ApiClick.Controllers
@@ -31,17 +32,15 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BrandCl>>> GetBrandCl()
+        public async Task<ActionResult<IEnumerable<Brand>>> GetBrand()
         {
-            var brands = await _context.BrandCl.ToListAsync();
+            var brands = await _context.Brands.ToListAsync();
 
-            foreach (BrandCl brand in brands) 
+            foreach (Brand brand in brands) 
             {
-                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
-                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
-                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
-                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
-                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
+                brand.Hashtags = _context.Brands.Find(brand.BrandId).HashtagsListElements.Select(e => e.Hashtag).ToList();
             }
 
             return brands;
@@ -51,44 +50,44 @@ namespace ApiClick.Controllers
         [Route("api/GetMyBrandsByFilter/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<BrandCl>>> GetBrandsByFilter(int id, List<int?> HashTags)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(int id, List<int?> HashTags)
         {
-            var brands = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
+            var brands = _context.Brands.Where(p => p.CategoryId == id);
             foreach (int? hashTagId in HashTags)
             {
                 //Оставляет те бренды, в которых имеется текущий хэштег итерации
-                brands = brands.Where(p => hashTagId == p.Hashtag1Id ||
-                                            hashTagId == p.Hashtag2Id ||
-                                            hashTagId == p.Hashtag3Id).ToList();
+                brands = brands.Where(e => e.HashtagsListElements.Any(x => x.HashtagId == hashTagId));
             }
 
-
-            if (brands == null)
+            if (!brands.Any())
             {
                 return NotFound();
             }
 
+            //У мокрых брендов не должно быть хэштегов
             //Если категория "мокрая" - добавить экстра инфы
-            if (id == (await _context.CategoryCl.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId ||
-                id == (await _context.CategoryCl.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId)
-            {
-                foreach (BrandCl brand in brands)
-                {
-                    attachDefaultMenuToVodaBrand(brand);
-                }
-            }
+            //if (id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId ||
+            //    id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId)
+            //{
+            //    foreach (Brand brand in brands)
+            //    {
+            //        attachDefaultMenuToVodaBrand(brand);
+            //    }
+            //}
 
-            foreach (BrandCl brand in brands)
+            var resultBrands = brands.ToList();
+            
+            foreach (Brand brand in resultBrands)
             {
-                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
-                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
-                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
-                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
-                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
+                brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
+                brand.Hashtags = remoteBrand.HashtagsListElements.Select(e => e.Hashtag).ToList();
+                brand.PaymentMethods = remoteBrand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
-            return brands;
+            return resultBrands;
         }
 
         // GET: api/GetBrandsByCategory/5
@@ -96,36 +95,38 @@ namespace ApiClick.Controllers
         [Route("api/GetBrandsByCategory/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<List<BrandCl>>> GetBrandsByCategory(int id)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByCategory(int id)
         {
-            var brands = await _context.BrandCl.Where(p => p.CategoryId == id).ToListAsync();
+            var brands = _context.Brands.Where(p => p.CategoryId == id);
 
-            if (brands == null)
+            if (!brands.Any())
             {
                 return NotFound();
             }
 
+            var resultBrands = await brands.ToListAsync();
+
             //Если категория "мокрая" - добавить экстра инфы
-            if (id == (await _context.CategoryCl.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId || 
-                id == (await _context.CategoryCl.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId) 
+            if (id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId || 
+                id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId) 
             {
-                foreach (BrandCl brand in brands) 
+                foreach (Brand brand in brands) 
                 {
                     attachDefaultMenuToVodaBrand(brand);
                 }
             }
 
-            foreach (BrandCl brand in brands) 
+            foreach (Brand brand in resultBrands)
             {
-                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
-                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
-                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
-                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
-                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
+                brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
+                brand.Hashtags = remoteBrand.HashtagsListElements.Select(e => e.Hashtag).ToList();
+                brand.PaymentMethods = remoteBrand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
-            return brands;
+            return resultBrands;
         }
 
         // GET: api/Brands/5
@@ -133,19 +134,21 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<BrandCl>> GetBrandCl(int id)
+        public async Task<ActionResult<Brand>> GetBrand(int id)
         {
-            var brandCl = await _context.BrandCl.FindAsync(id);
+            var brand = await _context.Brands.FindAsync(id);
 
-            if (brandCl == null)
+            if (brand == null)
             {
                 return NotFound();
             }
 
-            brandCl.ImgLogo = await _context.ImageCl.FindAsync(brandCl.ImgLogoId);
-            brandCl.ImgBanner = await _context.ImageCl.FindAsync(brandCl.ImgBannerId);
+            brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
+            brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
+            brand.Hashtags = brand.HashtagsListElements.Select(e => e.Hashtag).ToList();
+            brand.PaymentMethods = brand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
 
-            return brandCl;
+            return brand;
         }
 
         // GET: api/GetMyBrands
@@ -153,22 +156,25 @@ namespace ApiClick.Controllers
         [Authorize(Roles = "SuperAdmin, Admin")]
         [Route("api/GetMyBrands")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BrandCl>>> GetMyBrands() //хз пока как маршрутизировать
+        public async Task<ActionResult<IEnumerable<Brand>>> GetMyBrands() //хз пока как маршрутизировать
         {
-            var brands = await _context.BrandCl.Where(p => p.UserId == funcs.identityToUser(User.Identity, _context).UserId).ToListAsync();
+            var brands = _context.Brands.Where(p => p.UserId == funcs.identityToUser(User.Identity, _context).UserId);
 
             if (brands == null)
             {
                 return NotFound();
             }
 
-            foreach (BrandCl brand in brands)
+            var resultBrands = await brands.ToListAsync();
+
+            foreach (Brand brand in resultBrands)
             {
-                brand.ImgLogo = await _context.ImageCl.FindAsync(brand.ImgLogoId);
-                brand.ImgBanner = await _context.ImageCl.FindAsync(brand.ImgBannerId);
-                brand.HashTag1 = await _context.HashtagCl.FindAsync(brand.Hashtag1Id);
-                brand.HashTag2 = await _context.HashtagCl.FindAsync(brand.Hashtag2Id);
-                brand.HashTag3 = await _context.HashtagCl.FindAsync(brand.Hashtag3Id);
+                var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
+                brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
+                brand.Hashtags = remoteBrand.HashtagsListElements.Select(e => e.Hashtag).ToList();
+                brand.PaymentMethods = remoteBrand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
+
                 switch (brand.CategoryId)
                 {
                     case 2:
@@ -179,14 +185,14 @@ namespace ApiClick.Controllers
                 }
             }
 
-            return brands;
+            return resultBrands;
         }
 
         // PUT: api/Brands/5
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutBrandCl(BrandCl brandCl)
+        public async Task<IActionResult> PutBrand(Brand brandCl)
         {
             if (brandCl == null)
             {
@@ -196,7 +202,7 @@ namespace ApiClick.Controllers
             if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brandCl))
             {
                 insertTagsCorrectly(brandCl);
-                var existingBrand = await _context.BrandCl.FindAsync(brandCl.BrandId);
+                var existingBrand = await _context.Brands.FindAsync(brandCl.BrandId);
 
                 existingBrand.Address = brandCl.Address;
                 existingBrand.BrandName = brandCl.BrandName;
@@ -222,7 +228,7 @@ namespace ApiClick.Controllers
         // POST: api/Brands
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public async Task<ActionResult<BrandCl>> PostBrandCl(BrandCl brandCl)
+        public async Task<ActionResult<Brand>> PostBrand(Brand brandCl)
         {
             if (brandCl == null) 
             {
@@ -230,7 +236,7 @@ namespace ApiClick.Controllers
             }
 
             //Не позволять создавать бренды с уже имеющимся именем
-            if (_context.BrandCl.Any(a => a.BrandName == brandCl.BrandName)) 
+            if (_context.Brands.Any(a => a.BrandName == brandCl.BrandName)) 
             {
                 return Forbid();
             }
@@ -241,7 +247,7 @@ namespace ApiClick.Controllers
             brandCl.CreatedDate = DateTime.Now;
 
             insertTagsCorrectly(brandCl);
-            _context.BrandCl.Add(brandCl);
+            _context.Brands.Add(brandCl);
 
             await _context.SaveChangesAsync();
 
@@ -252,24 +258,24 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete]
-        public async Task<ActionResult<BrandCl>> DeleteBrandCl(int id)
+        public async Task<ActionResult<Brand>> DeleteBrand(int id)
         {
-            var brandCl = await _context.BrandCl.FindAsync(id);
+            var brandCl = await _context.Brands.FindAsync(id);
 
             if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brandCl))
             {
-                var menus = _context.BrandMenuCl.Where(e => e.BrandId == brandCl.BrandId);
+                var menus = _context.BrandMenus.Where(e => e.BrandId == brandCl.BrandId);
                 var menusNoLazyLoading = menus.ToList();
-                foreach (BrandMenuCl menu in menusNoLazyLoading) 
+                foreach (BrandMenu menu in menusNoLazyLoading) 
                 {
-                    var products = _context.ProductCl.Where(e => e.BrandMenuId == menu.BrandMenuId);
-                    foreach (ProductCl product in products) 
+                    var products = _context.Products.Where(e => e.BrandMenuId == menu.BrandMenuId);
+                    foreach (Product product in products) 
                     {
-                        _context.ProductCl.Remove(product);
+                        _context.Products.Remove(product);
                     }
-                    _context.BrandMenuCl.Remove(menu);
+                    _context.BrandMenus.Remove(menu);
                 }
-                _context.BrandCl.Remove(brandCl);
+                _context.Brands.Remove(brandCl);
 
                 await _context.SaveChangesAsync();
             }
@@ -284,9 +290,9 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Проверяет является ли бренд собственностью этого пользователя
         /// </summary>
-        private bool IsItMyBrand(UserCl user, BrandCl brand)
+        private bool IsItMyBrand(User user, Brand brand)
         {
-            var brandBuffer = _context.BrandCl.Find(brand.BrandId);
+            var brandBuffer = _context.Brands.Find(brand.BrandId);
             if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
             {
                 return false;
@@ -297,7 +303,7 @@ namespace ApiClick.Controllers
             }
         }
 
-        private void insertTagsCorrectly(BrandCl brand)
+        private void insertTagsCorrectly(Brand brand)
         {
             int TAGS_COUNT = 3;
 
@@ -333,26 +339,26 @@ namespace ApiClick.Controllers
         /// Присоединяет к отправляемому бренду единственное меню с соответствующими категории товарами
         /// </summary>
         /// <param name="brand">Бренд, к которому будут привязаны данные</param>
-        private void attachDefaultMenuToVodaBrand(BrandCl brand)
+        private void attachDefaultMenuToVodaBrand(Brand brand)
         {
-            var ListOfProducts = new List<ProductCl>();
+            var ListOfProducts = new List<Product>();
 
             switch (brand.CategoryId)
             {
                 //Бутилированная вода
                 case 2:
-                    ListOfProducts.Add(funcs.getCleanModel(_context.ProductCl.Find(Constants.PRODUCT_ID_BOTTLED_WATER)));
-                    ListOfProducts.Add(funcs.getCleanModel(_context.ProductCl.Find(Constants.PRODUCT_ID_CONTAINER)));
+                    ListOfProducts.Add(funcs.getCleanModel(_context.Products.Find(Constants.PRODUCT_ID_BOTTLED_WATER)));
+                    ListOfProducts.Add(funcs.getCleanModel(_context.Products.Find(Constants.PRODUCT_ID_CONTAINER)));
                     break;
                 //Водовоз
                 case 3:
-                    ListOfProducts.Add(funcs.getCleanModel(_context.ProductCl.Find(Constants.PRODUCT_ID_WATER)));
+                    ListOfProducts.Add(funcs.getCleanModel(_context.Products.Find(Constants.PRODUCT_ID_WATER)));
                     break;
                 //Error
                 default: return;
             }
 
-            brand.BrandMenus = new List<BrandMenuCl>() { new BrandMenuCl() };
+            brand.BrandMenus = new List<BrandMenu>() { new BrandMenu() };
             brand.BrandMenus.First().Products = ListOfProducts;
         }
     }

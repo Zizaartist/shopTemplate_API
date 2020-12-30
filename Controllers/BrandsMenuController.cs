@@ -28,13 +28,13 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetBrandMenuCl()
+        public async Task<ActionResult<IEnumerable<BrandMenu>>> GetBrandMenus()
         {
-            var menus = await _context.BrandMenuCl.ToListAsync();
+            var menus = await _context.BrandMenus.ToListAsync();
 
-            foreach (BrandMenuCl menu in menus)
+            foreach (BrandMenu menu in menus)
             {
-                menu.Image = await _context.ImageCl.FindAsync(menu.ImgId);
+                menu.Image = await _context.Images.FindAsync(menu.ImgId);
             }
 
             return menus;
@@ -45,18 +45,18 @@ namespace ApiClick.Controllers
         [Route("api/GetMenusByBrand/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BrandMenuCl>>> GetMenusByBrand(int id)
+        public async Task<ActionResult<IEnumerable<BrandMenu>>> GetMenusByBrand(int id)
         {
-            var brandMenus = await _context.BrandMenuCl.Where(p => p.BrandId == id).ToListAsync();
+            var brandMenus = await _context.BrandMenus.Where(p => p.BrandId == id).ToListAsync();
 
             if (brandMenus == null)
             {
                 return NotFound();
             }
 
-            foreach (BrandMenuCl menu in brandMenus) 
+            foreach (BrandMenu menu in brandMenus) 
             {
-                menu.Image = await _context.ImageCl.FindAsync(menu.ImgId);
+                menu.Image = await _context.Images.FindAsync(menu.ImgId);
             }
 
             return brandMenus;
@@ -67,16 +67,16 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<BrandMenuCl>> GetBrandMenuCl(int id)
+        public async Task<ActionResult<BrandMenu>> GetBrandMenus(int id)
         {
-            var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
+            var brandMenuCl = await _context.BrandMenus.FindAsync(id);
 
             if (brandMenuCl == null)
             {
                 return NotFound();
             }
 
-            brandMenuCl.Image = await _context.ImageCl.FindAsync(brandMenuCl.ImgId);
+            brandMenuCl.Image = await _context.Images.FindAsync(brandMenuCl.ImgId);
 
             return brandMenuCl;
         }
@@ -85,7 +85,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutBrandMenuCl(BrandMenuCl brandMenuCl)
+        public async Task<IActionResult> PutBrandMenus(BrandMenu brandMenuCl)
         {
             if (brandMenuCl == null)
             {
@@ -94,7 +94,7 @@ namespace ApiClick.Controllers
 
             if (IsItMyMenu(funcs.identityToUser(User.Identity, _context), brandMenuCl))
             {
-                var existingMenu = await _context.BrandMenuCl.FindAsync(brandMenuCl.BrandMenuId);
+                var existingMenu = await _context.BrandMenus.FindAsync(brandMenuCl.BrandMenuId);
 
                 existingMenu.BrandMenuName = brandMenuCl.BrandMenuName;
                 existingMenu.ImgId = brandMenuCl.ImgId;
@@ -113,7 +113,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public async Task<ActionResult<BrandMenuCl>> PostBrandMenuCl(BrandMenuCl brandMenuCl)
+        public async Task<ActionResult<BrandMenu>> PostBrandMenus(BrandMenu brandMenuCl)
         {
             if (brandMenuCl == null || SameNameMenu(brandMenuCl)) 
             {
@@ -122,7 +122,7 @@ namespace ApiClick.Controllers
 
             brandMenuCl.CreatedDate = DateTime.Now;
 
-            _context.BrandMenuCl.Add(brandMenuCl);
+            _context.BrandMenus.Add(brandMenuCl);
             await _context.SaveChangesAsync();
 
             return brandMenuCl;
@@ -132,19 +132,19 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete]
-        public async Task<ActionResult<BrandMenuCl>> DeleteBrandMenuCl(int id)
+        public async Task<ActionResult<BrandMenu>> DeleteBrandMenus(int id)
         {
-            var brandMenuCl = await _context.BrandMenuCl.FindAsync(id);
+            var brandMenuCl = await _context.BrandMenus.FindAsync(id);
 
             //if menu belongs to user - allow removal
             if (IsItMyMenu(funcs.identityToUser(User.Identity, _context), brandMenuCl))
             {
-                var products = _context.ProductCl.Where(e => e.BrandMenuId == brandMenuCl.BrandMenuId);
-                foreach (ProductCl product in products)
+                var products = _context.Products.Where(e => e.BrandMenuId == brandMenuCl.BrandMenuId);
+                foreach (Product product in products)
                 {
-                    _context.ProductCl.Remove(product);
+                    _context.Products.Remove(product);
                 }
-                _context.BrandMenuCl.Remove(brandMenuCl);
+                _context.BrandMenus.Remove(brandMenuCl);
 
                 await _context.SaveChangesAsync();
             }
@@ -159,15 +159,15 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Проверяет является ли меню собственностью этого пользователя
         /// </summary>
-        private bool IsItMyMenu(UserCl user, BrandMenuCl menu)
+        private bool IsItMyMenu(User user, BrandMenu menu)
         {
-            var menuBuffer = _context.BrandMenuCl.Find(menu.BrandMenuId);
+            var menuBuffer = _context.BrandMenus.Find(menu.BrandMenuId);
             if (menuBuffer == null)
             {
                 return false;
             }
 
-            var brandBuffer = _context.BrandCl.Find(menuBuffer.BrandId);
+            var brandBuffer = _context.Brands.Find(menuBuffer.BrandId);
             if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
             {
                 return false;
@@ -181,14 +181,14 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Находит меню с таким же именем среди меню бренда
         /// </summary>
-        private bool SameNameMenu(BrandMenuCl menu) 
+        private bool SameNameMenu(BrandMenu menu) 
         {
-            return _context.BrandMenuCl.Where(m => m.BrandId == menu.BrandId).Any(m => m.BrandMenuName == menu.BrandMenuName);
+            return _context.BrandMenus.Where(m => m.BrandId == menu.BrandId).Any(m => m.BrandMenuName == menu.BrandMenuName);
         }
 
-        private bool BrandMenuClExists(int id)
+        private bool BrandMenusExists(int id)
         {
-            return _context.BrandMenuCl.Any(e => e.BrandMenuId == id);
+            return _context.BrandMenus.Any(e => e.BrandMenuId == id);
         }
     }
 }

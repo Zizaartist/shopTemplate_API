@@ -23,9 +23,9 @@ namespace ApiClick.Controllers
         // GET: api/Category
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BanknoteCl>>> GetBanknoteCl()
+        public async Task<ActionResult<IEnumerable<Banknote>>> GetBanknotes()
         {
-            return await _context.BanknoteCl.ToListAsync();
+            return await _context.Banknotes.ToListAsync();
         }
     }
 }

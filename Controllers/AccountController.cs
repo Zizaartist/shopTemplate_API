@@ -155,7 +155,7 @@ namespace ApiClick.Controllers
         //identity with user rights
         private ClaimsIdentity GetIdentity(string phone)
         {
-            UserCl user = _context.UserCl.FirstOrDefault(x => x.Phone == phone);
+            User user = _context.Users.FirstOrDefault(x => x.Phone == phone);
 
             if (user != null)
             {
@@ -177,15 +177,15 @@ namespace ApiClick.Controllers
         //identity with admin rights
         private ClaimsIdentity GetIdentity(string login, string password)
         {
-            UserCl user = _context.UserCl.Where(e => e.Login == login).FirstOrDefault(e => e.Password == password);
+            User user = _context.Users.Where(e => e.Login == login).FirstOrDefault(e => e.Password == password);
 
             //if user wasn't found or his role is user = ignore
-            if (user != null && user.Role != _context.UserRolesCl.FirstOrDefault(e => e.UserRoleName == "User").UserRoleId)
+            if (user != null && user.UserRoleId != _context.UserRoles.FirstOrDefault(e => e.UserRoleName == "User").UserRoleId)
             {
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRolesCl.Find(user.Role).UserRoleName) //probably not safe but eh works fine by me
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRoles.Find(user.UserRoleId).UserRoleName) //probably not safe but eh works fine by me
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
