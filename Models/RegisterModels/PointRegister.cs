@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,6 +13,7 @@ namespace ApiClick.Models.RegisterModels
     public class PointRegister
     {
         //Non-nullable
+        [Key]
         public int PointRegisterId { get; set; }
         public int OrderId { get; set; }
         public int OwnerId { get; set; }
@@ -21,7 +24,9 @@ namespace ApiClick.Models.RegisterModels
         public bool TransactionCompleted { get; set; }
 
         //Navigation properties
-        public virtual OrdersCl Order { get; set; }
-        public virtual UserCl Owner { get; set; }
+        [ForeignKey("OrderId")]
+        public virtual Order Order { get; set; }
+        [ForeignKey("OwnerId")]
+        public virtual User Owner { get; set; }
     }
 }

@@ -17,9 +17,9 @@ namespace ApiClick.StaticValues
         public static void Init() 
         {
             //ClickContext _context = new ClickContext();
-            //PRODUCT_ID_BOTTLED_WATER = _context.ProductCl.First(e => e.ProductName == "Бутилированная вода").ProductId;
-            //PRODUCT_ID_WATER = _context.ProductCl.First(e => e.ProductName == "Вода").ProductId;
-            //PRODUCT_ID_CONTAINER = _context.ProductCl.First(e => e.ProductName == "Тара для воды").ProductId;
+            //PRODUCT_ID_BOTTLED_WATER = _context.Products.First(e => e.ProductName == "Бутилированная вода").ProductId;
+            //PRODUCT_ID_WATER = _context.Products.First(e => e.ProductName == "Вода").ProductId;
+            //PRODUCT_ID_CONTAINER = _context.Products.First(e => e.ProductName == "Тара для воды").ProductId;
         }
     }
 }

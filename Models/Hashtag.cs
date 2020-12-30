@@ -1,0 +1,22 @@
+﻿using ApiClick.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
+using ApiClick.StaticValues;
+
+namespace Click.Models
+{
+    public class Hashtag
+    {
+        [Key]
+        public int HashTagId { get; set; }
+        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
+        public string HashTagName { get; set; }
+        public int CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public virtual Category Category { get; set; }
+    }
+}
