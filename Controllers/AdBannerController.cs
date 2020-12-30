@@ -65,6 +65,7 @@ namespace ApiClick.Controllers
             {
                 (await _context.AdBannerCl.FindAsync(banner.AdBannerId)).ViewCount--;
                 await _context.SaveChangesAsync();
+                banner.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(banner.ImgId));
             }
 
             return resultBanners;
