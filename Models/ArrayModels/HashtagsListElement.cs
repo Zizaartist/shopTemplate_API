@@ -14,7 +14,7 @@ namespace ApiClick.Models.ArrayModels
         [Key]
         public int HashtagsListElementId { get; set; }
         public int HashtagId { get; set; }
-        public int BrandId { get; set; }
+        public int? BrandId { get; set; } //Не обязательно для предотвращения капризов
         [ForeignKey("BrandId")]
         public virtual Brand Brand { get; set; }
         [ForeignKey("HashtagId")]

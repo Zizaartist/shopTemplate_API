@@ -15,7 +15,6 @@ namespace ApiClick.Models.EnumModels
     {
         [Key]
         public int PaymentMethodId { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string PaymentMethodName { get; set; }
 
         public virtual ICollection<PaymentMethodsListElement> PaymentMethodsListElements { get; set; }

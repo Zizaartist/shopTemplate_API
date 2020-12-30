@@ -8,7 +8,7 @@ namespace ApiClick.Models
     /// <summary>
     /// Модель рекламного баннера, пока не кликабельного
     /// </summary>
-    public class AdBannerCl
+    public class AdBanner
     {
         //Non-nullable
         public int AdBannerId { get; set; }
@@ -23,7 +23,7 @@ namespace ApiClick.Models
         public string Text { get; set; }
 
         //Сам, собственно, контент
-        public virtual ImageCl Image { get; set; }
-        public virtual CategoryCl Category { get; set; }
+        public virtual Image Image { get; set; }
+        public virtual Category Category { get; set; }
     }
 }

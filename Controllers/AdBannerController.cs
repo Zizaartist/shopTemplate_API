@@ -25,24 +25,24 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{categoryId}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet("{categoryId}")]
-        public async Task<ActionResult<IEnumerable<AdBannerCl>>> GetAdBanners(int categoryId)
+        public async Task<ActionResult<IEnumerable<AdBanner>>> GetAdBanners(int categoryId)
         {
-            if (await _context.CategoryCl.FindAsync(categoryId) == null)
+            if (await _context.Categories.FindAsync(categoryId) == null)
             {
                 return BadRequest("Такой категории не найдено");
             }
             
             //Удаляем просроченные баннеры
-            var expiredBanners = _context.AdBannerCl.Where(e => e.ViewCount <= 0);
+            var expiredBanners = _context.AdBanners.Where(e => e.ViewCount <= 0);
             _context.RemoveRange(expiredBanners);
             await _context.SaveChangesAsync();
 
             //Получаем баннеры по нужной категории
-            var allBanners = _context.AdBannerCl.Where(e => e.CategoryId == categoryId).ToList();
+            var allBanners = _context.AdBanners.Where(e => e.CategoryId == categoryId).ToList();
             
             //Низкоуровневый код 😱
             //От initialCount зависят шансы на отображение, чем больше просмотров должно было быть у баннера - тем чаще от будет попадать в результирующий список
-            List<AdBannerCl> resultBanners = new List<AdBannerCl>();
+            List<AdBanner> resultBanners = new List<AdBanner>();
             for (int adsAmount = 3; adsAmount == 0; adsAmount--)
             {
                 int sum = allBanners.Sum(e => e.InitialCount); //Суммарное количество "потенциальных просмотров"
@@ -63,9 +63,9 @@ namespace ApiClick.Controllers
             //Успех! Измени значения текущих просмотров для элементов списка
             foreach (var banner in resultBanners)
             {
-                (await _context.AdBannerCl.FindAsync(banner.AdBannerId)).ViewCount--;
+                (await _context.AdBanners.FindAsync(banner.AdBannerId)).ViewCount--;
                 await _context.SaveChangesAsync();
-                banner.Image = funcs.getCleanModel(await _context.ImageCl.FindAsync(banner.ImgId));
+                banner.Image = funcs.getCleanModel(await _context.Images.FindAsync(banner.ImgId));
             }
 
             return resultBanners;
@@ -76,14 +76,14 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
-        public async Task<ActionResult> PostAdBanner(AdBannerCl adBanner)
+        public async Task<ActionResult> PostAdBanner(AdBanner adBanner)
         {
             if (adBanner == null)
             {
                 return BadRequest();
             }
 
-            _context.AdBannerCl.Add(adBanner);
+            _context.AdBanners.Add(adBanner);
             await _context.SaveChangesAsync();
             return Ok();
         }

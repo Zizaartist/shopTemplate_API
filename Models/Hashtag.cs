@@ -12,7 +12,6 @@ namespace Click.Models
     {
         [Key]
         public int HashTagId { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string HashTagName { get; set; }
         public int CategoryId { get; set; }
 

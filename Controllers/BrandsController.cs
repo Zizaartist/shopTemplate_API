@@ -13,6 +13,7 @@ using System.Security.Principal;
 using System.Reflection;
 using ApiClick.Models.ArrayModels;
 using ApiClick.StaticValues;
+using Click.Models;
 
 namespace ApiClick.Controllers
 {
@@ -40,19 +41,23 @@ namespace ApiClick.Controllers
             {
                 brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
-                brand.Hashtags = _context.Brands.Find(brand.BrandId).HashtagsListElements.Select(e => e.Hashtag).ToList();
+                brand.Hashtags = await _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId)
+                                                                    .Select(e => e.Hashtag).ToListAsync();
+                brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
+                                                                                .Select(e => e.PaymentMethod).ToListAsync();
             }
 
             return brands;
         }
 
         // POST: api/GetBrandsByFilter/5
-        [Route("api/GetMyBrandsByFilter/{id}")]
+        [Route("api/GetMyBrandsByFilter/{categoryId}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(int id, List<int?> HashTags)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(int categoryId, List<int?> HashTags)
         {
-            var brands = _context.Brands.Where(p => p.CategoryId == id);
+            var brands = _context.Brands.Where(p => p.CategoryId == categoryId);
+            //Урезаем выборку по критерию наличия хештега в списке
             foreach (int? hashTagId in HashTags)
             {
                 //Оставляет те бренды, в которых имеется текущий хэштег итерации
@@ -82,8 +87,10 @@ namespace ApiClick.Controllers
                 var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
                 brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
-                brand.Hashtags = remoteBrand.HashtagsListElements.Select(e => e.Hashtag).ToList();
-                brand.PaymentMethods = remoteBrand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
+                brand.Hashtags = await _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.Hashtag).ToListAsync();
+                brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.PaymentMethod).ToListAsync();
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
@@ -121,8 +128,10 @@ namespace ApiClick.Controllers
                 var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
                 brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
-                brand.Hashtags = remoteBrand.HashtagsListElements.Select(e => e.Hashtag).ToList();
-                brand.PaymentMethods = remoteBrand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
+                brand.Hashtags = await _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.Hashtag).ToListAsync();
+                brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.PaymentMethod).ToListAsync();
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
@@ -145,8 +154,10 @@ namespace ApiClick.Controllers
 
             brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
             brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
-            brand.Hashtags = brand.HashtagsListElements.Select(e => e.Hashtag).ToList();
-            brand.PaymentMethods = brand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
+            brand.Hashtags = await _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId)
+                .Select(e => e.Hashtag).ToListAsync();
+            brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
+                .Select(e => e.PaymentMethod).ToListAsync();
 
             return brand;
         }
@@ -172,8 +183,10 @@ namespace ApiClick.Controllers
                 var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
                 brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
-                brand.Hashtags = remoteBrand.HashtagsListElements.Select(e => e.Hashtag).ToList();
-                brand.PaymentMethods = remoteBrand.PaymentMethodsListElements.Select(e => e.PaymentMethod).ToList();
+                brand.Hashtags = await _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.Hashtag).ToListAsync();
+                brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.PaymentMethod).ToListAsync();
 
                 switch (brand.CategoryId)
                 {
@@ -192,27 +205,110 @@ namespace ApiClick.Controllers
         [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutBrand(Brand brandCl)
+        public async Task<IActionResult> PutBrand(Brand brand)
         {
-            if (brandCl == null)
+            if (brand == null || !brand.PaymentMethods.Any())
             {
                 return BadRequest();
             }
-
-            if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brandCl))
+            
+            var existingBrand = await _context.Brands.FindAsync(brand.BrandId);
+            brand.UserId = existingBrand.UserId;
+            
+            if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brand))
             {
-                insertTagsCorrectly(brandCl);
-                var existingBrand = await _context.Brands.FindAsync(brandCl.BrandId);
+                int TAGS_COUNT = 3;
 
-                existingBrand.Address = brandCl.Address;
-                existingBrand.BrandName = brandCl.BrandName;
-                existingBrand.Contact = brandCl.Contact;
-                existingBrand.Description = brandCl.Description;
-                existingBrand.DescriptionMax = brandCl.DescriptionMax;
-                existingBrand.ImgBannerId = brandCl.ImgBannerId;
-                existingBrand.ImgLogoId = brandCl.ImgLogoId;
-                existingBrand.Phone = brandCl.Phone;
-                existingBrand.WorkTime = brandCl.WorkTime;
+                brand.Hashtags = brand.Hashtags.Distinct() //Удаляем дубликаты
+                    .OrderBy(e => e.HashTagId) //Сортируем
+                    .Where(e => _context.Hashtags.Find(e.HashTagId) != null) //Проверяем на валидность
+                    .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
+                    .ToList();
+                brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
+                    .Where(e => _context.PaymentMethods.Find(e.PaymentMethodId) != null) //Проверяем на валидность
+                    .ToList();
+
+                //Выводим 2 списка: новых элементов и исчезнувших
+
+                existingBrand.Hashtags = _context.HashtagsListElements.Where(e => e.BrandId == existingBrand.BrandId).Select(e => e.Hashtag).ToList();
+
+                //Находит элементы первого списка, отсутствующие во 2м
+                var addHashtags = brand.Hashtags.Where(e => existingBrand.Hashtags.All(x => x.HashTagId != e.HashTagId)); //если в старой коллекции нет хэштегов с таким же id, то он новый
+                var subHashtags = existingBrand.Hashtags.Where(e => brand.Hashtags.All(x => x.HashTagId != e.HashTagId)); //если в новой коллекции нет хэштегов с таким же id, то это устаревший
+
+                var addtest = addHashtags.ToList();
+                var subtest = subHashtags.ToList();
+                
+                //Те, что нужно добавить
+                foreach (var hashtag in addHashtags)
+                {
+                    _context.HashtagsListElements.Add(new HashtagsListElement()
+                    {
+                        HashtagId = hashtag.HashTagId,
+                        BrandId = existingBrand.BrandId
+                    });
+                }
+
+                //Те, что нужно удалить
+                foreach (var hashtag in subHashtags)
+                {
+                    //Находить обязательно по 2м критериям
+                    var sacrifice = _context.HashtagsListElements.FirstOrDefault(e =>
+                                                                                                e.HashtagId == hashtag.HashTagId &&
+                                                                                                e.BrandId == existingBrand.BrandId);
+                    if (sacrifice != null)
+                    {
+                        _context.HashtagsListElements.Remove(sacrifice);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                //Выводим 2 списка: новых элементов и исчезнувших
+
+                existingBrand.PaymentMethods = _context.PaymentMethodsListElements.Where(e => e.BrandId == existingBrand.BrandId).Select(e => e.PaymentMethod).ToList();
+
+                //Находит элементы первого списка, отсутствующие во 2м
+                var addPaymentMethods = brand.PaymentMethods.Where(e => existingBrand.PaymentMethods.All(x => x.PaymentMethodId != e.PaymentMethodId));
+                var subPaymentMethods = existingBrand.PaymentMethods.Where(e => brand.PaymentMethods.All(x => x.PaymentMethodId != e.PaymentMethodId));
+
+                var addasd = addPaymentMethods.ToList();
+                var subasd = subPaymentMethods.ToList();
+                
+                //Те, что нужно добавить
+                foreach (var paymentMethod in addPaymentMethods)
+                {
+                    _context.PaymentMethodsListElements.Add(new PaymentMethodsListElement()
+                    {
+                        PaymentMethodId = paymentMethod.PaymentMethodId,
+                        BrandId = existingBrand.BrandId
+                    });
+                }
+
+                //Те, что нужно удалить
+                foreach (var paymentMethod in subPaymentMethods)
+                {
+                    //Находить обязательно по 2м критериям
+                    var sacrifice = _context.PaymentMethodsListElements.FirstOrDefault(e =>
+                        e.PaymentMethodId == paymentMethod.PaymentMethodId &&
+                        e.BrandId == existingBrand.BrandId);
+                    if (sacrifice != null)
+                    {
+                        _context.PaymentMethodsListElements.Remove(sacrifice);
+                    }
+                }
+                
+                await _context.SaveChangesAsync();
+
+                existingBrand.Address = brand.Address;
+                existingBrand.BrandName = brand.BrandName;
+                existingBrand.Contact = brand.Contact;
+                existingBrand.Description = brand.Description;
+                existingBrand.DescriptionMax = brand.DescriptionMax;
+                existingBrand.ImgBannerId = brand.ImgBannerId;
+                existingBrand.ImgLogoId = brand.ImgLogoId;
+                existingBrand.Phone = brand.Phone;
+                existingBrand.WorkTime = brand.WorkTime;
 
                 await _context.SaveChangesAsync();
             }
@@ -228,30 +324,61 @@ namespace ApiClick.Controllers
         // POST: api/Brands
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public async Task<ActionResult<Brand>> PostBrand(Brand brandCl)
+        public async Task<ActionResult<Brand>> PostBrand(Brand brand)
         {
-            if (brandCl == null) 
+            if (brand == null || !brand.PaymentMethods.Any()) 
             {
                 return BadRequest();
             }
 
             //Не позволять создавать бренды с уже имеющимся именем
-            if (_context.Brands.Any(a => a.BrandName == brandCl.BrandName)) 
+            if (_context.Brands.Any(a => a.BrandName == brand.BrandName)) 
             {
                 return Forbid();
             }
 
             //Заполняем пробелы
-            brandCl.User = funcs.identityToUser(User.Identity, _context);
-            brandCl.UserId = brandCl.User.UserId;
-            brandCl.CreatedDate = DateTime.Now;
+            brand.User = funcs.identityToUser(User.Identity, _context);
+            brand.UserId = brand.User.UserId;
+            brand.CreatedDate = DateTime.Now;
 
-            insertTagsCorrectly(brandCl);
-            _context.Brands.Add(brandCl);
+            int TAGS_COUNT = 3;
+            
+            brand.Hashtags = brand.Hashtags.Distinct() //Удаляем дубликаты
+                                            .OrderBy(e => e.HashTagId) //Сортируем
+                                            .Where(e => _context.Hashtags.Find(e.HashTagId) != null) //Проверяем на валидность
+                                            .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
+                                            .ToList();
+            brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
+                                                        .Where(e => _context.PaymentMethods.Find(e.PaymentMethodId) != null) //Проверяем на валидность
+                                                        .ToList();
+            _context.Brands.Add(brand);
 
             await _context.SaveChangesAsync();
 
-            return brandCl;
+            foreach (var hashtag in brand.Hashtags)
+            {
+                _context.HashtagsListElements.Add(new HashtagsListElement()
+                {
+                    HashtagId = hashtag.HashTagId,
+                    BrandId = brand.BrandId
+                });
+            }
+            
+            await _context.SaveChangesAsync();
+
+            foreach (var paymentMethod in brand.PaymentMethods)
+            {
+                _context.PaymentMethodsListElements.Add(new PaymentMethodsListElement()
+                {
+                    PaymentMethodId = paymentMethod.PaymentMethodId,
+                    BrandId = brand.BrandId
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return brand;
         }
 
         // DELETE: api/Brands/5
@@ -260,12 +387,12 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<ActionResult<Brand>> DeleteBrand(int id)
         {
-            var brandCl = await _context.Brands.FindAsync(id);
+            var brand = await _context.Brands.FindAsync(id);
 
-            if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brandCl))
+            if (IsItMyBrand(funcs.identityToUser(User.Identity, _context), brand))
             {
-                var menus = _context.BrandMenus.Where(e => e.BrandId == brandCl.BrandId);
-                var menusNoLazyLoading = menus.ToList();
+                var menus = _context.BrandMenus.Where(e => e.BrandId == brand.BrandId);
+                var menusNoLazyLoading = menus;
                 foreach (BrandMenu menu in menusNoLazyLoading) 
                 {
                     var products = _context.Products.Where(e => e.BrandMenuId == menu.BrandMenuId);
@@ -275,7 +402,20 @@ namespace ApiClick.Controllers
                     }
                     _context.BrandMenus.Remove(menu);
                 }
-                _context.Brands.Remove(brandCl);
+
+                var hashtagListElements = _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId);
+                foreach (var hashtagElement in hashtagListElements)
+                {
+                    _context.HashtagsListElements.Remove(hashtagElement);
+                }
+                
+                var paymentMethodListElements = _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId);
+                foreach (var paymentMethodElement in paymentMethodListElements)
+                {
+                    _context.PaymentMethodsListElements.Remove(paymentMethodElement);
+                }
+
+                _context.Brands.Remove(brand);
 
                 await _context.SaveChangesAsync();
             }
@@ -300,38 +440,6 @@ namespace ApiClick.Controllers
             else
             {
                 return true;
-            }
-        }
-
-        private void insertTagsCorrectly(Brand brand)
-        {
-            int TAGS_COUNT = 3;
-
-            //Ставим теги в нужном порядке
-            var tagList = new List<int?>();
-            var propertyList = new List<System.Reflection.PropertyInfo>();
-
-            propertyList = brand.GetType()
-                                    .GetProperties()
-                                    .Where(e => e.Name.Contains("Hashtag") && e.Name.Contains("Id"))
-                                    .ToList();
-            tagList = propertyList.Where(e => e.GetValue(brand) != null)
-                                    .Select(e => (int?)e.GetValue(brand))
-                                    .Distinct()
-                                    .OrderBy(e => e.Value)
-                                    .ToList();
-
-            for (int i = 0; i < TAGS_COUNT; i++)
-            {
-                //Если элемент существует - добавить в свойство
-                if (i < tagList.Count)
-                {
-                    propertyList[i].SetValue(brand, tagList[i]);
-                }
-                else
-                {
-                    propertyList[i].SetValue(brand, null);
-                }
             }
         }
 

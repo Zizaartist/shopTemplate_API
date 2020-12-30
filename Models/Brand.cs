@@ -15,6 +15,8 @@ namespace ApiClick.Models
         public Brand() 
         {
             BrandMenus = new List<BrandMenu>();
+            Hashtags = new List<Hashtag>();
+            PaymentMethods = new List<PaymentMethod>();
         }
 
         //Not nullable
