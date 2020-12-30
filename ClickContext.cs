@@ -32,6 +32,7 @@ namespace ApiClick
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<WaterRequest> WaterRequests { get; set; }
         public virtual DbSet<RequestDetail> RequestDetails { get; set; }
+        public virtual DbSet<AdBannerCl> AdBannerCl { get; set; }
 
         //Модели-регистры
         public virtual DbSet<MessageOpinion> MessageOpinions { get; set; }
@@ -397,6 +398,20 @@ namespace ApiClick
                 entity.HasOne(e => e.UserRole)
                     .WithMany()
                     .HasForeignKey(e => e.UserRoleId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+            modelBuilder.Entity<AdBannerCl>(entity =>
+            {
+                entity.HasKey(e => e.AdBannerId);
+                entity.HasOne(e => e.Image)
+                    .WithOne()
+                    .HasForeignKey<AdBannerCl>(e => e.ImgId)
+                    .HasConstraintName("FK_AdBannerCl_ImgId")
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(e => e.Category)
+                    .WithMany()
+                    .HasForeignKey(e => e.CategoryId)
+                    .HasConstraintName("FK_AdBannerCl_CategoryId")
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
