@@ -249,8 +249,7 @@ namespace ApiClick
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Phone)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsRequired();
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.Property(e => e.Street)
                     .HasMaxLength(ModelLengths.LENGTH_MEDIUM);

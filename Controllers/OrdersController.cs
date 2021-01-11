@@ -543,16 +543,15 @@ namespace ApiClick.Controllers
             //В "мокрых" запросах нет записи с id заказа текущей итерации
             var allOrdersFound = _context.Orders.Where(p => p.CategoryId == id && 
                                                                     p.BrandOwnerId == null);
-            var test = allOrdersFound.ToList();
             //найти все те заказы, в которых отсутствует связь с "моими запросами"
-            var ordersFound = allOrdersFound.Where(p => !myRequests.Any(e => p.OrderId == e.OrderId)).ToList();
+            var ordersFound = allOrdersFound.Where(p => !myRequests.Any(e => p.OrderId == e.OrderId));
 
-            if (ordersFound == null)
+            if (!ordersFound.Any())
             {
                 return NotFound();
             }
 
-            var orders = funcs.getCleanListOfModels(ordersFound);
+            var orders = funcs.getCleanListOfModels(ordersFound.ToList());
 
             foreach (Order order in orders)
             {
