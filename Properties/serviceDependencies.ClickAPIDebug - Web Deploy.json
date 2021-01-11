@@ -1,9 +1,14 @@
 {
   "dependencies": {
     "mssql2": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/apiclickdbserver/databases/ApiClick_db",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/clickapisqldb/databases/updated-DB",
       "type": "mssql.azure",
       "connectionId": "DebugSQL",
+      "secretStore": "AzureAppSettings"
+    },
+    "mssql1": {
+      "type": "mssql.onprem",
+      "connectionId": "Local-temp-db",
       "secretStore": "AzureAppSettings"
     }
   }

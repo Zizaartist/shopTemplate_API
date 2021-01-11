@@ -32,7 +32,7 @@ namespace ApiClick
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<WaterRequest> WaterRequests { get; set; }
         public virtual DbSet<RequestDetail> RequestDetails { get; set; }
-        public virtual DbSet<AdBannerCl> AdBannerCl { get; set; }
+        public virtual DbSet<AdBanner> AdBanners { get; set; }
 
         //Модели-регистры
         public virtual DbSet<MessageOpinion> MessageOpinions { get; set; }
@@ -60,7 +60,7 @@ namespace ApiClick
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Relational:DefaultSchema", "u0906946_u0906946");
+            modelBuilder.HasAnnotation("Relational:DefaultSchema", "dbo");
 
             //modelBuilder.UseCollation("SQL_Latin1_General_CP1_CS_AS");
 
@@ -400,14 +400,19 @@ namespace ApiClick
                     .HasForeignKey(e => e.UserRoleId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
-            modelBuilder.Entity<AdBannerCl>(entity =>
+            
+            modelBuilder.Entity<AdBanner>(entity =>
             {
                 entity.HasKey(e => e.AdBannerId);
+                
+                entity.ToTable("AdBanners", "dbo");
+                
                 entity.HasOne(e => e.Image)
                     .WithOne()
-                    .HasForeignKey<AdBannerCl>(e => e.ImgId)
+                    .HasForeignKey<AdBanner>(e => e.ImgId)
                     .HasConstraintName("FK_AdBannerCl_ImgId")
                     .OnDelete(DeleteBehavior.NoAction);
+                
                 entity.HasOne(e => e.Category)
                     .WithMany()
                     .HasForeignKey(e => e.CategoryId)
