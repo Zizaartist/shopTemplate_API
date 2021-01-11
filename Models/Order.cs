@@ -26,7 +26,7 @@ namespace ApiClick.Models
         public int CategoryId { get; set; }
         public int PaymentMethodId { get; set; }
         public bool PointsUsed { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
+        [MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Phone { get; set; }
 
         //Nullable
