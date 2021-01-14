@@ -249,10 +249,10 @@ namespace ApiClick.Controllers
             {
                 await _context.SaveChangesAsync();
                 PointsController pointsController = new PointsController(_context);
+                order.OrderDetails = _context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList();
                 if (order.PointsUsed)
                 {
                     order.PointRegister = await _context.PointRegisters.FindAsync(order.PointRegisterId);
-                    order.OrderDetails = _context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList();
                     pointsController.RemovePoints(order);
                     pointsController.GetPoints(order, (await _context.PointRegisters.FindAsync(order.PointRegisterId)).Points);
                 }

@@ -96,11 +96,13 @@ namespace ApiClick.Controllers
         /// </summary>
         public void RemovePoints(Order order)
         {
+            //Начисляем баллы пользователя владельцу бренда
             var brandOwner = _context.Users.Find(order.BrandOwnerId);
             brandOwner.Points += order.PointRegister.Points;
             
             var register = _context.PointRegisters.Find(order.PointRegisterId);
             register.TransactionCompleted = true;
+            _context.SaveChanges();
         }
 
         /// <summary>
@@ -110,7 +112,9 @@ namespace ApiClick.Controllers
         {
             decimal sum = order.OrderDetails.Sum(s => Convert.ToInt32(s.Price) * s.Count);
             decimal moneySum = sum - points;
-            order.User.Points += Convert.ToInt32(moneySum * pointsCoef);
+            var user = _context.Users.Find(order.UserId);
+            user.Points += Convert.ToInt32(moneySum * pointsCoef);
+            _context.SaveChanges();
         }
 
         /// <summary>
@@ -131,7 +135,6 @@ namespace ApiClick.Controllers
         /// <returns>Список числовых значений баллов для каждого заказа</returns>
         public List<OrderExtended> DistributePoints(List<Order> orders)
         {
-
             decimal currentPoints = _context.Users.Find(orders.First().UserId).Points;
             //Включает в себя те, заказы, которые оплачены полностью
             List<OrderExtended> notYetPaidOrders = new List<OrderExtended>();
