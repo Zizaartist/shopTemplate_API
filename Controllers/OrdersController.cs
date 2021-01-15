@@ -223,19 +223,23 @@ namespace ApiClick.Controllers
 
             //Только пользователь и владелец бренда имеют доступ к смене статуса
             var identity = funcs.identityToUser(User.Identity, _context);
-            if (!(order.UserId == identity.UserId || order.BrandOwnerId == identity.UserId)) 
+            var isUser = order.UserId == identity.UserId;
+            var isBrandOwner = order.BrandOwnerId == identity.UserId;
+            if (!(isUser || isBrandOwner)) 
             {
                 return Forbid();
             }
-
+            
             //Затем проверяем права на смену статуса
-            int userRole = funcs.identityToUser(User.Identity, _context).UserRoleId;
+            int userRoleId = -1;
+            if(isUser) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "User").UserRoleId;
+            else if (isBrandOwner) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "Admin").UserRoleId;
             int futureStatusId = order.StatusId + 1;
             OrderStatus futureOrderStatuses = await _context.OrderStatuses.FindAsync(futureStatusId);
 
             //Изменить статус могут лишь указанная роль или суперАдмин
-            if (userRole == futureOrderStatuses.MasterRoleId || 
-                userRole == _context.UserRoles.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
+            if (userRoleId == futureOrderStatuses.MasterRoleId || 
+                userRoleId == _context.UserRoles.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
             {
                 order.StatusId++;
                 order.OrderStatus = futureOrderStatuses;
