@@ -104,7 +104,7 @@ namespace ApiClick.Controllers
                 {
                     order.Banknote = await _context.Banknotes.FindAsync(order.BanknoteId);
                 }
-                if (order.PointsUsed)
+                if (order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
                 }
@@ -146,7 +146,7 @@ namespace ApiClick.Controllers
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
                 order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 order.PaymentMethod = await _context.PaymentMethods.FindAsync(order.PaymentMethodId);
-                if (order.PointsUsed)
+                if (order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
                 }
@@ -192,7 +192,7 @@ namespace ApiClick.Controllers
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
                 order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 order.PaymentMethod = await _context.PaymentMethods.FindAsync(order.PaymentMethodId);
-                if (order.PointsUsed)
+                if (order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
                 }
@@ -606,7 +606,7 @@ namespace ApiClick.Controllers
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
                 order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 order.PaymentMethod = await _context.PaymentMethods.FindAsync(order.PaymentMethodId);
-                if(order.PointsUsed)
+                if(order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
                 }

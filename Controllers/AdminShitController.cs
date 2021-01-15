@@ -23,6 +23,10 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<ActionResult> DeleteAllOrders()
         {
+            foreach (var entity in _context.PointRegisters)
+            {
+                _context.PointRegisters.Remove(entity);
+            }
             foreach (var entity in _context.OrderDetails) 
             {
                 _context.OrderDetails.Remove(entity);
