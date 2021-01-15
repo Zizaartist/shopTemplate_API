@@ -382,26 +382,28 @@ namespace ApiClick.Controllers
                 order.User = await _context.Users.FindAsync(order.UserId);
                 order.Phone = order.User.Phone;
                 order.BrandOwnerId = responsibleBrandOwnerId.UserId;
+                order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
 
                 _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-                if (order.PointsUsed)
-                {
-                    var register = await pointsController.CreatePointRegister(order.User, order, pointsInvested);
-                    if (register == null)
-                    {
-                        return BadRequest();
-                    }
-                    order.PointRegisterId = register.PointRegisterId;
-                }
-
-                order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
                 await _context.SaveChangesAsync();
 
                 if (order.User.NotificationsEnabled)
                 {
                     await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "У вас новый заказ!", order.BrandOwner.NotificationRegistration);
                 }
+
+                if (order.PointsUsed)
+                {
+                    var register = await pointsController.CreatePointRegister(order.User, order, pointsInvested);
+                    if (register == null)
+                    {
+                        order.PointsUsed = false;
+                        await _context.SaveChangesAsync();
+                        return BadRequest();
+                    }
+                    order.PointRegisterId = register.PointRegisterId;
+                }
+                await _context.SaveChangesAsync();
             }
             return Ok();
         }
@@ -503,7 +505,7 @@ namespace ApiClick.Controllers
             catch 
             {
                 //Полученый запрос не имеет соответствующего списка деталей
-                return BadRequest(); 
+                return BadRequest();
             }
 
             if (pointsUsed)
@@ -512,8 +514,11 @@ namespace ApiClick.Controllers
                 await _context.SaveChangesAsync();
                 PointsController pointsController = new PointsController(_context);
                 PointRegister register = await pointsController.CreatePointRegister(order.User, order);
-                if (register == null) 
+                if (register == null)
                 {
+                    //Хотя бы предотвратит потери
+                    order.PointsUsed = false;
+                    await _context.SaveChangesAsync();
                     return BadRequest();
                 }
                 order.PointRegisterId = register.PointRegisterId;
