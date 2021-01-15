@@ -45,8 +45,9 @@ namespace ApiClick.Controllers
                 _context.PointRegisters.Add(register);
                 try
                 {
+                    var dbUser = _context.Users.Find(order.UserId);
+                    dbUser.Points -= points;
                     await _context.SaveChangesAsync();
-                    order.User.Points -= points;
                 }
                 catch
                 {
@@ -74,8 +75,9 @@ namespace ApiClick.Controllers
                 _context.PointRegisters.Add(register);
                 try
                 {
+                    var dbUser = _context.Users.Find(order.UserId);
+                    dbUser.Points -= points;
                     await _context.SaveChangesAsync();
-                    order.User.Points -= points;
                 }
                 catch
                 {

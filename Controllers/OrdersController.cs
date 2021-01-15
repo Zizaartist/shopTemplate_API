@@ -489,6 +489,7 @@ namespace ApiClick.Controllers
             order.BrandOwnerId = brand.UserId;
             order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
             order.OrderDetails = _context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList();
+            order.Phone = order.User.Phone;
             request.Suggestions = _context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList();
 
             //Для каждой продукции найти пару и присвоить стоимость указанную в запросе
