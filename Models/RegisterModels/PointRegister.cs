@@ -16,7 +16,8 @@ namespace ApiClick.Models.RegisterModels
         [Key]
         public int PointRegisterId { get; set; }
         public int OrderId { get; set; }
-        public int OwnerId { get; set; }
+        public int? SenderId { get; set; }
+        public int ReceiverId { get; set; }
         public Decimal Points { get; set; }
         /// <summary>
         /// Указывает на завершенность траты баллов, true - лишь в случае успешного выполнения
@@ -28,7 +29,9 @@ namespace ApiClick.Models.RegisterModels
         //Navigation properties
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; }
-        [ForeignKey("OwnerId")]
-        public virtual User Owner { get; set; }
+        [ForeignKey("SenderId")]
+        public virtual User Sender { get; set; }
+        [ForeignKey("ReceiverId")]
+        public virtual User Receiver { get; set; }
     }
 }

@@ -50,7 +50,7 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            if (order.BrandOwnerId != funcs.identityToUser(User.Identity, _context).UserId) 
+            if (order.BrandOwnerId != funcs.identityToUser(User.Identity, _context).UserId)
             {
                 return Forbid();
             }
@@ -81,13 +81,13 @@ namespace ApiClick.Controllers
             foreach (Order order in orders)
             {
                 order.OrderDetails = funcs.getCleanListOfModels(_context.OrderDetails.Where(d => d.OrderId == order.OrderId).ToList());
-                foreach (OrderDetail detail in order.OrderDetails) 
+                foreach (OrderDetail detail in order.OrderDetails)
                 {
                     if (detail.ProductId != null) //Если продукта больше не существует
                     {
                         detail.Product = funcs.getCleanModel(await _context.Products.FindAsync(detail.ProductId));
                         detail.Product.Image = funcs.getCleanModel(await _context.Images.FindAsync(detail.Product.ImgId));
-                    } 
+                    }
                 }
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
                 //Если бренд не "мокрый"
@@ -100,7 +100,7 @@ namespace ApiClick.Controllers
                 }
                 order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 order.PaymentMethod = await _context.PaymentMethods.FindAsync(order.PaymentMethodId);
-                if (order.BanknoteId != null) 
+                if (order.BanknoteId != null)
                 {
                     order.Banknote = await _context.Banknotes.FindAsync(order.BanknoteId);
                 }
@@ -158,7 +158,7 @@ namespace ApiClick.Controllers
 
             return orders;
         }
-        
+
         // GET: api/GetMyHistory
         [Route("api/GetMyHistory")]
         [Authorize(Roles = "SuperAdmin, Admin")]
@@ -225,20 +225,20 @@ namespace ApiClick.Controllers
             var identity = funcs.identityToUser(User.Identity, _context);
             var isUser = order.UserId == identity.UserId;
             var isBrandOwner = order.BrandOwnerId == identity.UserId;
-            if (!(isUser || isBrandOwner)) 
+            if (!(isUser || isBrandOwner))
             {
                 return Forbid();
             }
-            
+
             //Затем проверяем права на смену статуса
             int userRoleId = -1;
-            if(isUser) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "User").UserRoleId;
+            if (isUser) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "User").UserRoleId;
             else if (isBrandOwner) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "Admin").UserRoleId;
             int futureStatusId = order.StatusId + 1;
             OrderStatus futureOrderStatuses = await _context.OrderStatuses.FindAsync(futureStatusId);
 
             //Изменить статус могут лишь указанная роль или суперАдмин
-            if (userRoleId == futureOrderStatuses.MasterRoleId || 
+            if (userRoleId == futureOrderStatuses.MasterRoleId ||
                 userRoleId == _context.UserRoles.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
             {
                 order.StatusId++;
@@ -253,16 +253,12 @@ namespace ApiClick.Controllers
             {
                 await _context.SaveChangesAsync();
                 PointsController pointsController = new PointsController(_context);
-                order.OrderDetails = _context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList();
                 if (order.PointsUsed)
                 {
-                    order.PointRegister = await _context.PointRegisters.FindAsync(order.PointRegisterId);
-                    pointsController.RemovePoints(order);
-                    pointsController.GetPoints(order, (await _context.PointRegisters.FindAsync(order.PointRegisterId)).Points);
-                }
-                else
-                {
-                    pointsController.GetPoints(order, 0);
+                    if (!pointsController.CompleteTransaction(order.PointRegisterId ?? default))
+                    {
+                        return BadRequest("Не удалось завершить транзакцию");
+                    }
                 }
             }
             await _context.SaveChangesAsync();
@@ -275,137 +271,89 @@ namespace ApiClick.Controllers
 
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<Order>>> PostOrders(Order orderContainer)
+        public async Task<ActionResult<List<Order>>> PostOrders(Order order)
         {
-            if (orderContainer == null || orderContainer.OrderDetails == null || orderContainer.OrderDetails.Count < 1)
+            if (order == null ||
+                order.OrderDetails == null ||
+                order.OrderDetails.Count < 1 ||
+                order.PaymentMethodId == default ||
+                order.CategoryId == default ||
+                string.IsNullOrEmpty(order.Phone))
             {
                 return BadRequest();
             }
 
-            //Формируем заказы по критерию принадлежности бренду
-            List<List<OrderDetail>> brandOrders = new List<List<OrderDetail>>();
-            List<Order> orders = new List<Order>();
-            foreach (OrderDetail detail in orderContainer.OrderDetails)
-            {
-                detail.Product = _context.Products.Find(detail.ProductId);
-                detail.Product.BrandMenu = _context.BrandMenus.Find(detail.Product.BrandMenuId);
-                detail.Price = detail.Product.Price;
+            var responsibleBrandOwnerId = await _context.Brands.FindAsync(
+                                                (await _context.BrandMenus.FindAsync(
+                                                    (await _context.Products.FindAsync(
+                                                            order.OrderDetails.First().ProductId)
+                                                    ).BrandMenuId)
+                                                ).BrandId);
 
-                bool found = false;
-                foreach (List<OrderDetail> brandOrder in brandOrders)
+
+            order.CreatedDate = DateTime.Now;
+            order.StatusId = _context.OrderStatuses.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
+            order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
+            order.User = await _context.Users.FindAsync(order.UserId);
+            order.Phone = order.User.Phone;
+            order.BrandOwnerId = responsibleBrandOwnerId.UserId;
+            order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
+
+            //filling blanks and sending to DB
+            if (order.PointsUsed)
+            {
+                var orderSum = order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
+                //Если заказ бесплатный - убрать связь с банкнотами
+                if (orderSum <= order.User.Points)
                 {
-                    //Если бренд первого элемента списка совпадает с брендом текущей детали - добавить в список и перейти на следущую деталь 
-                    if (brandOrder[0].Product.BrandMenu.BrandId == detail.Product.BrandMenu.BrandId)
-                    {
-                        brandOrder.Add(detail);
-                        found = true;
-                        break;
-                    }
-                }
-                //Если не найден во время циклов - добавить список
-                if (!found)
-                {
-                    List<OrderDetail> buffer = new List<OrderDetail>();
-                    buffer.Add(detail);
-                    brandOrders.Add(buffer);
+                    order.BanknoteId = null;
                 }
             }
 
-            //Создаем заказ из имеющихся списков деталей
-            //foreach (List<OrderDetails> brandOrder in brandOrders)
-            //{
-            //    int categoryId = brandOrder.First().Product.BrandMenu.Brand.CategoryId;
-            //    foreach (OrderDetails detail in brandOrder)
-            //    {
-            //        detail.Product = null;
-            //    }
-            //    Orders order = new Orders()
-            //    {
-            //        OrderDetails = brandOrder
-            //    };
-            //    orders.Add(order);
-            //    orders.Last().CategoryId = categoryId;
-            //}
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
 
-            brandOrders.ForEach(listOfDetails => 
+            if (order.User.NotificationsEnabled)
             {
-                Order newOrder = new Order();
-                newOrder.CategoryId = _context.Brands.Find(listOfDetails.First().Product.BrandMenu.BrandId).CategoryId;
-                newOrder.UserId = funcs.identityToUser(User.Identity, _context).UserId;
-                listOfDetails.ForEach(detail => newOrder.OrderDetails.Add(detail));
-                orders.Add(newOrder);
-            });
-
-            //Determine which orders will be paid with points and which will not
-            PointsController pointsController = new PointsController(_context);
-            List<PointsController.OrderExtended> ordersWithPoints = new List<PointsController.OrderExtended>();
-            if (orderContainer.PointsUsed)
-            {
-                ordersWithPoints = pointsController.DistributePoints(orders);
+                await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "У вас новый заказ!", order.BrandOwner.NotificationRegistration);
             }
 
-            //Заполни пробелы и 
-            foreach (Order order in orders)
+            if (order.PointsUsed)
             {
-                var responsibleBrandOwnerId = await _context.Brands.FindAsync(
-                                                   (await _context.BrandMenus.FindAsync(
-                                                        (await _context.Products.FindAsync(
-                                                             order.OrderDetails.First().ProductId)
-                                                        ).BrandMenuId)
-                                                   ).BrandId);
-
-                //filling blanks and sending to DB
-                decimal pointsInvested = default;
-                order.BanknoteId = orderContainer.BanknoteId;
-                if (orderContainer.PointsUsed) 
+                PointsController pointsController = new PointsController(_context);
+                PointRegister register;
+                if (pointsController.StartTransaction(pointsController.GetMaxPayment(order.User.Points, order), order.UserId, order.BrandOwnerId??default, order.OrderId, out register))
                 {
-                    var currectOrder = ordersWithPoints.Find(extendedOrder => extendedOrder.order.Equals(order));
-                    pointsInvested = currectOrder.pointsInvested;
-                    //Если заказ бесплатный - убрать связь с банкнотами
-                    if (currectOrder.orderSum == currectOrder.pointsInvested) 
-                    {
-                        order.BanknoteId = null;
-                    }
-                } 
-                order.Street = orderContainer.Street;
-                order.House = orderContainer.House;
-                order.Kv = orderContainer.Kv;
-                order.Padik = orderContainer.Padik;
-                order.Etash = orderContainer.Etash;
-                order.PointsUsed = orderContainer.PointsUsed && (pointsInvested > 0);
-                order.PaymentMethodId = orderContainer.PaymentMethodId;
-                order.Commentary = orderContainer.Commentary;
-
-                order.CreatedDate = DateTime.Now;
-                order.StatusId = _context.OrderStatuses.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
-                order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
-                order.User = await _context.Users.FindAsync(order.UserId);
-                order.Phone = order.User.Phone;
-                order.BrandOwnerId = responsibleBrandOwnerId.UserId;
-                order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
-
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-
-                if (order.User.NotificationsEnabled)
-                {
-                    await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "У вас новый заказ!", order.BrandOwner.NotificationRegistration);
-                }
-
-                if (order.PointsUsed)
-                {
-                    var register = await pointsController.CreatePointRegister(order.User, order, pointsInvested);
-                    if (register == null)
-                    {
-                        order.PointsUsed = false;
-                        await _context.SaveChangesAsync();
-                        return BadRequest();
-                    }
                     order.PointRegisterId = register.PointRegisterId;
                 }
-                await _context.SaveChangesAsync();
+                else
+                {
+                    order.PointsUsed = false;
+                    await _context.SaveChangesAsync();
+                    return BadRequest();
+                }
             }
+            await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        private decimal CalcSumPrice(int? _productId, int _count)
+        {
+            Product product;
+            try
+            {
+                product = _context.Products.Find(_productId);
+            }
+            catch 
+            {
+                throw new Exception("No product found");
+            }
+
+            if (_count <= 0) 
+            {
+                throw new Exception("Unexpected value");
+            }
+            return product.Price * (decimal)_count;
         }
 
         // DELETE: api/Orders/5
@@ -513,15 +461,18 @@ namespace ApiClick.Controllers
                 order.PointsUsed = true;
                 await _context.SaveChangesAsync();
                 PointsController pointsController = new PointsController(_context);
-                PointRegister register = await pointsController.CreatePointRegister(order.User, order);
-                if (register == null)
+                PointRegister register;
+                if (pointsController.StartTransaction(pointsController.GetMaxPayment(order.User.Points, order), order.UserId, order.BrandOwnerId ?? default, order.OrderId, out register))
+                {
+                    order.PointRegisterId = register.PointRegisterId;
+                }
+                else
                 {
                     //Хотя бы предотвратит потери
                     order.PointsUsed = false;
                     await _context.SaveChangesAsync();
-                    return BadRequest();
+                    return BadRequest("Не удалось создать регистр учета баллов");
                 }
-                order.PointRegisterId = register.PointRegisterId;
             }
 
             await _context.SaveChangesAsync();

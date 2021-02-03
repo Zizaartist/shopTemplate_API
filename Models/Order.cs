@@ -63,7 +63,6 @@ namespace ApiClick.Models
         [ForeignKey("BanknoteId")]
         public virtual Banknote Banknote { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-        public virtual ICollection<PointRegistersListElement> PointRegistersListElements { get; set; }
         //Registers, related to this order
         [NotMapped]
         public virtual ICollection<PointRegister> PointRegisters { get; set; }
