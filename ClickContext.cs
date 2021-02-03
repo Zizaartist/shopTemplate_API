@@ -98,9 +98,6 @@ namespace ApiClick
 
                 //Nullable
 
-                entity.Property(e => e.Phone)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-
                 entity.Property(e => e.Contact)
                     .HasMaxLength(ModelLengths.LENGTH_MAX)
                     .IsUnicode(false);

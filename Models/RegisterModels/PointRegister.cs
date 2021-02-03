@@ -22,6 +22,8 @@ namespace ApiClick.Models.RegisterModels
         /// Указывает на завершенность траты баллов, true - лишь в случае успешного выполнения
         /// </summary>
         public bool TransactionCompleted { get; set; }
+        //Дата создания
+        public DateTime CreatedDate { get; set; }
 
         //Navigation properties
         [ForeignKey("OrderId")]

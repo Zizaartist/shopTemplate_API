@@ -13,6 +13,7 @@ namespace ApiClick.Models
         //Non-nullable
         public int AdBannerId { get; set; }
         public int CategoryId { get; set; }
+        public int BrandId { get; set; }
         //Изначальное количество необходимых просмотров (чем больше, тем чаще будет вставляться)
         public int InitialCount { get; set; }
         //Количество оставшихся просмотров

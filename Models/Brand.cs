@@ -41,8 +41,6 @@ namespace ApiClick.Models
         [MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Contact { get; set; }
         [MaxLength(ModelLengths.LENGTH_MEDIUM)]
-        public string Phone { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Address { get; set; }
         [MaxLength(ModelLengths.LENGTH_SMALL)]
         public string WorkTime { get; set; }

@@ -307,7 +307,6 @@ namespace ApiClick.Controllers
                 existingBrand.DescriptionMax = brand.DescriptionMax;
                 existingBrand.ImgBannerId = brand.ImgBannerId;
                 existingBrand.ImgLogoId = brand.ImgLogoId;
-                existingBrand.Phone = brand.Phone;
                 existingBrand.WorkTime = brand.WorkTime;
 
                 await _context.SaveChangesAsync();
