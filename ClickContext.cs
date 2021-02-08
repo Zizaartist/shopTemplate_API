@@ -517,9 +517,14 @@ namespace ApiClick
                     .HasForeignKey<PointRegister>(e => e.OrderId)
                     .OnDelete(DeleteBehavior.NoAction);
 
-                entity.HasOne(e => e.Owner)
+                entity.HasOne(e => e.Receiver)
                     .WithMany()
-                    .HasForeignKey(e => e.OwnerId)
+                    .HasForeignKey(e => e.ReceiverId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
 

@@ -276,27 +276,27 @@ namespace ApiClick.Controllers
             if (order == null ||
                 order.OrderDetails == null ||
                 order.OrderDetails.Count < 1 ||
-                order.PaymentMethodId == default ||
-                order.CategoryId == default ||
-                string.IsNullOrEmpty(order.Phone))
+                order.PaymentMethodId == default)
             {
                 return BadRequest();
             }
 
-            var responsibleBrandOwnerId = await _context.Brands.FindAsync(
+            var responsibleBrand = await _context.Brands.FindAsync(
                                                 (await _context.BrandMenus.FindAsync(
                                                     (await _context.Products.FindAsync(
                                                             order.OrderDetails.First().ProductId)
                                                     ).BrandMenuId)
                                                 ).BrandId);
 
-
+            order.OrderDetails = funcs.getCleanListOfModels(order.OrderDetails.ToList());
+            order.CategoryId = responsibleBrand.CategoryId;
             order.CreatedDate = DateTime.Now;
             order.StatusId = _context.OrderStatuses.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
             order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
-            order.User = await _context.Users.FindAsync(order.UserId);
-            order.Phone = order.User.Phone;
-            order.BrandOwnerId = responsibleBrandOwnerId.UserId;
+            var user = funcs.identityToUser(User.Identity, _context);
+            order.UserId = user.UserId;
+            order.Phone = user.Phone;
+            order.BrandOwnerId = responsibleBrand.UserId;
             order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
 
             //filling blanks and sending to DB

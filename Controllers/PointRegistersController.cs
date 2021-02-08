@@ -40,7 +40,7 @@ namespace ApiClick.Controllers
             {
                 return NotFound();
             }
-            return _context.PointRegisters.Where(e => e.OwnerId == user.UserId).ToList();
+            return _context.PointRegisters.Where(e => e.ReceiverId == user.UserId || e.SenderId == user.UserId).ToList();
         }
     }
 }
