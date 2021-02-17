@@ -1,5 +1,5 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=tcp:clickapisqldb.database.windows.net,1433;Initial Catalog=ClickDB-3;Persist Security Info=False;User ID=azureuser;Password=!CJGBBVF!3662!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    "DefaultConnection": "Data Source=tcp:clickapisqldb.database.windows.net,1433;Initial Catalog=ClickDB-3;Persist Security Info=False;User ID=azureuser;Password=!CJGBBVF!3662!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   }
 }

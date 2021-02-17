@@ -53,9 +53,8 @@ namespace ApiClick
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-                //2nd "Data Source=tcp:apiclickdbserver.database.windows.net,1433;Initial Catalog=ApiClick_db;User Id=azureuser@apiclickdbserver;Password=!CJGBBVF!3662!"
-                //1st Server=(localdb)\\MSSQLLocalDB;Database=ClickDB;Trusted_Connection=True;MultipleActiveResultSets=true");
-            
+            //2nd "Data Source=tcp:apiclickdbserver.database.windows.net,1433;Initial Catalog=ApiClick_db;User Id=azureuser@apiclickdbserver;Password=!CJGBBVF!3662!"
+            //1st Server=(localdb)\\MSSQLLocalDB;Database=ClickDB;Trusted_Connection=True;MultipleActiveResultSets=true");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -282,8 +281,8 @@ namespace ApiClick
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.PointRegister)
-                    .WithOne(e => e.Order)
-                    .HasForeignKey<Order>(e => e.PointRegisterId)
+                    .WithMany()
+                    .HasForeignKey(e => e.PointRegisterId)
                     .HasConstraintName("FK_OrderCl_PointRegisterId")
                     .OnDelete(DeleteBehavior.NoAction);
 
@@ -513,8 +512,8 @@ namespace ApiClick
                 entity.ToTable("PointRegisters", "dbo");
 
                 entity.HasOne(e => e.Order)
-                    .WithOne(e => e.PointRegister)
-                    .HasForeignKey<PointRegister>(e => e.OrderId)
+                    .WithMany()
+                    .HasForeignKey(e => e.OrderId)
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Receiver)

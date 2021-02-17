@@ -30,7 +30,6 @@ namespace ApiClick.Controllers
         }
 
         // GET: api/PointRegisters
-        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PointRegister>>> GetPointRegisters()

@@ -205,7 +205,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPut]
-        public async Task<ActionResult> PutOrders(int id)
+        public async Task<ActionResult> PutOrders(int id, int? statusId = null)
         {
             //Сперва проверяем на физическую возможность смены статуса
             var order = await _context.Orders.FindAsync(id);
@@ -216,10 +216,9 @@ namespace ApiClick.Controllers
             }
 
             order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
-            if (order.OrderStatus.OrderStatusName == "Завершено")
-            {
-                return Forbid();
-            }
+            var initialStatus = order.OrderStatus;
+
+            if (order.OrderStatus.OrderStatusName == "Завершено") return Forbid();
 
             //Только пользователь и владелец бренда имеют доступ к смене статуса
             var identity = funcs.identityToUser(User.Identity, _context);
@@ -230,18 +229,29 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
+            if (isBrandOwner && order.OrderStatus.OrderStatusName == "Доставлено") return Forbid();
+
             //Затем проверяем права на смену статуса
             int userRoleId = -1;
             if (isUser) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "User").UserRoleId;
             else if (isBrandOwner) userRoleId = _context.UserRoles.First(e => e.UserRoleName == "Admin").UserRoleId;
-            int futureStatusId = order.StatusId + 1;
+
+            int futureStatusId;
+            if (statusId != null)
+            {
+                futureStatusId = statusId ?? default;
+            }
+            else 
+            {
+                futureStatusId = order.StatusId + 1;
+            }
             OrderStatus futureOrderStatuses = await _context.OrderStatuses.FindAsync(futureStatusId);
 
             //Изменить статус могут лишь указанная роль или суперАдмин
             if (userRoleId == futureOrderStatuses.MasterRoleId ||
                 userRoleId == _context.UserRoles.First(e => e.UserRoleName == "SuperAdmin").UserRoleId)
             {
-                order.StatusId++;
+                order.StatusId = futureOrderStatuses.OrderStatusId;
                 order.OrderStatus = futureOrderStatuses;
             }
             else
@@ -253,12 +263,27 @@ namespace ApiClick.Controllers
             {
                 await _context.SaveChangesAsync();
                 PointsController pointsController = new PointsController(_context);
+
                 if (order.PointsUsed)
                 {
                     if (!pointsController.CompleteTransaction(order.PointRegisterId ?? default))
                     {
+                        order.StatusId = initialStatus.OrderStatusId;
+                        await _context.SaveChangesAsync();
                         return BadRequest("Не удалось завершить транзакцию");
                     }
+                }
+
+                //Переводим кэшбэк
+                Order orderTemp = new Order() { OrderDetails = funcs.getCleanListOfModels(_context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList()) };
+                PointRegister cashbackRegister;
+                //Если любой из процессов кэшбэка даст сбой - вернуть изначальный статус
+                if (!pointsController.StartTransaction(PointsController.CalculateCashback(orderTemp), null, order.UserId, order.OrderId, out cashbackRegister) ||
+                    !pointsController.CompleteTransaction(cashbackRegister.PointRegisterId)) 
+                {
+                    order.StatusId = initialStatus.OrderStatusId;
+                    await _context.SaveChangesAsync();
+                    return BadRequest("Не удалось произвести кэшбэк");
                 }
             }
             await _context.SaveChangesAsync();
@@ -293,9 +318,9 @@ namespace ApiClick.Controllers
             order.CreatedDate = DateTime.Now;
             order.StatusId = _context.OrderStatuses.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
             order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
-            var user = funcs.identityToUser(User.Identity, _context);
-            order.UserId = user.UserId;
-            order.Phone = user.Phone;
+            order.User = funcs.identityToUser(User.Identity, _context);
+            order.UserId = order.User.UserId;
+            order.Phone = order.User.Phone;
             order.BrandOwnerId = responsibleBrand.UserId;
             order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
 
@@ -440,6 +465,7 @@ namespace ApiClick.Controllers
             order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
             order.OrderDetails = _context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList();
             order.Phone = order.User.Phone;
+            order.PointsUsed = false; //!!!!!!!!!!!!!!!!!!!!!!!!temp default!!!!!!!!!!!!!!!!!!!
             request.Suggestions = _context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList();
 
             //Для каждой продукции найти пару и присвоить стоимость указанную в запросе
@@ -456,24 +482,24 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            if (pointsUsed)
-            {
-                order.PointsUsed = true;
-                await _context.SaveChangesAsync();
-                PointsController pointsController = new PointsController(_context);
-                PointRegister register;
-                if (pointsController.StartTransaction(pointsController.GetMaxPayment(order.User.Points, order), order.UserId, order.BrandOwnerId ?? default, order.OrderId, out register))
-                {
-                    order.PointRegisterId = register.PointRegisterId;
-                }
-                else
-                {
-                    //Хотя бы предотвратит потери
-                    order.PointsUsed = false;
-                    await _context.SaveChangesAsync();
-                    return BadRequest("Не удалось создать регистр учета баллов");
-                }
-            }
+            //if (pointsUsed)
+            //{
+            //    order.PointsUsed = true;
+            //    await _context.SaveChangesAsync();
+            //    PointsController pointsController = new PointsController(_context);
+            //    PointRegister register;
+            //    if (pointsController.StartTransaction(pointsController.GetMaxPayment(order.User.Points, order), order.UserId, order.BrandOwnerId ?? default, order.OrderId, out register))
+            //    {
+            //        order.PointRegisterId = register.PointRegisterId;
+            //    }
+            //    else
+            //    {
+            //        //Хотя бы предотвратит потери
+            //        order.PointsUsed = false;
+            //        await _context.SaveChangesAsync();
+            //        return BadRequest("Не удалось создать регистр учета баллов");
+            //    }
+            //}
 
             await _context.SaveChangesAsync();
 
@@ -685,55 +711,46 @@ namespace ApiClick.Controllers
             ordersCl.User = await _context.Users.FindAsync(ordersCl.UserId);
             ordersCl.PaymentMethodId = 1; //Только налик
 
-            //foreach (OrderDetails detail in ordersCl.OrderDetails) 
-            //{
-            //    _context.OrderDetails.Add(detail);
-            //}
-            //await _context.SaveChangesAsync();
-
             _context.Orders.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
 
-            //NotificationsController notificationsController = new NotificationsController();
-            //await notificationsController.ToSendNotificationAsync(ordersCl.BrandOwner.DeviceType, "У Вас новый заказ", ordersCl.BrandOwner.NotificationRegistration);
-
             return Ok();
         }
 
-        [Route("api/PutVodaOrders/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpPut]
-        public async Task<ActionResult> PutVodaOrders(int id)
-        {
-            //Сперва проверяем на физическую возможность смены статуса
-            var order = await _context.Orders.FindAsync(id);
+        //[Route("api/PutVodaOrders/{id}")]
+        //[Authorize(Roles = "SuperAdmin, Admin")]
+        //[HttpPut]
+        //public async Task<ActionResult> PutVodaOrders(int id)
+        //{
+        //    //Сперва проверяем на физическую возможность смены статуса
+        //    var order = await _context.Orders.FindAsync(id);
 
-            if (order == null)
-            {
-                return NotFound();
-            }
+        //    if (order == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            //Только пользователь и владелец бренда имеют доступ к смене статуса
-            var identity = funcs.identityToUser(User.Identity, _context);
+        //    //Только пользователь и владелец бренда имеют доступ к смене статуса
+        //    var identity = funcs.identityToUser(User.Identity, _context);
 
-            //Если заказ занят - посылать куда подальше
-            if (order.BrandOwnerId != null)
-            {
-                return Forbid();
-            }
+        //    //Если заказ занят - посылать куда подальше
+        //    if (order.BrandOwnerId != null)
+        //    {
+        //        return Forbid();
+        //    }
 
-            order.BrandOwnerId = identity.UserId;
-            order.BrandOwner = await _context.Users.FindAsync(identity.UserId);
-            order.User = await _context.Users.FindAsync(order.UserId);
+        //    order.BrandOwnerId = identity.UserId;
+        //    order.BrandOwner = await _context.Users.FindAsync(identity.UserId);
+        //    order.User = await _context.Users.FindAsync(order.UserId);
 
-            await _context.SaveChangesAsync();
+        //    await _context.SaveChangesAsync();
 
-            if (order.User.NotificationsEnabled)
-            {
-                await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Статус вашего заказа обновлен!", order.User.NotificationRegistration);
-            }
+        //    if (order.User.NotificationsEnabled)
+        //    {
+        //        await new NotificationsController().ToSendNotificationAsync(order.User.DeviceType, "Статус вашего заказа обновлен!", order.User.NotificationRegistration);
+        //    }
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
     }
 }

@@ -13,6 +13,7 @@ namespace ApiClick.Controllers
     {
         ClickContext _context;
         const decimal pointsCoef = 0.05m;
+        const decimal pointsMax = 0.3m; //30%
 
         public PointsController(ClickContext _context)
         {
@@ -22,9 +23,10 @@ namespace ApiClick.Controllers
         public decimal GetMaxPayment(decimal _userPoints, Order _order) 
         {
             var sumCost = _order.OrderDetails.Sum(e => e.Price * e.Count);
-            if (_userPoints > sumCost)
+            var costInPoints = sumCost * pointsMax; //Пока статичные 30%
+            if (_userPoints > costInPoints)
             {
-                return sumCost;
+                return costInPoints;
             }
             else 
             {
@@ -122,9 +124,12 @@ namespace ApiClick.Controllers
             //Совершаем изменение
             try
             {
-                receiver.Points += pointRegister.Points;
-                pointRegister.TransactionCompleted = true;
-                _context.SaveChanges();
+                if (!pointRegister.TransactionCompleted)
+                {
+                    receiver.Points += pointRegister.Points;
+                    pointRegister.TransactionCompleted = true;
+                    _context.SaveChanges();
+                }
             }
             catch
             {
@@ -159,6 +164,12 @@ namespace ApiClick.Controllers
                 return false;
             }
             return true;
+        }
+
+        public static decimal CalculateCashback(Order _order) 
+        {
+            if (!_order.OrderDetails.Any() || _order.OrderDetails.Any(e => e.Price == default || e.Count == default)) throw new Exception("Ошибка при вычислении кэшбэка");
+            return _order.OrderDetails.Sum(e => e.Price * e.Count) * pointsCoef;
         }
 
         ///// <summary>
