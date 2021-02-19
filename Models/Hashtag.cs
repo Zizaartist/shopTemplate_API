@@ -13,9 +13,6 @@ namespace Click.Models
         [Key]
         public int HashTagId { get; set; }
         public string HashTagName { get; set; }
-        public int CategoryId { get; set; }
-
-        [ForeignKey("CategoryId")]
-        public virtual Category Category { get; set; }
+        public Category Category { get; set; }
     }
 }

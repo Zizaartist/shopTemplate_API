@@ -33,19 +33,15 @@ namespace ApiClick
         public virtual DbSet<WaterRequest> WaterRequests { get; set; }
         public virtual DbSet<RequestDetail> RequestDetails { get; set; }
         public virtual DbSet<AdBanner> AdBanners { get; set; }
+        public virtual DbSet<Report> Reports { get; set; }
 
         //Модели-регистры
-        public virtual DbSet<MessageOpinion> MessageOpinions { get; set; }
         public virtual DbSet<Image> Images { get; set; }
         public virtual DbSet<PointRegister> PointRegisters { get; set; }
 
         //Enum модели
-        public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
-        public virtual DbSet<UserRole> UserRoles { get; set; }
-        public virtual DbSet<PaymentMethod> PaymentMethods { get; set; }
         public virtual DbSet<Hashtag> Hashtags { get; set; }
-        public virtual DbSet<Banknote> Banknotes { get; set; }
         
         //Списки-посредники
         public virtual DbSet<HashtagsListElement> HashtagsListElements { get; set; }
@@ -53,8 +49,6 @@ namespace ApiClick
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //2nd "Data Source=tcp:apiclickdbserver.database.windows.net,1433;Initial Catalog=ApiClick_db;User Id=azureuser@apiclickdbserver;Password=!CJGBBVF!3662!"
-            //1st Server=(localdb)\\MSSQLLocalDB;Database=ClickDB;Trusted_Connection=True;MultipleActiveResultSets=true");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -83,12 +77,6 @@ namespace ApiClick
                 entity.Property(e => e.DescriptionMax)
                     .HasMaxLength(ModelLengths.LENGTH_MAX);
 
-                entity.Property(e => e.ImgLogoId)
-                    .IsRequired();
-
-                entity.Property(e => e.ImgBannerId)
-                    .IsRequired();
-
                 entity.Property(e => e.Rules)
                     .HasMaxLength(ModelLengths.LENGTH_MAX);
 
@@ -104,9 +92,11 @@ namespace ApiClick
                 entity.Property(e => e.Address)
                     .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.WorkTime)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsUnicode(false);
+                entity.Property(e => e.OpenTime)
+                    .IsRequired();
+
+                entity.Property(e => e.CloseTime)
+                    .IsRequired();
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
@@ -116,12 +106,6 @@ namespace ApiClick
                     .WithMany(p => p.Brands)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("FK_Brand_UserId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(d => d.Category)
-                    .WithMany()
-                    .HasForeignKey(d => d.CategoryId)
-                    .HasConstraintName("FK_Brand_CategoryId")
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.ImgLogo)
@@ -177,18 +161,6 @@ namespace ApiClick
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
-            modelBuilder.Entity<Category>(entity =>
-            {
-                entity.HasKey(e => e.CategoryId)
-                    .HasName("DF_Categories_CategoryId");
-
-                entity.ToTable("Categories", "dbo");
-
-                entity.Property(e => e.CategoryName)
-                    .HasMaxLength(50)
-                    .IsRequired();
-            });
-
             modelBuilder.Entity<Message>(entity =>
             {
                 entity.HasKey(e => e.MessageId)
@@ -198,16 +170,7 @@ namespace ApiClick
 
                 //Not nullable
 
-                entity.Property(e => e.Likes)
-                    .IsRequired();
-
-                entity.Property(e => e.Dislikes)
-                    .IsRequired();
-
                 entity.Property(e => e.Rating)
-                    .IsRequired();
-
-                entity.Property(e => e.Views)
                     .IsRequired();
 
                 //Nullable
@@ -231,6 +194,13 @@ namespace ApiClick
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_Messages_BrandId")
                     .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(d => d.Order)
+                    .WithOne()
+                    .HasForeignKey<Order>(d => d.OrderId)
+                    .HasConstraintName("FK_Messages_OrderId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired(false);
             });
 
             modelBuilder.Entity<Order>(entity =>
@@ -254,19 +224,14 @@ namespace ApiClick
                     .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.Property(e => e.Commentary)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX);
+                    .HasMaxLength(ModelLengths.LENGTH_MAX)
+                    .IsRequired(false);
 
                 entity.HasOne(e => e.OrderStatus)
                     .WithMany()
                     .HasForeignKey(e => e.StatusId)
                     .HasConstraintName("FK_OrderCl_StatusId")
                     .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.PaymentMethod)
-                      .WithMany()
-                      .HasForeignKey(k => k.PaymentMethodId)
-                      .HasConstraintName("FK_OrderCl_PaymentMethodId")
-                      .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
@@ -277,27 +242,14 @@ namespace ApiClick
                 entity.HasOne(e => e.BrandOwner)
                     .WithMany()
                     .HasForeignKey(e => e.BrandOwnerId)
-                    .HasConstraintName("FK_OrderCl_BrandOwnerId")
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.PointRegister)
                     .WithMany()
                     .HasForeignKey(e => e.PointRegisterId)
                     .HasConstraintName("FK_OrderCl_PointRegisterId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.Category)
-                    .WithMany()
-                    .HasForeignKey(k => k.CategoryId)
-                    .HasConstraintName("FK_OrderCl_CategoryId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.Banknote)
-                    .WithMany()
-                    .HasForeignKey(k => k.BanknoteId)
-                    .HasConstraintName("FK_OrderCl_BanknoteId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired(false);
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
@@ -314,7 +266,8 @@ namespace ApiClick
                 entity.HasOne(p => p.Product)
                     .WithMany()
                     .HasForeignKey(k => k.ProductId)
-                    .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_OrderDetails_ProductId");
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .HasConstraintName("FK_OrderDetails_ProductId");
             });
 
             modelBuilder.Entity<Product>(entity =>
@@ -389,11 +342,6 @@ namespace ApiClick
 
                 entity.Property(e => e.NotificationsEnabled)
                     .HasDefaultValue(true);
-
-                entity.HasOne(e => e.UserRole)
-                    .WithMany()
-                    .HasForeignKey(e => e.UserRoleId)
-                    .OnDelete(DeleteBehavior.NoAction);
             });
             
             modelBuilder.Entity<AdBanner>(entity =>
@@ -407,12 +355,6 @@ namespace ApiClick
                     .HasForeignKey<AdBanner>(e => e.ImgId)
                     .HasConstraintName("FK_AdBannerCl_ImgId")
                     .OnDelete(DeleteBehavior.NoAction);
-                
-                entity.HasOne(e => e.Category)
-                    .WithMany()
-                    .HasForeignKey(e => e.CategoryId)
-                    .HasConstraintName("FK_AdBannerCl_CategoryId")
-                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<OrderStatus>(entity =>
@@ -424,44 +366,6 @@ namespace ApiClick
                 entity.Property(e => e.OrderStatusName)
                     .HasMaxLength(ModelLengths.LENGTH_SMALL)
                     .IsRequired();
-
-                entity.HasOne(e => e.MasterRole)
-                      .WithMany()
-                      .HasForeignKey(k => k.MasterRoleId)
-                      .HasConstraintName("FK_OrderStatuses_MasterRoleId")
-                      .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            modelBuilder.Entity<UserRole>(entity =>
-            {
-                entity.HasKey(e => e.UserRoleId);
-                
-                entity.ToTable("UserRoles", "dbo");
-
-                entity.Property(e => e.UserRoleName)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsRequired();
-            });
-
-            modelBuilder.Entity<MessageOpinion>(entity => 
-            {
-                entity.HasKey(k => k.MessageOpinionId);
-                
-                entity.ToTable("MessageOpinions", "dbo");
-
-                //if message is deleted - like gets removed too
-                entity.HasOne(m => m.Message)
-                    .WithMany()
-                    .HasForeignKey(k => k.MessageId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("FK_MessageOpinion_MessageId");
-                
-                //it doesn't apply to users though
-                entity.HasOne(u => u.User)
-                    .WithMany()
-                    .HasForeignKey(u => u.UserId)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("FK_MessageOpinion_UserId");
             });
 
             modelBuilder.Entity<Image>(entity => 
@@ -471,22 +375,12 @@ namespace ApiClick
                 entity.ToTable("Images", "dbo");
 
                 entity.HasOne(u => u.User)
-                    .WithMany()
+                    .WithMany(e => e.UploadedImages)
                     .HasForeignKey(k => k.UserId)
-                    .IsRequired();
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.Property(p => p.Path).IsRequired();
-            });
-
-            modelBuilder.Entity<PaymentMethod>(entity => 
-            {
-                entity.HasKey(k => k.PaymentMethodId);
-
-                entity.ToTable("PaymentMethods", "dbo");
-
-                entity.Property(e => e.PaymentMethodName)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsRequired();
             });
 
             modelBuilder.Entity<Hashtag>(entity => 
@@ -498,11 +392,6 @@ namespace ApiClick
                 entity.Property(e => e.HashTagName)
                     .HasMaxLength(ModelLengths.LENGTH_SMALL)
                     .IsRequired();
-
-                entity.HasOne(e => e.Category)
-                    .WithMany()
-                    .HasForeignKey(e => e.CategoryId)
-                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<PointRegister>(entity =>
@@ -510,7 +399,7 @@ namespace ApiClick
                 entity.HasKey(e => e.PointRegisterId);
 
                 entity.ToTable("PointRegisters", "dbo");
-
+                
                 entity.HasOne(e => e.Order)
                     .WithMany()
                     .HasForeignKey(e => e.OrderId)
@@ -558,14 +447,7 @@ namespace ApiClick
                 entity.HasOne(e => e.Product)
                     .WithMany()
                     .HasForeignKey(e => e.ProductId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            modelBuilder.Entity<Banknote>(entity => 
-            {
-                entity.HasKey(e => e.BanknoteId);
-
-                entity.ToTable("Banknotes", "dbo");
+                    .OnDelete(DeleteBehavior.NoAction); //статические продукты не должны пропасть
             });
 
             modelBuilder.Entity<HashtagsListElement>(entity =>
@@ -595,11 +477,30 @@ namespace ApiClick
                     .WithMany(e => e.PaymentMethodsListElements)
                     .HasForeignKey(e => e.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
-                
-                entity.HasOne(e => e.PaymentMethod)
-                    .WithMany(e => e.PaymentMethodsListElements)
-                    .HasForeignKey(e => e.PaymentMethodId)
+            });
+
+            modelBuilder.Entity<Report>(entity => 
+            {
+                entity.HasKey(e => e.ReportId);
+                entity.HasOne(e => e.Brand)
+                    .WithMany()
+                    .HasForeignKey(e => e.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.ProductOfDay)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProductOfDayId)
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired(false);
+
+                entity.Property(e => e.Sum)
+                    .IsRequired();
+
+                entity.Property(e => e.OrderCount)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedDate)
+                    .IsRequired();
             });
 
             OnModelCreatingPartial(modelBuilder);

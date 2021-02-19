@@ -26,8 +26,8 @@ namespace ApiClick.Models
         public int UserId { get; set; } 
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Phone { get; set; }
-        public int UserRoleId { get; set; }
-        public Decimal Points { get; set; }
+        public UserRole UserRole { get; set; }
+        public decimal Points { get; set; }
         public bool NotificationsEnabled { get; set; }
 
         //Nullable
@@ -50,10 +50,14 @@ namespace ApiClick.Models
         public int? Kv { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        [ForeignKey("UserRoleId")] 
-        public virtual UserRole UserRole { get; set; }
+        //Теневые свойства
+        [NotMapped]
         public virtual ICollection<Brand> Brands { get; set; }
+        [NotMapped]
         public virtual ICollection<Message> Messages { get; set; }
+        [NotMapped]
         public virtual ICollection<Order> Orders { get; set; }
+        [NotMapped]
+        public ICollection<Image> UploadedImages { get; set; }
     }
 }

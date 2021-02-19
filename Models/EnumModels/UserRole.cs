@@ -10,11 +10,27 @@ namespace ApiClick.Models.EnumModels
     /// <summary>
     /// Enum модель, содержащая строковое значение роли
     /// </summary>
-    public class UserRole
+    public enum UserRole
     {
-        [Key]
-        public int UserRoleId { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
-        public string UserRoleName { get; set; }
+        User,
+        Admin,
+        SuperAdmin
+    }
+
+    public class UserRoleDictionaries
+    {
+        public static Dictionary<string, UserRole> GetUserRoleFromString = new Dictionary<string, UserRole>()
+        {
+            { "Пользователь", UserRole.User },
+            { "Исполнитель", UserRole.Admin },
+            { "Администратор", UserRole.SuperAdmin }
+        };
+
+        public static Dictionary<UserRole, string> GetStringFromUserRole = new Dictionary<UserRole, string>
+        {
+            { UserRole.User, "Пользователь" },
+            { UserRole.Admin, "Исполнитель" },
+            { UserRole.SuperAdmin, "Администратор" }
+        };
     }
 }

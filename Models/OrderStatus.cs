@@ -17,13 +17,11 @@ namespace ApiClick.Models.EnumModels
         public int OrderStatusId { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string OrderStatusName { get; set; }
-        public int MasterRoleId { get; set; }
+        public UserRole MasterRole { get; set; }
 
         /// <summary>
         /// Роль, которая имеет права сменить статус на текущий
         /// </summary>
-        [ForeignKey("MasterRoleId")]
-        public virtual UserRole MasterRole { get; set; }
 
     }
 }

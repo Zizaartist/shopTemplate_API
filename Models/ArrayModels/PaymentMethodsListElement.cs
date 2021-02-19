@@ -13,12 +13,10 @@ namespace ApiClick.Models.ArrayModels
     {
         [Key]
         public int PaymentMethodListElementId { get; set; }
-        public int PaymentMethodId { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
         public int? BrandId { get; set; } //Не обязательно для предотвращения капризов
 
         [ForeignKey("BrandId")]
         public virtual Brand Brand { get; set; }
-        [ForeignKey("PaymentMethodId")]
-        public virtual PaymentMethod PaymentMethod { get; set; } //Хранимое значение
     }
 }

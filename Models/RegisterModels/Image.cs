@@ -19,8 +19,8 @@ namespace ApiClick.Models
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Path { get; set; }
 
+        //Навигационные свойства
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
-
     }
 }

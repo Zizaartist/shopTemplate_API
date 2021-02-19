@@ -11,12 +11,27 @@ namespace ApiClick.Models.EnumModels
     /// <summary>
     /// Модель, отвечающая за хранение методов оплаты
     /// </summary>
-    public class PaymentMethod
+    public enum PaymentMethod
     {
-        [Key]
-        public int PaymentMethodId { get; set; }
-        public string PaymentMethodName { get; set; }
+        cash,
+        card,
+        online
+    }
 
-        public virtual ICollection<PaymentMethodsListElement> PaymentMethodsListElements { get; set; }
+    public class PaymentMethodDictionaries
+    {
+        public static Dictionary<string, PaymentMethod> GetPaymentMethodFromString = new Dictionary<string, PaymentMethod>()
+        {
+            { "Наличными", PaymentMethod.cash },
+            { "Картой курьеру", PaymentMethod.card },
+            { "Картой онлайн", PaymentMethod.online }
+        };
+
+        public static Dictionary<PaymentMethod, string> GetStringFromPaymentMethod = new Dictionary<PaymentMethod, string>
+        {
+            { PaymentMethod.cash, "Наличными" },
+            { PaymentMethod.card, "Картой курьеру" },
+            { PaymentMethod.online, "Картой онлайн" }
+        };
     }
 }

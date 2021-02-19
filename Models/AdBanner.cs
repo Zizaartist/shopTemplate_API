@@ -12,7 +12,7 @@ namespace ApiClick.Models
     {
         //Non-nullable
         public int AdBannerId { get; set; }
-        public int CategoryId { get; set; }
+        public Category Category { get; set; }
         public int BrandId { get; set; }
         //Изначальное количество необходимых просмотров (чем больше, тем чаще будет вставляться)
         public int InitialCount { get; set; }
@@ -20,11 +20,10 @@ namespace ApiClick.Models
         public int ViewCount { get; set; }
 
         //Nullable
-        public int ImgId { get; set; }
+        public int? ImgId { get; set; }
         public string Text { get; set; }
 
         //Сам, собственно, контент
         public virtual Image Image { get; set; }
-        public virtual Category Category { get; set; }
     }
 }

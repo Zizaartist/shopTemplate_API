@@ -8,11 +8,30 @@ namespace ApiClick.Models
     /// <summary>
     /// Enum модель, отвечающая за хранение категорий
     /// </summary>
-    public partial class Category
+    public enum Category
     {
-        [Key]
-        public int CategoryId { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
-        public string CategoryName { get; set; }
+        food,
+        bottledWater,
+        water,
+        flowers
+    }
+
+    public class CategoryDictionaries
+    {
+        public static Dictionary<string, Category> GetCategoryFromString = new Dictionary<string, Category>()
+        {
+            { "Еда", Category.food },
+            { "Бутилированная вода", Category.bottledWater },
+            { "Вода", Category.water },
+            { "Цветы", Category.flowers }
+        };
+
+        public static Dictionary<Category, string> GetStringFromCategory = new Dictionary<Category, string>
+        {
+            { Category.food, "Еда" },
+            { Category.bottledWater, "Бутилированная вода" },
+            { Category.water, "Вода" },
+            { Category.flowers, "Цветы" }
+        };
     }
 }

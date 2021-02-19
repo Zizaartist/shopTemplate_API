@@ -16,10 +16,8 @@ namespace ApiClick.Models
         public int MessageId { get; set; }
         public int UserId { get; set; }
         public int BrandId { get; set; }
-        public int Likes { get; set; } //at least 0
-        public int Dislikes { get; set; } //at least 0
+        public int? OrderId { get; set; }
         public int Rating { get; set; }
-        public int Views { get; set; } //at least 0
 
         //Nullable
         [MaxLength(ModelLengths.LENGTH_MAX)]
@@ -30,5 +28,7 @@ namespace ApiClick.Models
         public virtual User User { get; set; }
         [ForeignKey("BrandId")]
         public virtual Brand Brand { get; set; }
+        [ForeignKey("OrderId")]
+        public virtual Order Order { get; set; }
     }
 }
