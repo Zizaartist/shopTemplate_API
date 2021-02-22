@@ -30,7 +30,7 @@ namespace ApiClick.Models
 
         [ForeignKey("BrandMenuId")]
         public virtual BrandMenu BrandMenu { get; set; }
-        [ForeignKey("ImageId")]
+        [ForeignKey("ImgId")]
         public virtual Image Image { get; set; }
     }
 }

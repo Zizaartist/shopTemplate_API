@@ -37,7 +37,7 @@ namespace ApiClick.Controllers
         {
             var brands = await _context.Brands.ToListAsync();
 
-            foreach (Brand brand in brands) 
+            foreach (Brand brand in brands)
             {
                 brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
                 brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
@@ -50,35 +50,41 @@ namespace ApiClick.Controllers
             return brands;
         }
 
-        // POST: api/GetBrandsByFilter/5
-        [Route("api/GetMyBrandsByFilter/{categoryId}")]
+        // POST: api/GetBrandsByFilter/5?name=blahbla&openNow=true
+        [Route("api/GetBrandsByFilter/{category}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(int categoryId, List<int?> HashTags)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Category category, [FromBody]List<int> HashTags = null, string name = null, bool openNow = false)
         {
-            var brands = _context.Brands.Where(p => p.CategoryId == categoryId);
+            var brands = _context.Brands.Where(p => p.Category == category);
+
             //Урезаем выборку по критерию наличия хештега в списке
-            foreach (int? hashTagId in HashTags)
+            if (HashTags != null)
             {
-                //Оставляет те бренды, в которых имеется текущий хэштег итерации
-                brands = brands.Where(e => e.HashtagsListElements.Any(x => x.HashtagId == hashTagId));
+                foreach (int hashTagId in HashTags)
+                {
+                    //Оставляет те бренды, в которых имеется текущий хэштег итерации
+                    brands = brands.Where(e => e.HashtagsListElements.Any(x => x.HashtagId == hashTagId));
+                }
+            }
+
+            //Урезаем выборку по критерию наличия строки в имени бренда
+            if (name != null)
+            {
+                //Сводим обе строки к капсу и проверяем содержание одной в другой
+                brands = brands.Where(e => e.BrandName.ToUpper().Contains(name.ToUpper()));
+            }
+
+            //Урезаем выборку по критерию доступности бренда
+            if (openNow)
+            {
+                brands = brands.Where(e => isBrandAvailable(e));
             }
 
             if (!brands.Any())
             {
                 return NotFound();
             }
-
-            //У мокрых брендов не должно быть хэштегов
-            //Если категория "мокрая" - добавить экстра инфы
-            //if (id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId ||
-            //    id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId)
-            //{
-            //    foreach (Brand brand in brands)
-            //    {
-            //        attachDefaultMenuToVodaBrand(brand);
-            //    }
-            //}
 
             var resultBrands = brands.ToList();
             
@@ -99,12 +105,12 @@ namespace ApiClick.Controllers
 
         // GET: api/GetBrandsByCategory/5
         //Получить список брендов категории id
-        [Route("api/GetBrandsByCategory/{id}")]
+        [Route("api/GetBrandsByCategory/{category}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByCategory(int id)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByCategory(Category category)
         {
-            var brands = _context.Brands.Where(p => p.CategoryId == id);
+            var brands = _context.Brands.Where(p => p.Category == category);
 
             if (!brands.Any())
             {
@@ -114,8 +120,8 @@ namespace ApiClick.Controllers
             var resultBrands = await brands.ToListAsync();
 
             //Если категория "мокрая" - добавить экстра инфы
-            if (id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Бутылки")).CategoryId || 
-                id == (await _context.Categories.FirstAsync(e => e.CategoryName == "Водовоз")).CategoryId) 
+            if (category == Category.bottledWater || 
+                category == Category.water) 
             {
                 foreach (Brand brand in brands) 
                 {
@@ -188,10 +194,10 @@ namespace ApiClick.Controllers
                 brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
                     .Select(e => e.PaymentMethod).ToListAsync();
 
-                switch (brand.CategoryId)
+                switch (brand.Category)
                 {
-                    case 2:
-                    case 3:
+                    case Category.bottledWater:
+                    case Category.water:
                         attachDefaultMenuToVodaBrand(brand);
                         break;
                     default: break;
@@ -225,7 +231,6 @@ namespace ApiClick.Controllers
                     .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
                     .ToList();
                 brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
-                    .Where(e => _context.PaymentMethods.Find(e.PaymentMethodId) != null) //Проверяем на валидность
                     .ToList();
 
                 //Выводим 2 списка: новых элементов и исчезнувших
@@ -269,8 +274,8 @@ namespace ApiClick.Controllers
                 existingBrand.PaymentMethods = _context.PaymentMethodsListElements.Where(e => e.BrandId == existingBrand.BrandId).Select(e => e.PaymentMethod).ToList();
 
                 //Находит элементы первого списка, отсутствующие во 2м
-                var addPaymentMethods = brand.PaymentMethods.Where(e => existingBrand.PaymentMethods.All(x => x.PaymentMethodId != e.PaymentMethodId));
-                var subPaymentMethods = existingBrand.PaymentMethods.Where(e => brand.PaymentMethods.All(x => x.PaymentMethodId != e.PaymentMethodId));
+                var addPaymentMethods = brand.PaymentMethods.Where(e => existingBrand.PaymentMethods.All(x => x != e));
+                var subPaymentMethods = existingBrand.PaymentMethods.Where(e => brand.PaymentMethods.All(x => x != e));
 
                 var addasd = addPaymentMethods.ToList();
                 var subasd = subPaymentMethods.ToList();
@@ -280,7 +285,7 @@ namespace ApiClick.Controllers
                 {
                     _context.PaymentMethodsListElements.Add(new PaymentMethodsListElement()
                     {
-                        PaymentMethodId = paymentMethod.PaymentMethodId,
+                        PaymentMethod = paymentMethod,
                         BrandId = existingBrand.BrandId
                     });
                 }
@@ -290,7 +295,7 @@ namespace ApiClick.Controllers
                 {
                     //Находить обязательно по 2м критериям
                     var sacrifice = _context.PaymentMethodsListElements.FirstOrDefault(e =>
-                        e.PaymentMethodId == paymentMethod.PaymentMethodId &&
+                        e.PaymentMethod == paymentMethod &&
                         e.BrandId == existingBrand.BrandId);
                     if (sacrifice != null)
                     {
@@ -307,7 +312,8 @@ namespace ApiClick.Controllers
                 existingBrand.DescriptionMax = brand.DescriptionMax;
                 existingBrand.ImgBannerId = brand.ImgBannerId;
                 existingBrand.ImgLogoId = brand.ImgLogoId;
-                existingBrand.WorkTime = brand.WorkTime;
+                existingBrand.OpenTime = brand.OpenTime;
+                existingBrand.CloseTime = brand.CloseTime;
 
                 await _context.SaveChangesAsync();
             }
@@ -349,7 +355,6 @@ namespace ApiClick.Controllers
                                             .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
                                             .ToList();
             brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
-                                                        .Where(e => _context.PaymentMethods.Find(e.PaymentMethodId) != null) //Проверяем на валидность
                                                         .ToList();
             _context.Brands.Add(brand);
 
@@ -370,7 +375,7 @@ namespace ApiClick.Controllers
             {
                 _context.PaymentMethodsListElements.Add(new PaymentMethodsListElement()
                 {
-                    PaymentMethodId = paymentMethod.PaymentMethodId,
+                    PaymentMethod = paymentMethod,
                     BrandId = brand.BrandId
                 });
             }
@@ -450,15 +455,15 @@ namespace ApiClick.Controllers
         {
             var ListOfProducts = new List<Product>();
 
-            switch (brand.CategoryId)
+            switch (brand.Category)
             {
                 //Бутилированная вода
-                case 2:
+                case Category.bottledWater:
                     ListOfProducts.Add(funcs.getCleanModel(_context.Products.Find(Constants.PRODUCT_ID_BOTTLED_WATER)));
                     ListOfProducts.Add(funcs.getCleanModel(_context.Products.Find(Constants.PRODUCT_ID_CONTAINER)));
                     break;
                 //Водовоз
-                case 3:
+                case Category.water:
                     ListOfProducts.Add(funcs.getCleanModel(_context.Products.Find(Constants.PRODUCT_ID_WATER)));
                     break;
                 //Error
@@ -467,6 +472,25 @@ namespace ApiClick.Controllers
 
             brand.BrandMenus = new List<BrandMenu>() { new BrandMenu() };
             brand.BrandMenus.First().Products = ListOfProducts;
+        }
+
+        public static bool isBrandAvailable(Brand _brand) 
+        {
+            if (_brand.Available)
+            {
+                var now = DateTime.Now;
+
+                var openTime = new DateTime(now.Year, now.Month, now.Day, _brand.OpenTime.Hours, _brand.OpenTime.Minutes, 0);
+                var closeTime = new DateTime(now.Year, now.Month, now.Day, _brand.CloseTime.Hours, _brand.CloseTime.Minutes, 0);
+
+                //На случай позднего времени закрытия
+                if (_brand.OpenTime > _brand.CloseTime) closeTime.AddDays(1);
+                if (now >= openTime && now <= closeTime) 
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

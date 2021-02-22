@@ -22,12 +22,12 @@ namespace ApiClick.Controllers
 
         // GET: api/BrandsMenu
         //Debug
-        [Route("api/GetHashtagsByCategory/{id}")]
+        [Route("api/GetHashtagsByCategory/{category}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<List<Hashtag>>> GetHashtagsByCategory(int id)
+        public async Task<ActionResult<List<Hashtag>>> GetHashtagsByCategory(Category category)
         {
-            return _context.Hashtags.Where(e => e.CategoryId == id).ToList();
+            return _context.Hashtags.Where(e => e.Category == category).ToList();
         }
     }
 }

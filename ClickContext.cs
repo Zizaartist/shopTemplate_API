@@ -109,14 +109,14 @@ namespace ApiClick
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.ImgLogo)
-                    .WithOne()
-                    .HasForeignKey<Brand>(e => e.ImgLogoId)
+                    .WithMany()
+                    .HasForeignKey(e => e.ImgLogoId)
                     .HasConstraintName("FK_Brand_ImgLogoId")
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.ImgBanner)
-                    .WithOne()
-                    .HasForeignKey<Brand>(e => e.ImgBannerId)
+                    .WithMany()
+                    .HasForeignKey(e => e.ImgBannerId)
                     .HasConstraintName("FK_Brand_ImgBannerId")
                     .OnDelete(DeleteBehavior.NoAction);
 
@@ -155,8 +155,8 @@ namespace ApiClick
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.Image)
-                    .WithOne()
-                    .HasForeignKey<BrandMenu>(d => d.ImgId)
+                    .WithMany()
+                    .HasForeignKey(d => d.ImgId)
                     .HasConstraintName("FK_BrandMenus_ImgId")
                     .OnDelete(DeleteBehavior.NoAction);
             });
@@ -196,8 +196,8 @@ namespace ApiClick
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(d => d.Order)
-                    .WithOne()
-                    .HasForeignKey<Order>(d => d.OrderId)
+                    .WithMany()
+                    .HasForeignKey(d => d.OrderId)
                     .HasConstraintName("FK_Messages_OrderId")
                     .OnDelete(DeleteBehavior.NoAction)
                     .IsRequired(false);
@@ -292,8 +292,8 @@ namespace ApiClick
                     .HasDefaultValueSql("(getdate())");
 
                 entity.HasOne(e => e.Image)
-                    .WithOne()
-                    .HasForeignKey<Product>(e => e.ImgId)
+                    .WithMany()
+                    .HasForeignKey(e => e.ImgId)
                     .HasConstraintName("FK_Products_ImgId")
                     .OnDelete(DeleteBehavior.NoAction);
 
@@ -351,8 +351,8 @@ namespace ApiClick
                 entity.ToTable("AdBanners", "dbo");
                 
                 entity.HasOne(e => e.Image)
-                    .WithOne()
-                    .HasForeignKey<AdBanner>(e => e.ImgId)
+                    .WithMany()
+                    .HasForeignKey(e => e.ImgId)
                     .HasConstraintName("FK_AdBannerCl_ImgId")
                     .OnDelete(DeleteBehavior.NoAction);
             });

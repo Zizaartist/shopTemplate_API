@@ -21,16 +21,16 @@ namespace ApiClick.Models.EnumModels
     {
         public static Dictionary<string, UserRole> GetUserRoleFromString = new Dictionary<string, UserRole>()
         {
-            { "Пользователь", UserRole.User },
-            { "Исполнитель", UserRole.Admin },
-            { "Администратор", UserRole.SuperAdmin }
+            { "User", UserRole.User },
+            { "Admin", UserRole.Admin },
+            { "SuperAdmin", UserRole.SuperAdmin }
         };
 
         public static Dictionary<UserRole, string> GetStringFromUserRole = new Dictionary<UserRole, string>
         {
-            { UserRole.User, "Пользователь" },
-            { UserRole.Admin, "Исполнитель" },
-            { UserRole.SuperAdmin, "Администратор" }
+            { UserRole.User, "User" },
+            { UserRole.Admin, "Admin" },
+            { UserRole.SuperAdmin, "SuperAdmin" }
         };
     }
 }

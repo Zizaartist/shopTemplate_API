@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ApiClick.Controllers
 {
     [ApiController]
+    [Route("api/[controller]")]
     public class AdBannerController : ControllerBase
     {
         ClickContext _context;
@@ -22,23 +23,18 @@ namespace ApiClick.Controllers
 
         // GET: api/AdBanners
         //Получение рекламных баннеров, пока крайне неэффективная функция
-        [Route("api/[controller]/{categoryId}")]
+        [Route("{category}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet("{categoryId}")]
-        public async Task<ActionResult<IEnumerable<int>>> GetAdBanners(int categoryId) //IEnumerable<AdBanner>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<int>>> GetAdBanners(Category category) //IEnumerable<AdBanner>
         {
-            if (await _context.Categories.FindAsync(categoryId) == null)
-            {
-                return BadRequest("Такой категории не найдено");
-            }
-            
             //Удаляем просроченные баннеры
             var expiredBanners = _context.AdBanners.Where(e => e.ViewCount <= 0);
             _context.RemoveRange(expiredBanners);
             await _context.SaveChangesAsync();
 
             //Получаем баннеры по нужной категории
-            var allBanners = _context.AdBanners.Where(e => e.CategoryId == categoryId).ToList();
+            var allBanners = _context.AdBanners.Where(e => e.Category == category).ToList();
             
             //Низкоуровневый код 😱
             //От initialCount зависят шансы на отображение, чем больше просмотров должно было быть у баннера - тем чаще от будет попадать в результирующий список
@@ -78,7 +74,6 @@ namespace ApiClick.Controllers
         
         // POST: api/AdBanners
         //Установка баннера, предположительно суперадмином
-        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         public async Task<ActionResult> PostAdBanner(AdBanner adBanner)

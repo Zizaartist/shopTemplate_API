@@ -1,4 +1,5 @@
 ﻿using ApiClick.Models;
+using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -162,7 +163,7 @@ namespace ApiClick.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, "User")
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, UserRoleDictionaries.GetStringFromUserRole[UserRole.User])
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
@@ -180,12 +181,12 @@ namespace ApiClick.Controllers
             User user = _context.Users.Where(e => e.Login == login).FirstOrDefault(e => e.Password == password);
 
             //if user wasn't found or his role is user = ignore
-            if (user != null && user.UserRoleId != _context.UserRoles.FirstOrDefault(e => e.UserRoleName == "User").UserRoleId)
+            if (user != null && user.UserRole != Models.EnumModels.UserRole.User)
             {
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, _context.UserRoles.Find(user.UserRoleId).UserRoleName) //probably not safe but eh works fine by me
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, UserRoleDictionaries.GetStringFromUserRole[user.UserRole]) //probably not safe but eh works fine by me
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

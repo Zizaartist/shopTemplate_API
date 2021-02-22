@@ -17,133 +17,135 @@ namespace ApiClick.Controllers
     {
         ClickContext _context;
         Functions funcs = new Functions();
+        private static int pageSize = 10;
         
         public MessagesController(ClickContext _context)
         {
             this._context = _context;
         }
 
-        // POST: api/Messages
-        /// <summary>
-        /// Отправляет id сообщения, возвращает успешность операции
-        /// </summary>
-        [Route("api/LikeMessage")]
-        [Authorize]
-        [HttpPost("{id}")]
-        public async Task<ActionResult<Message>> LikeMessage(int id)
-        {
+        //// POST: api/Messages
+        ///// <summary>
+        ///// Отправляет id сообщения, возвращает успешность операции
+        ///// </summary>
+        //[Route("api/LikeMessage")]
+        //[Authorize]
+        //[HttpPost("{id}")]
+        //public async Task<ActionResult<Message>> LikeMessage(int id)
+        //{
 
-            bool opinionValue = true;
-            int userId = funcs.identityToUser(User.Identity, _context).UserId;
-            var opinion = _context.MessageOpinions.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
+        //    bool opinionValue = true;
+        //    int userId = funcs.identityToUser(User.Identity, _context).UserId;
+        //    var opinion = _context.MessageOpinions.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
 
-            if (opinion != null)
-            {
-                if (opinion.Opinion == opinionValue)
-                {
-                    return BadRequest(); //wrong code
-                }
-                else //change dislike to like
-                {
-                    var message = _context.Messages.Find(id);
-                    _context.Entry(opinion).State = EntityState.Modified;
-                    _context.Entry(message).State = EntityState.Modified;
-                    opinion.Opinion = !opinionValue;
-                    message.Likes++;
-                    message.Dislikes--;
+        //    if (opinion != null)
+        //    {
+        //        if (opinion.Opinion == opinionValue)
+        //        {
+        //            return BadRequest(); //wrong code
+        //        }
+        //        else //change dislike to like
+        //        {
+        //            var message = _context.Messages.Find(id);
+        //            _context.Entry(opinion).State = EntityState.Modified;
+        //            _context.Entry(message).State = EntityState.Modified;
+        //            opinion.Opinion = !opinionValue;
+        //            message.Likes++;
+        //            message.Dislikes--;
 
-                    try
-                    {
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!MessagesExists(id))
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
+        //            try
+        //            {
+        //                await _context.SaveChangesAsync();
+        //            }
+        //            catch (DbUpdateConcurrencyException)
+        //            {
+        //                if (!MessagesExists(id))
+        //                {
+        //                    return NotFound();
+        //                }
+        //                else
+        //                {
+        //                    throw;
+        //                }
+        //            }
 
-                    return Ok();
-                }
-            }
+        //            return Ok();
+        //        }
+        //    }
 
-            //if opinion is not present - create one
-            opinion = new MessageOpinion()
-            {
-                MessageId = id,
-                UserId = userId,
-                Opinion = opinionValue
-            };
-            _context.MessageOpinions.Add(opinion);
-            await _context.SaveChangesAsync();
+        //    //if opinion is not present - create one
+        //    opinion = new MessageOpinion()
+        //    {
+        //        MessageId = id,
+        //        UserId = userId,
+        //        Opinion = opinionValue
+        //    };
+        //    _context.MessageOpinions.Add(opinion);
+        //    await _context.SaveChangesAsync();
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
-        // POST: api/Messages
-        [Route("api/DislikeMessage")]
-        [Authorize]
-        [HttpPost("{id}")]
-        public async Task<ActionResult<Message>> DislikeMessage(int id)
-        {
-            bool opinionValue = false;
-            int userId = funcs.identityToUser(User.Identity, _context).UserId;
-            var opinion = _context.MessageOpinions.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
+        //// POST: api/Messages
+        //[Route("api/DislikeMessage")]
+        //[Authorize]
+        //[HttpPost("{id}")]
+        //public async Task<ActionResult<Message>> DislikeMessage(int id)
+        //{
+        //    bool opinionValue = false;
+        //    int userId = funcs.identityToUser(User.Identity, _context).UserId;
+        //    var opinion = _context.MessageOpinions.FirstOrDefault(u => u.UserId == userId && u.MessageId == id);
 
-            if (opinion != null)
-            {
-                if (opinion.Opinion == opinionValue)
-                {
-                    return BadRequest(); //wrong code
-                }
-                else //changing like to a dislike
-                {
-                    var message = _context.Messages.Find(id);
-                    _context.Entry(opinion).State = EntityState.Modified;
-                    _context.Entry(message).State = EntityState.Modified;
-                    opinion.Opinion = !opinionValue;
-                    message.Likes--;
-                    message.Dislikes++;
+        //    if (opinion != null)
+        //    {
+        //        if (opinion.Opinion == opinionValue)
+        //        {
+        //            return BadRequest(); //wrong code
+        //        }
+        //        else //changing like to a dislike
+        //        {
+        //            var message = _context.Messages.Find(id);
+        //            _context.Entry(opinion).State = EntityState.Modified;
+        //            _context.Entry(message).State = EntityState.Modified;
+        //            opinion.Opinion = !opinionValue;
+        //            message.Likes--;
+        //            message.Dislikes++;
 
-                    try
-                    {
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!MessagesExists(id))
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
+        //            try
+        //            {
+        //                await _context.SaveChangesAsync();
+        //            }
+        //            catch (DbUpdateConcurrencyException)
+        //            {
+        //                if (!MessagesExists(id))
+        //                {
+        //                    return NotFound();
+        //                }
+        //                else
+        //                {
+        //                    throw;
+        //                }
+        //            }
 
-                    return Ok();
-                }
-            }
+        //            return Ok();
+        //        }
+        //    }
 
-            //if opinion is not present - create one
-            opinion = new MessageOpinion()
-            {
-                MessageId = id,
-                UserId = userId,
-                Opinion = opinionValue
-            };
-            _context.MessageOpinions.Add(opinion);
-            await _context.SaveChangesAsync();
+        //    //if opinion is not present - create one
+        //    opinion = new MessageOpinion()
+        //    {
+        //        MessageId = id,
+        //        UserId = userId,
+        //        Opinion = opinionValue
+        //    };
+        //    _context.MessageOpinions.Add(opinion);
+        //    await _context.SaveChangesAsync();
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
         // GET: api/Messages
+
         [Route("api/[controller]")]
         [Authorize(Roles = "SupeAdmin")]
         [HttpGet]
@@ -168,72 +170,120 @@ namespace ApiClick.Controllers
             return messageCl;
         }
 
-        // PUT: api/Messages/5
-        [Route("api/[controller]")]
+
+        // GET: api/BrandReviews/5
+        [Route("api/BrandReviews/{id}")]
         [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMessages(int id, Message messageCl)
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Message>>> GetBrandReviews(int id, int? _page = null)
         {
-            if (id != messageCl.MessageId)
+            var messages = _context.Messages.Where(e => e.BrandId == id);
+
+            //Если был получен параметр страницы
+            if (_page != null) 
+            {
+                messages = funcs.GetPageRange(messages, _page ?? default, pageSize);
+            }
+
+            if (!messages.Any()) 
             {
                 return BadRequest();
             }
 
-            _context.Entry(messageCl).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MessagesExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return await messages.ToListAsync();
         }
+
+        //// PUT: api/Messages/5
+        //[Route("api/[controller]")]
+        //[Authorize]
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutMessages(int id, Message messageCl)
+        //{
+        //    if (id != messageCl.MessageId)
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    _context.Entry(messageCl).State = EntityState.Modified;
+
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!MessagesExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+
+        //    return NoContent();
+        //}
 
         // POST: api/Messages
         [Route("api/[controller]")]
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Message>> PostMessages(Message messageCl)
+        public async Task<ActionResult<Message>> PostMessages(Message message)
         {
-            if (messageCl == null) 
+            if (message == null) 
             {
                 return BadRequest();
             }
 
-            _context.Messages.Add(messageCl);
-            await _context.SaveChangesAsync();
+            var order = _context.Orders.Find(message.OrderId);
 
-            return Ok();
-        }
-
-        // DELETE: api/Messages/5
-        [Route("api/[controller]")]
-        [Authorize]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Message>> DeleteMessages(int id)
-        {
-            var messageCl = await _context.Messages.FindAsync(id);
-            if (messageCl == null)
+            if (order == null) 
             {
-                return NotFound();
+                return BadRequest("Ошибка при получении данных о заказе");
             }
 
-            _context.Messages.Remove(messageCl);
+            try
+            {
+                message.BrandId = _context.Brands.FirstOrDefault(e => e.UserId == (order.BrandOwnerId ?? default)).BrandId;
+            }
+            catch 
+            {
+                return BadRequest("Ошибка при получении данных о бренде");
+            }
+
+            var user = funcs.identityToUser(User.Identity, _context);
+            message.UserId = user.UserId;
+
+            //Проверяем существование отзыва с таким же orderId
+            if (_context.Messages.Any(e => e.OrderId == message.OrderId))
+            {
+                return Forbid();
+            }
+
+            _context.Messages.Add(message); //Выдаст 500 если обязательные поля не заполнены
             await _context.SaveChangesAsync();
 
             return Ok();
         }
+
+        //// DELETE: api/Messages/5
+        //[Route("api/[controller]")]
+        //[Authorize]
+        //[HttpDelete("{id}")]
+        //public async Task<ActionResult<Message>> DeleteMessages(int id)
+        //{
+        //    var messageCl = await _context.Messages.FindAsync(id);
+        //    if (messageCl == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    _context.Messages.Remove(messageCl);
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok();
+        //}
 
         private bool MessagesExists(int id)
         {

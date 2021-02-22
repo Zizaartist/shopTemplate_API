@@ -64,6 +64,19 @@ namespace ApiClick.Controllers
             return _context.Users.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
+        /// <summary>
+        /// Возвращает _count элементов начиная со страницы _startingPage
+        /// </summary>
+        /// <param name="_initialQuery">Изначальный набор</param>
+        /// <param name="_startingPage">Начальный индекс выборки</param>
+        /// <param name="_pageSize">Количество элементов на странице</param>
+        public IQueryable<T> GetPageRange<T>(IQueryable<T> _initialQuery, int _startingPage, int _pageSize) 
+        {
+            //страница 0, 20 элементов = 0-19 элементы
+            //страница 5, 10 элементов = 50-59 элементы
+            return _initialQuery.Skip(_startingPage * _pageSize).Take(_pageSize);
+        }
+
         public bool IsPhoneNumber(string number)
         {
             return Regex.Match(number, @"^((8|\+7|7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$").Success;

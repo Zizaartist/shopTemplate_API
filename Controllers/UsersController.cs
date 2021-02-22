@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Principal;
+using ApiClick.Models.EnumModels;
 
 namespace ApiClick.Controllers
 {
@@ -68,7 +69,7 @@ namespace ApiClick.Controllers
             }
             userCl.Login = null;
             userCl.Password = null;
-            userCl.UserRoleId = -1;
+            userCl.UserRole = Models.EnumModels.UserRole.User;
 
             return userCl;
         }
@@ -262,7 +263,7 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.UserRoleId = _context.UserRoles.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.UserRole = Models.EnumModels.UserRole.User;
                 userCl.Points = 0;
 
                 _context.Users.Add(userCl);
@@ -290,7 +291,7 @@ namespace ApiClick.Controllers
             else
             {
                 userCl.CreatedDate = DateTime.Now;
-                userCl.UserRoleId = _context.UserRoles.First(r => r.UserRoleName == "User").UserRoleId;
+                userCl.UserRole = UserRole.User;
 
                 _context.Users.Add(userCl);
                 await _context.SaveChangesAsync();
