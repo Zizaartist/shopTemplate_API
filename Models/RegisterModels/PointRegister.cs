@@ -15,7 +15,7 @@ namespace ApiClick.Models.RegisterModels
         //Non-nullable
         [Key]
         public int PointRegisterId { get; set; }
-        public int OrderId { get; set; }
+        public int? OrderId { get; set; }
         public int? SenderId { get; set; }
         public int ReceiverId { get; set; }
         public Decimal Points { get; set; }

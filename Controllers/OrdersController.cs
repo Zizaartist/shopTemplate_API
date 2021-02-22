@@ -267,7 +267,7 @@ namespace ApiClick.Controllers
                 Order orderTemp = new Order() { OrderDetails = funcs.getCleanListOfModels(_context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList()) };
                 PointRegister cashbackRegister;
                 //Если любой из процессов кэшбэка даст сбой - вернуть изначальный статус
-                if (!pointsController.StartTransaction(PointsController.CalculateCashback(orderTemp), null, order.UserId, order.OrderId, out cashbackRegister) ||
+                if (!pointsController.StartTransaction(pointsController.CalculateCashback(order), null, order.UserId, order.OrderId, out cashbackRegister) ||
                     !pointsController.CompleteTransaction(cashbackRegister.PointRegisterId)) 
                 {
                     order.StatusId = initialStatus.OrderStatusId;

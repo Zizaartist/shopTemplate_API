@@ -39,7 +39,29 @@ namespace ApiClick.Controllers
             {
                 return NotFound();
             }
-            return _context.PointRegisters.Where(e => e.ReceiverId == user.UserId || e.SenderId == user.UserId).ToList();
+            
+            var result = _context.PointRegisters.Where(e => e.ReceiverId == user.UserId || e.SenderId == user.UserId);
+            if (!result.Any()) 
+            {
+                return NotFound();
+            }
+
+            var resultList = await result.ToListAsync();
+
+            foreach (var register in resultList) 
+            {
+                //Если пользователь - получатель
+                if (register.ReceiverId == user.UserId)
+                {
+                    register.SenderId = default;
+                }
+                else 
+                {
+                    register.ReceiverId = default;
+                }
+            }
+
+            return resultList;
         }
     }
 }

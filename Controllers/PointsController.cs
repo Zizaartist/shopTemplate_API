@@ -166,10 +166,30 @@ namespace ApiClick.Controllers
             return true;
         }
 
-        public static decimal CalculateCashback(Order _order) 
+        public static decimal CalculateSum(Order _order)
         {
             if (!_order.OrderDetails.Any() || _order.OrderDetails.Any(e => e.Price == default || e.Count == default)) throw new Exception("Ошибка при вычислении кэшбэка");
-            return _order.OrderDetails.Sum(e => e.Price * e.Count) * pointsCoef;
+            return _order.OrderDetails.Sum(e => e.Price * e.Count);
+        }
+
+        public decimal CalculateCashback(Order _order) 
+        {
+            var pointlessSum = CalculatePointless(_order);
+            return pointlessSum * pointsCoef;
+        }
+
+        public decimal CalculatePointless(Order _order) 
+        {
+            var sum = CalculateSum(_order);
+            try
+            {
+                var points = _order.PointRegisterId != null ? _context.PointRegisters.Find(_order.PointRegisterId).Points : 0;
+                return sum - points;
+            }
+            catch (Exception _ex) 
+            {
+                throw _ex;
+            }
         }
 
         ///// <summary>

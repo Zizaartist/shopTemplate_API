@@ -23,10 +23,21 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<ActionResult> DeleteAllOrders()
         {
+            foreach (var entity in _context.RequestDetails)
+            {
+                _context.RequestDetails.Remove(entity);
+            }
+            foreach (var entity in _context.WaterRequests)
+            {
+                _context.WaterRequests.Remove(entity);
+            }
+            _context.SaveChanges();
+
             foreach (var entity in _context.PointRegisters)
             {
                 _context.PointRegisters.Remove(entity);
             }
+            _context.SaveChanges();
             foreach (var entity in _context.OrderDetails) 
             {
                 _context.OrderDetails.Remove(entity);
@@ -65,24 +76,6 @@ namespace ApiClick.Controllers
             foreach (Image image in imagesToDelete) 
             {
                 _context.Images.Remove(image);
-            }
-            _context.SaveChanges();
-            return Ok();
-        }
-
-
-        [Route("api/DeleteAllRequests")]
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpDelete]
-        public async Task<ActionResult> DeleteAllRequests()
-        {
-            foreach (var entity in _context.RequestDetails)
-            {
-                _context.RequestDetails.Remove(entity);
-            }
-            foreach (var entity in _context.WaterRequests)
-            {
-                _context.WaterRequests.Remove(entity);
             }
             _context.SaveChanges();
             return Ok();
