@@ -195,7 +195,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<Message>> PostMessages(Message message)
         {
-            if (message == null) 
+            if (message == null || message.Rating > 5 || message.Rating < 1) 
             {
                 return BadRequest();
             }
@@ -225,16 +225,19 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
+            var oldReviewCount = _context.Messages.Where(e => e.BrandId == message.BrandId).Count();
             message.CreatedDate = DateTime.Now;
             _context.Messages.Add(message); //Выдаст 500 если обязательные поля не заполнены
+
+            await _context.SaveChangesAsync();
+
+            //Изменяем рейтинг бренда
+            var brand = _context.Brands.Find(message.BrandId);
+            //formula https://stackoverflow.com/a/32631668, в разы лучше чем суммировать итерацией IMO
+            brand.Rating = ((brand.Rating ?? 0f * oldReviewCount) + (float)message.Rating) / (float)(oldReviewCount + 1);
             await _context.SaveChangesAsync();
 
             return Ok();
-        }
-
-        private bool MessagesExists(int id)
-        {
-            return _context.Messages.Any(e => e.MessageId == id);
         }
     }
 }

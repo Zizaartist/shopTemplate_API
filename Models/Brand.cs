@@ -45,7 +45,7 @@ namespace ApiClick.Models
         public string Address { get; set; }
         public TimeSpan OpenTime { get; set; }
         public TimeSpan CloseTime { get; set; }
-        public int? Rating { get; set; } //null if no reviews
+        public float? Rating { get; set; } //null if no reviews
         [MaxLength(ModelLengths.LENGTH_MAX)]
         public string Rules { get; set; }
         
