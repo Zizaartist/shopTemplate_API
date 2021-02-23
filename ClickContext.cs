@@ -40,7 +40,6 @@ namespace ApiClick
         public virtual DbSet<PointRegister> PointRegisters { get; set; }
 
         //Enum модели
-        public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
         public virtual DbSet<Hashtag> Hashtags { get; set; }
         
         //Списки-посредники
@@ -227,12 +226,6 @@ namespace ApiClick
                     .HasMaxLength(ModelLengths.LENGTH_MAX)
                     .IsRequired(false);
 
-                entity.HasOne(e => e.OrderStatus)
-                    .WithMany()
-                    .HasForeignKey(e => e.StatusId)
-                    .HasConstraintName("FK_OrderCl_StatusId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.UserId)
@@ -355,17 +348,6 @@ namespace ApiClick
                     .HasForeignKey(e => e.ImgId)
                     .HasConstraintName("FK_AdBannerCl_ImgId")
                     .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            modelBuilder.Entity<OrderStatus>(entity =>
-            {
-                entity.HasKey(e => e.OrderStatusId);
-                
-                entity.ToTable("OrderStatuses", "dbo");
-
-                entity.Property(e => e.OrderStatusName)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsRequired();
             });
 
             modelBuilder.Entity<Image>(entity => 

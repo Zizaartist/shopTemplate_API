@@ -23,9 +23,9 @@ namespace ApiClick.Models
         [Key]
         public int OrderId { get; set; }
         public int UserId { get; set; }
-        public int StatusId { get; set; }
         public Category Category { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
+        public OrderStatus OrderStatus { get; set; }
         public bool PointsUsed { get; set; }
         [MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Phone { get; set; }
@@ -53,8 +53,6 @@ namespace ApiClick.Models
         public virtual User User { get; set; }
         [ForeignKey("BrandOwnerId")]
         public virtual User BrandOwner { get; set; }
-        [ForeignKey("StatusId")]
-        public virtual OrderStatus OrderStatus { get; set; }
         [ForeignKey("PointRegisterId")]
         public virtual PointRegister PointRegister { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }

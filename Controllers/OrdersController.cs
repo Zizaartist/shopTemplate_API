@@ -68,8 +68,7 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<List<Order>>> GetMyOrders()
         {
             //Находит заказы принадлежащие пользователю и отсеивает заказы со статусом "Завершенный"
-            var ordersFound = _context.Orders.Where(e => e.UserId == funcs.identityToUser(User.Identity, _context).UserId &&
-                                                        e.StatusId != _context.OrderStatuses.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
+            var ordersFound = _context.Orders.Where(e => e.UserId == funcs.identityToUser(User.Identity, _context).UserId).ToList();
 
             if (ordersFound == null)
             {
@@ -98,7 +97,6 @@ namespace ApiClick.Controllers
                     order.BrandOwner.Brands.First().ImgBanner = funcs.getCleanModel(await _context.Images.FindAsync(order.BrandOwner.Brands.First().ImgBannerId));
                     order.BrandOwner.Brands.First().ImgLogo = funcs.getCleanModel(await _context.Images.FindAsync(order.BrandOwner.Brands.First().ImgLogoId));
                 }
-                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 if (order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
@@ -117,7 +115,7 @@ namespace ApiClick.Controllers
             //Получаем заказы, где владелец токена обозначен как владелец бренда
             //+ статус не является завершенным
             var ordersFound = _context.Orders.Where(e => e.BrandOwnerId == funcs.identityToUser(User.Identity, _context).UserId)
-                                          .Where(e => e.OrderStatus.OrderStatusId != _context.OrderStatuses.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
+                                          .Where(e => e.OrderStatus < OrderStatus.delivered).ToList();
 
             if (ordersFound == null)
             {
@@ -139,7 +137,6 @@ namespace ApiClick.Controllers
                 }
                 order.User = funcs.getCleanUser(await _context.Users.FindAsync(order.UserId));
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
-                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 if (order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
@@ -158,7 +155,7 @@ namespace ApiClick.Controllers
             //Получаем заказы, где владелец токена обозначен как владелец бренда
             //+ статус должен быть завершенным
             var ordersFound = _context.Orders.Where(e => e.BrandOwnerId == funcs.identityToUser(User.Identity, _context).UserId)
-                                          .Where(e => e.OrderStatus.OrderStatusId == _context.OrderStatuses.First(e => e.OrderStatusName == "Завершено").OrderStatusId).ToList();
+                                          .Where(e => e.OrderStatus >= OrderStatus.delivered).ToList();
 
             if (ordersFound == null)
             {
@@ -180,7 +177,6 @@ namespace ApiClick.Controllers
                 }
                 order.User = funcs.getCleanUser(await _context.Users.FindAsync(order.UserId));
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
-                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 if (order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
@@ -194,7 +190,7 @@ namespace ApiClick.Controllers
         [Route("api/[controller]/{id}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPut]
-        public async Task<ActionResult> PutOrders(int id, int? statusId = null)
+        public async Task<ActionResult> PutOrders(int id, OrderStatus? _status = null)
         {
             //Сперва проверяем на физическую возможность смены статуса
             var order = await _context.Orders.FindAsync(id);
@@ -204,10 +200,9 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
             var initialStatus = order.OrderStatus;
 
-            if (order.OrderStatus.OrderStatusName == "Завершено") return Forbid();
+            if (order.OrderStatus == OrderStatus.completed) return Forbid();
 
             //Только пользователь и владелец бренда имеют доступ к смене статуса
             var identity = funcs.identityToUser(User.Identity, _context);
@@ -218,37 +213,35 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            if (isBrandOwner && order.OrderStatus.OrderStatusName == "Доставлено") return Forbid();
+            if (isBrandOwner && order.OrderStatus == OrderStatus.delivered) return Forbid();
 
             //Затем проверяем права на смену статуса
             UserRole? userRole = null;
             if (isUser) userRole = UserRole.User;
             else if (isBrandOwner) userRole = UserRole.Admin;
 
-            int futureStatusId;
-            if (statusId != null)
+            OrderStatus futureStatus;
+            if (_status != null)
             {
-                futureStatusId = statusId ?? default;
+                futureStatus = _status ?? default;
             }
             else 
             {
-                futureStatusId = order.StatusId + 1;
+                futureStatus = order.OrderStatus + 1;
             }
-            OrderStatus futureOrderStatuses = await _context.OrderStatuses.FindAsync(futureStatusId);
 
             //Изменить статус могут лишь указанная роль или суперАдмин
-            if (userRole == futureOrderStatuses.MasterRole ||
+            if (userRole == OrderStatusDictionaries.GetMasterRoleFromOrderStatus[futureStatus] ||
                 userRole == UserRole.SuperAdmin)
             {
-                order.StatusId = futureOrderStatuses.OrderStatusId;
-                order.OrderStatus = futureOrderStatuses;
+                order.OrderStatus = futureStatus;
             }
             else
             {
                 return Unauthorized();
             }
 
-            if (order.OrderStatus.OrderStatusName == "Завершено")
+            if (order.OrderStatus == OrderStatus.completed)
             {
                 await _context.SaveChangesAsync();
                 PointsController pointsController = new PointsController(_context);
@@ -257,7 +250,7 @@ namespace ApiClick.Controllers
                 {
                     if (!pointsController.CompleteTransaction(order.PointRegisterId ?? default))
                     {
-                        order.StatusId = initialStatus.OrderStatusId;
+                        order.OrderStatus = initialStatus;
                         await _context.SaveChangesAsync();
                         return BadRequest("Не удалось завершить транзакцию");
                     }
@@ -270,7 +263,7 @@ namespace ApiClick.Controllers
                 if (!pointsController.StartTransaction(pointsController.CalculateCashback(order), null, order.UserId, order.OrderId, out cashbackRegister) ||
                     !pointsController.CompleteTransaction(cashbackRegister.PointRegisterId)) 
                 {
-                    order.StatusId = initialStatus.OrderStatusId;
+                    order.OrderStatus = initialStatus;
                     await _context.SaveChangesAsync();
                     return BadRequest("Не удалось произвести кэшбэк");
                 }
@@ -289,8 +282,7 @@ namespace ApiClick.Controllers
         {
             if (order == null ||
                 order.OrderDetails == null ||
-                order.OrderDetails.Count < 1 ||
-                order.PaymentMethod == default)
+                order.OrderDetails.Count < 1)
             {
                 return BadRequest();
             }
@@ -305,8 +297,7 @@ namespace ApiClick.Controllers
             order.OrderDetails = funcs.getCleanListOfModels(order.OrderDetails.ToList());
             order.Category = responsibleBrand.Category;
             order.CreatedDate = DateTime.Now;
-            order.StatusId = _context.OrderStatuses.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
-            order.OrderStatus = await _context.OrderStatuses.FindAsync(order.StatusId);
+            order.OrderStatus = OrderStatus.received;
             order.User = funcs.identityToUser(User.Identity, _context);
             order.UserId = order.User.UserId;
             order.Phone = order.User.Phone;
@@ -553,7 +544,7 @@ namespace ApiClick.Controllers
             //Возвращать только те заказы, где ты являешься исполнителем, и статус не является завершенным
             var ordersFound = await _context.Orders.Where(p => p.Category == category && 
                                                             p.BrandOwnerId == identity.UserId && 
-                                                            p.StatusId != _context.OrderStatuses.First(s => s.OrderStatusName == "Завершено").OrderStatusId).ToListAsync();
+                                                            p.OrderStatus < OrderStatus.completed).ToListAsync();
 
             if (ordersFound == null)
             {
@@ -575,7 +566,6 @@ namespace ApiClick.Controllers
                 }
                 order.User = funcs.getCleanUser(await _context.Users.FindAsync(order.UserId));
                 var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
-                order.OrderStatus = funcs.getCleanModel(await _context.OrderStatuses.FindAsync(order.StatusId));
                 if(order.PointsUsed && order.PointRegisterId != null)
                 {
                     order.PointRegister = funcs.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
@@ -689,8 +679,7 @@ namespace ApiClick.Controllers
 
             //filling blanks and sending to DB
             ordersCl.CreatedDate = DateTime.Now;
-            ordersCl.StatusId = _context.OrderStatuses.First(e => e.OrderStatusName == "Отправлено").OrderStatusId;
-            ordersCl.OrderStatus = await _context.OrderStatuses.FindAsync(ordersCl.StatusId);
+            ordersCl.OrderStatus = OrderStatus.sent;
             ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
             ordersCl.User = await _context.Users.FindAsync(ordersCl.UserId);
             ordersCl.PaymentMethod = PaymentMethod.cash; //Только налик

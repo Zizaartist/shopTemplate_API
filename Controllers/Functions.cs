@@ -1,4 +1,5 @@
 ﻿using ApiClick.Models;
+using ApiClick.Models.EnumModels;
 using ApiClick.StaticValues;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,12 @@ namespace ApiClick.Controllers
         private List<Type> allowedTypes = new List<Type>() { typeof(int?), 
                                                             typeof(string), 
                                                             typeof(decimal),
-                                                            typeof(DateTime)};
+                                                            typeof(DateTime),
+                                                            typeof(Banknote),
+                                                            typeof(Category),
+                                                            typeof(OrderStatus),
+                                                            typeof(PaymentMethod),
+                                                            typeof(UserRole)};
 
         /// <summary>
         /// Создает новый экземпляр модели и заполняет его только примитивными типами, без навигационных свойств
