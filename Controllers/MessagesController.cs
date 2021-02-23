@@ -172,58 +172,22 @@ namespace ApiClick.Controllers
 
 
         // GET: api/BrandReviews/5
-        [Route("api/BrandReviews/{id}")]
+        [Route("api/BrandReviews/{id}/{_page}")]
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Message>>> GetBrandReviews(int id, int? _page = null)
+        public async Task<ActionResult<IEnumerable<Message>>> GetBrandReviews(int id, int _page)
         {
-            var messages = _context.Messages.Where(e => e.BrandId == id);
+            var messages = _context.Messages.Where(e => e.BrandId == id && !string.IsNullOrEmpty(e.Text));
 
-            //Если был получен параметр страницы
-            if (_page != null) 
-            {
-                messages = funcs.GetPageRange(messages, _page ?? default, pageSize);
-            }
+            messages = funcs.GetPageRange(messages, _page, pageSize);
 
             if (!messages.Any()) 
             {
-                return BadRequest();
+                return NotFound();
             }
 
             return await messages.ToListAsync();
         }
-
-        //// PUT: api/Messages/5
-        //[Route("api/[controller]")]
-        //[Authorize]
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutMessages(int id, Message messageCl)
-        //{
-        //    if (id != messageCl.MessageId)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _context.Entry(messageCl).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!MessagesExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
 
         // POST: api/Messages
         [Route("api/[controller]")]
@@ -261,29 +225,12 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
+            message.CreatedDate = DateTime.Now;
             _context.Messages.Add(message); //Выдаст 500 если обязательные поля не заполнены
             await _context.SaveChangesAsync();
 
             return Ok();
         }
-
-        //// DELETE: api/Messages/5
-        //[Route("api/[controller]")]
-        //[Authorize]
-        //[HttpDelete("{id}")]
-        //public async Task<ActionResult<Message>> DeleteMessages(int id)
-        //{
-        //    var messageCl = await _context.Messages.FindAsync(id);
-        //    if (messageCl == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Messages.Remove(messageCl);
-        //    await _context.SaveChangesAsync();
-
-        //    return Ok();
-        //}
 
         private bool MessagesExists(int id)
         {
