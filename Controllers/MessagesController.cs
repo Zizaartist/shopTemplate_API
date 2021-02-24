@@ -186,7 +186,13 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            return await messages.ToListAsync();
+            var result = await messages.ToListAsync();
+            foreach (var message in result) 
+            {
+                message.User = funcs.getCleanUser(_context.Users.Find(message.UserId));
+            }
+
+            return result;
         }
 
         // POST: api/Messages
@@ -248,7 +254,7 @@ namespace ApiClick.Controllers
         public async Task<ActionResult<(int, int)>> GetReviewCount(int id)
         {
             var allReviews = _context.Messages.Where(e => e.BrandId == id);
-            return (allReviews.Count(), allReviews.Where(e => string.IsNullOrEmpty(e.Text)).Count());
+            return (allReviews.Count(), allReviews.Where(e => !string.IsNullOrEmpty(e.Text)).Count());
         }
     }
 }
