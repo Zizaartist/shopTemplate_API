@@ -275,7 +275,6 @@ namespace ApiClick.Controllers
 
         // POST: api/Orders
         [Route("api/[controller]")]
-
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
         public async Task<ActionResult<List<Order>>> PostOrders(Order order)
@@ -293,6 +292,12 @@ namespace ApiClick.Controllers
                                                             order.OrderDetails.First().ProductId)
                                                     ).BrandMenuId)
                                                 ).BrandId);
+            var allowedPaymentMethods = _context.PaymentMethodsListElements.Where(e => e.BrandId == responsibleBrand.BrandId);
+
+            if (!allowedPaymentMethods.Any(e => e.PaymentMethod == order.PaymentMethod)) 
+            {
+                return BadRequest("Selected payment method is not supported by a brand");
+            }
 
             order.OrderDetails = funcs.getCleanListOfModels(order.OrderDetails.ToList());
             order.Category = responsibleBrand.Category;
@@ -445,6 +450,7 @@ namespace ApiClick.Controllers
             order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
             order.OrderDetails = _context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList();
             order.Phone = order.User.Phone;
+            order.OrderStatus = OrderStatus.received;
             order.PointsUsed = false; //!!!!!!!!!!!!!!!!!!!!!!!!temp default!!!!!!!!!!!!!!!!!!!
             request.Suggestions = _context.RequestDetails.Where(e => e.RequestId == request.WaterRequestId).ToList();
 

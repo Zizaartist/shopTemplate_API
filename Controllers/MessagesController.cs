@@ -234,10 +234,21 @@ namespace ApiClick.Controllers
             //Изменяем рейтинг бренда
             var brand = _context.Brands.Find(message.BrandId);
             //formula https://stackoverflow.com/a/32631668, в разы лучше чем суммировать итерацией IMO
-            brand.Rating = ((brand.Rating ?? 0f * oldReviewCount) + (float)message.Rating) / (float)(oldReviewCount + 1);
+            brand.Rating = (((brand.Rating ?? 0f) * oldReviewCount) + (float)message.Rating) / (float)(oldReviewCount + 1);
             await _context.SaveChangesAsync();
 
             return Ok();
+        }
+
+        /// <returns>Количество текстовых, количество всех</returns>
+        // GET: api/BrandReviewCount/3
+        [Route("api/BrandReviewCount/{id}")]
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<(int, int)>> GetReviewCount(int id)
+        {
+            var allReviews = _context.Messages.Where(e => e.BrandId == id);
+            return (allReviews.Count(), allReviews.Where(e => string.IsNullOrEmpty(e.Text)).Count());
         }
     }
 }
