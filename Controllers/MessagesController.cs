@@ -17,7 +17,7 @@ namespace ApiClick.Controllers
     {
         ClickContext _context;
         Functions funcs = new Functions();
-        private static int pageSize = 10;
+        private static int PAGE_SIZE = 2;
         
         public MessagesController(ClickContext _context)
         {
@@ -179,7 +179,7 @@ namespace ApiClick.Controllers
         {
             var messages = _context.Messages.Where(e => e.BrandId == id && !string.IsNullOrEmpty(e.Text));
 
-            messages = funcs.GetPageRange(messages, _page, pageSize);
+            messages = funcs.GetPageRange(messages, _page, PAGE_SIZE);
 
             if (!messages.Any()) 
             {

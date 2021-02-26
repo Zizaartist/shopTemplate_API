@@ -22,6 +22,7 @@ namespace ApiClick.Controllers
     {
         ClickContext _context;
         Functions funcs = new Functions();
+        public static int PAGE_SIZE = 1;
         
         public BrandsController(ClickContext _context)
         {
@@ -51,10 +52,10 @@ namespace ApiClick.Controllers
         }
 
         // POST: api/GetBrandsByFilter/5?name=blahbla&openNow=true
-        [Route("api/GetBrandsByFilter/{category}")]
+        [Route("api/GetBrandsByFilter/{category}/{_page}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Category category, [FromBody]List<int> HashTags = null, string name = null, bool openNow = false)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Category category, int _page, [FromBody]List<int> HashTags = null, string name = null, bool openNow = false)
         {
             var brands = _context.Brands.Where(p => p.Category == category);
 
@@ -80,6 +81,9 @@ namespace ApiClick.Controllers
             {
                 brands = brands.Where(e => isBrandAvailable(e));
             }
+
+            //Урезаем по критерию страницы
+            brands = funcs.GetPageRange(brands, _page, PAGE_SIZE);
 
             if (!brands.Any())
             {

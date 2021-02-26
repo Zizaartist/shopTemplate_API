@@ -208,6 +208,15 @@ namespace ApiClick.Controllers
             return correctPhone;
         }
 
+
+
+        [Route("api/Ping")]
+        [HttpGet]
+        public async Task<ActionResult> Ping()
+        {
+            return Ok();
+        }
+
         //returns ok if admin token is still valid
         [Authorize(Roles = "SuperAdmin, Admin")]
         [Route("api/AdminCheck")]

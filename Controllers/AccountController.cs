@@ -133,7 +133,6 @@ namespace ApiClick.Controllers
                 return Ok();
             }
 
-
             return BadRequest();
         }
 
