@@ -237,6 +237,46 @@ namespace ApiClick.Controllers
                 brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
                     .ToList();
 
+                #region hashtagTrash
+
+                //Проверяем, есть ли несуществующие теги
+                List<(Hashtag, Hashtag)> newHashtags = new List<(Hashtag, Hashtag)>(); //item1 - пустые теги, item2 - свежесозданные
+                foreach (Hashtag _tag in brand.Hashtags)
+                {
+                    //Если присланный хэштэг не имеет id - пытаемся найти по тексту
+                    if (_tag.HashTagId == default)
+                    {
+                        var tagTextCaps = _tag.HashTagName.ToUpper();
+                        var tryingToFindTag = _context.Hashtags.FirstOrDefault(e => e.HashTagName.ToUpper() == tagTextCaps);
+                        if (tryingToFindTag != null)
+                        {
+                            _tag.HashTagId = tryingToFindTag.HashTagId;
+                        }
+                        else
+                        {
+                            if (_tag.HashTagName.Length > 2)
+                            {
+                                //Создаем новый тег
+                                var newHashtag = new Hashtag()
+                                {
+                                    HashTagName = _tag.HashTagName,
+                                    Category = brand.Category
+                                };
+                                newHashtags.Add((_tag, newHashtag));
+                                _context.Hashtags.Add(newHashtag);
+                            }
+                        }
+                    }
+                }
+
+                if (newHashtags.Any())
+                {
+                    await _context.SaveChangesAsync(); //Сохраняем новые хэштеги
+                    newHashtags.ForEach(e => e.Item1.HashTagId = e.Item2.HashTagId);
+                }
+
+                #endregion
+
                 //Выводим 2 списка: новых элементов и исчезнувших
 
                 existingBrand.Hashtags = _context.HashtagsListElements.Where(e => e.BrandId == existingBrand.BrandId).Select(e => e.Hashtag).ToList();
@@ -262,9 +302,8 @@ namespace ApiClick.Controllers
                 foreach (var hashtag in subHashtags)
                 {
                     //Находить обязательно по 2м критериям
-                    var sacrifice = _context.HashtagsListElements.FirstOrDefault(e =>
-                                                                                                e.HashtagId == hashtag.HashTagId &&
-                                                                                                e.BrandId == existingBrand.BrandId);
+                    var sacrifice = _context.HashtagsListElements.FirstOrDefault(e => e.HashtagId == hashtag.HashTagId &&
+                                                                                        e.BrandId == existingBrand.BrandId);
                     if (sacrifice != null)
                     {
                         _context.HashtagsListElements.Remove(sacrifice);
@@ -272,6 +311,17 @@ namespace ApiClick.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                //Удаляем неиспользуемые хэштеги
+                var tagsToRemove = _context.Hashtags.Where(e => !_context.HashtagsListElements.Any(x => x.HashtagId == e.HashTagId));
+                if (tagsToRemove.Any()) 
+                {
+                    foreach (Hashtag _tag in tagsToRemove)
+                    {
+                        _context.Hashtags.Remove(_tag);
+                    }
+                    await _context.SaveChangesAsync();
+                }
 
                 //Выводим 2 списка: новых элементов и исчезнувших
 
@@ -352,12 +402,52 @@ namespace ApiClick.Controllers
             brand.CreatedDate = DateTime.Now;
 
             int TAGS_COUNT = 3;
-            
+
+            #region hashtagTrash
+
             brand.Hashtags = brand.Hashtags.Distinct() //Удаляем дубликаты
                                             .OrderBy(e => e.HashTagId) //Сортируем
                                             .Where(e => _context.Hashtags.Find(e.HashTagId) != null) //Проверяем на валидность
                                             .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
                                             .ToList();
+            //Проверяем, есть ли несуществующие теги
+            List<(Hashtag, Hashtag)> newHashtags = new List<(Hashtag, Hashtag)>(); //item1 - пустые теги, item2 - свежесозданные
+            foreach (Hashtag _tag in brand.Hashtags) 
+            {
+                //Если присланный хэштэг не имеет id - пытаемся найти по тексту
+                if (_tag.HashTagId == default)
+                {
+                    var tagTextCaps = _tag.HashTagName.ToUpper();
+                    var tryingToFindTag = _context.Hashtags.FirstOrDefault(e => e.HashTagName.ToUpper() == tagTextCaps);
+                    if (tryingToFindTag != null)
+                    {
+                        _tag.HashTagId = tryingToFindTag.HashTagId;
+                    }
+                    else 
+                    {
+                        if (_tag.HashTagName.Length > 2)
+                        {
+                            //Создаем новый тег
+                            var newHashtag = new Hashtag()
+                            {
+                                HashTagName = _tag.HashTagName,
+                                Category = brand.Category
+                            };
+                            newHashtags.Add((_tag, newHashtag));
+                            _context.Hashtags.Add(newHashtag);
+                        }
+                    }
+                }
+            }
+
+            if (newHashtags.Any()) 
+            {
+                await _context.SaveChangesAsync(); //Сохраняем новые хэштеги
+                newHashtags.ForEach(e => e.Item1.HashTagId = e.Item2.HashTagId);
+            }
+
+            #endregion
+
             brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
                                                         .ToList();
             _context.Brands.Add(brand);

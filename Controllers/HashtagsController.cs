@@ -20,14 +20,24 @@ namespace ApiClick.Controllers
             this._context = _context;
         }
 
-        // GET: api/BrandsMenu
-        //Debug
+        // GET: api/GetHashtagsByCategory/0
         [Route("api/GetHashtagsByCategory/{category}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
         public async Task<ActionResult<List<Hashtag>>> GetHashtagsByCategory(Category category)
         {
             return _context.Hashtags.Where(e => e.Category == category).ToList();
+        }
+
+        // GET: api/HashtagsTooltip
+        //Возвращает хэштеги в виде tooltip в зависимости от написанного фрагмента
+        [Route("api/HashtagsTooltip")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public async Task<ActionResult<List<Hashtag>>> GetHashtagsByCategory(string hashtagText)
+        {
+            var inputCaps = hashtagText.ToUpper();
+            return await _context.Hashtags.Where(e => e.HashTagName.ToUpper().Contains(inputCaps)).ToListAsync();
         }
     }
 }

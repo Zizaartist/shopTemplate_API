@@ -208,8 +208,6 @@ namespace ApiClick.Controllers
             return correctPhone;
         }
 
-
-
         [Route("api/Ping")]
         [HttpGet]
         public async Task<ActionResult> Ping()
