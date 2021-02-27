@@ -7,6 +7,7 @@ using System.Linq;
 using ApiClick.Models.ArrayModels;
 using ApiClick.Models.EnumModels;
 using ApiClick.StaticValues;
+using DayOfWeek = ApiClick.Models.EnumModels.DayOfWeek;
 
 namespace ApiClick.Models
 {
@@ -16,6 +17,8 @@ namespace ApiClick.Models
         {
             BrandMenus = new List<BrandMenu>();
             Hashtags = new List<Hashtag>();
+            ScheduleListElements = new List<ScheduleListElement>();
+
             PaymentMethods = new List<PaymentMethod>();
         }
 
@@ -28,28 +31,27 @@ namespace ApiClick.Models
         public string BrandName { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Description { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_MAX)]
-        public string DescriptionMax { get; set; }
         /// <summary>
         /// Определяет видимость бренда для пользователей
         /// </summary>
         public bool Available { get; set; }
-        public string DeliveryTime { get; set; }
+        public bool HasDiscounts { get; set; } //Изменяется при каждом изменении параметра скидки у product
 
         //Nullable
         public int? ImgLogoId { get; set; }
         public int? ImgBannerId { get; set; }
         [MaxLength(ModelLengths.LENGTH_MEDIUM)]
-        public string Contact { get; set; }
+        public string Contact1 { get; set; }
+        [MaxLength(ModelLengths.LENGTH_MEDIUM)] 
+        public string Contact2 { get; set; } //Биполярка блин, то хотят 2 поля, то не хотят
         [MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Address { get; set; }
-        public TimeSpan OpenTime { get; set; }
-        public TimeSpan CloseTime { get; set; }
+        public TimeSpan? DeliveryTimeFrom { get; set; }
+        public TimeSpan? DeliveryTimeTo { get; set; }
         public float? Rating { get; set; } //null if no reviews
         [MaxLength(ModelLengths.LENGTH_MAX)]
         public string Rules { get; set; }
-        
-
+        public Decimal? MinimalPrice { get; set; }
         public DateTime CreatedDate { get; set; }
 
         [ForeignKey("UserId")]
@@ -65,8 +67,9 @@ namespace ApiClick.Models
         [NotMapped]
         public virtual ICollection<HashtagsListElement> HashtagsListElements { get; set; }
         [NotMapped]
-        public ICollection<PaymentMethod> PaymentMethods { get; set; }
-        [NotMapped]
-        public ICollection<Hashtag> Hashtags { get; set; }
+        public ICollection<ScheduleListElement> ScheduleListElements { get; set; }
+
+        public ICollection<PaymentMethod> PaymentMethods;
+        public ICollection<Hashtag> Hashtags;
     }
 }
