@@ -9031,11 +9031,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
+      "projectUniqueName": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
       "projectName": "ApiClick",
-      "projectPath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\ApiClick.csproj",
+      "projectPath": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
       "packagesPath": "C:\\Users\\Syberia-7\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Syberia-7\\source\\repos\\ClickAPI\\obj\\",
+      "outputPath": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"
@@ -9054,6 +9054,7 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
           "projectReferences": {}
         }
       },
@@ -9065,6 +9066,7 @@
     },
     "frameworks": {
       "netcoreapp3.1": {
+        "targetAlias": "netcoreapp3.1",
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.JwtBearer": {
             "target": "Package",
@@ -9123,7 +9125,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.102\\RuntimeIdentifierGraph.json"
       }
     }
   }

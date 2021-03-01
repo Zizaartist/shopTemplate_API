@@ -45,6 +45,7 @@ namespace ApiClick
         //Списки-посредники
         public virtual DbSet<HashtagsListElement> HashtagsListElements { get; set; }
         public virtual DbSet<PaymentMethodsListElement> PaymentMethodsListElements { get; set; }
+        public virtual DbSet<ScheduleListElement> ScheduleListElements { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -73,14 +74,31 @@ namespace ApiClick
                 entity.Property(e => e.Description)
                     .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.DescriptionMax)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX);
-
                 entity.Property(e => e.Rules)
                     .HasMaxLength(ModelLengths.LENGTH_MAX);
 
                 entity.Property(e => e.Available)
                     .HasDefaultValue(true);
+
+                entity.Property(e => e.OfficialName)
+                    .IsRequired()
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+
+                entity.Property(e => e.OGRN)
+                    .IsRequired()
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
+
+                entity.Property(e => e.INN)
+                    .IsRequired()
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
+
+                entity.Property(e => e.LegalAddress)
+                    .IsRequired()
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+
+                entity.Property(e => e.Executor)
+                    .IsRequired()
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 //Nullable
 
@@ -119,12 +137,23 @@ namespace ApiClick
                     .HasConstraintName("FK_Brand_ImgBannerId")
                     .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne(d => d.Certificate)
+                    .WithMany()
+                    .HasForeignKey(e => e.CertificateId)
+                    .HasConstraintName("FK_Brand_CertificateId")
+                    .OnDelete(DeleteBehavior.NoAction);
+
                 entity.HasMany(e => e.HashtagsListElements)
                     .WithOne(e => e.Brand)
                     .HasForeignKey(e => e.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasMany(e => e.PaymentMethodsListElements)
+                    .WithOne(e => e.Brand)
+                    .HasForeignKey(e => e.BrandId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasMany(e => e.ScheduleListElements)
                     .WithOne(e => e.Brand)
                     .HasForeignKey(e => e.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
@@ -457,6 +486,18 @@ namespace ApiClick
 
                 entity.HasOne(e => e.Brand)
                     .WithMany(e => e.PaymentMethodsListElements)
+                    .HasForeignKey(e => e.BrandId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            modelBuilder.Entity<ScheduleListElement>(entity =>
+            {
+                entity.HasKey(e => e.ScheduleListElementId);
+
+                entity.ToTable("ScheduleListElement", "dbo");
+
+                entity.HasOne(e => e.Brand)
+                    .WithMany(e => e.ScheduleListElements)
                     .HasForeignKey(e => e.BrandId)
                     .OnDelete(DeleteBehavior.NoAction);
             });

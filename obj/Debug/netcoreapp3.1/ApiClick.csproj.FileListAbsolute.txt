@@ -346,7 +346,6 @@ C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.dll
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.pdb
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\appsettings.Development.json
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\appsettings.json
-C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\launchSettings.json
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\dbsettings.json
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\ApiClick.exe
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\ApiClick.deps.json
@@ -509,13 +508,10 @@ C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csproj
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\staticwebassets\ApiClick.StaticWebAssets.Manifest.cache
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\staticwebassets\ApiClick.StaticWebAssets.xml
 C:\Users\Syberia-7\source\repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.genruntimeconfig.cache
-C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\ClickAPIDebug - Web Deploy\profile.arm.json
-C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\serviceDependencies.ClickAPIDebug - Web Deploy.json
-C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\serviceDependencies.json
-C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\ClickAPIDebug - Web Deploy\mssql1.arm.json
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.JsonPatch.dll
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Users\Syberia-7\source\repos\ClickAPI\bin\Debug\netcoreapp3.1\Newtonsoft.Json.Bson.dll
 C:\Users\Syberia-7\Source\Repos\ClickAPI\bin\Debug\netcoreapp3.1\Microsoft.Azure.NotificationHubs.dll
 C:\Users\Syberia-7\Source\Repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.csproj.CoreCompileInputs.cache
 C:\Users\Syberia-7\Source\Repos\ClickAPI\obj\Debug\netcoreapp3.1\ApiClick.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Syberia-7\Source\Repos\ClickAPI\obj\Debug\netcoreapp3.1\scopedcss\bundle\ApiClick.styles.css

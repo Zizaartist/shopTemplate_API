@@ -1,12 +1,12 @@
 {
   "dependencies": {
-    "mssql2": {
-      "type": "mssql",
-      "connectionId": "DebugSQL"
-    },
     "mssql1": {
       "type": "mssql",
-      "connectionId": "Local-temp-db"
+      "connectionId": "localDB"
+    },
+    "mssql2": {
+      "type": "mssql",
+      "connectionId": "DefaultDB"
     }
   }
 }

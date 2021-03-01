@@ -7,6 +7,7 @@ using System.Linq;
 using ApiClick.Models.ArrayModels;
 using ApiClick.Models.EnumModels;
 using ApiClick.StaticValues;
+using DayOfWeek = ApiClick.Models.EnumModels.DayOfWeek;
 
 namespace ApiClick.Models
 {
@@ -16,6 +17,8 @@ namespace ApiClick.Models
         {
             BrandMenus = new List<BrandMenu>();
             Hashtags = new List<Hashtag>();
+            ScheduleListElements = new List<ScheduleListElement>();
+
             PaymentMethods = new List<PaymentMethod>();
         }
 
@@ -28,29 +31,40 @@ namespace ApiClick.Models
         public string BrandName { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Description { get; set; }
-        [Required, MaxLength(ModelLengths.LENGTH_MAX)]
-        public string DescriptionMax { get; set; }
         /// <summary>
         /// Определяет видимость бренда для пользователей
         /// </summary>
+        [Required]
         public bool Available { get; set; }
+        [Required]
         public string DeliveryTime { get; set; }
+        [Required]
+        public bool HasDiscounts { get; set; } //Изменяется при каждом изменении параметра скидки у product
+        //Документация
+        [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
+        public string OfficialName { get; set; }
+        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
+        public string OGRN { get; set; }
+        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
+        public string INN { get; set; }
+        [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
+        public string LegalAddress { get; set; }
+        [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
+        public string Executor { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         //Nullable
         public int? ImgLogoId { get; set; }
         public int? ImgBannerId { get; set; }
+        public int? CertificateId { get; set; }
         [MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Contact { get; set; }
         [MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Address { get; set; }
-        public TimeSpan OpenTime { get; set; }
-        public TimeSpan CloseTime { get; set; }
         public float? Rating { get; set; } //null if no reviews
         [MaxLength(ModelLengths.LENGTH_MAX)]
         public string Rules { get; set; }
-        
-
-        public DateTime CreatedDate { get; set; }
+        public Decimal? MinimalPrice { get; set; }
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
@@ -58,6 +72,8 @@ namespace ApiClick.Models
         public virtual Image ImgLogo { get; set; }
         [ForeignKey("ImgBannerId")]
         public virtual Image ImgBanner { get; set; }
+        [ForeignKey("CertificateId")]
+        public virtual Image Certificate { get; set; }
         [NotMapped]
         public virtual ICollection<BrandMenu> BrandMenus { get; set; }
         [NotMapped]
@@ -65,8 +81,9 @@ namespace ApiClick.Models
         [NotMapped]
         public virtual ICollection<HashtagsListElement> HashtagsListElements { get; set; }
         [NotMapped]
-        public ICollection<PaymentMethod> PaymentMethods { get; set; }
-        [NotMapped]
-        public ICollection<Hashtag> Hashtags { get; set; }
+        public virtual ICollection<ScheduleListElement> ScheduleListElements { get; set; }
+
+        public ICollection<PaymentMethod> PaymentMethods;
+        public ICollection<Hashtag> Hashtags;
     }
 }
