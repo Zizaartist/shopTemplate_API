@@ -15,12 +15,86 @@ namespace ApiClick.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("u0906946_u0906946")
+                .HasDefaultSchema("dbo")
                 .HasAnnotation("ProductVersion", "3.1.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("ApiClick.Models.BrandCl", b =>
+            modelBuilder.Entity("ApiClick.Models.AdBanner", b =>
+                {
+                    b.Property<int>("AdBannerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("BrandId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ImgId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InitialCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("AdBannerId");
+
+                    b.HasIndex("ImgId");
+
+                    b.ToTable("AdBanners","dbo");
+                });
+
+            modelBuilder.Entity("ApiClick.Models.ArrayModels.HashtagsListElement", b =>
+                {
+                    b.Property<int>("HashtagsListElementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int?>("BrandId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HashtagId")
+                        .HasColumnType("int");
+
+                    b.HasKey("HashtagsListElementId");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("HashtagId");
+
+                    b.ToTable("HashtagsListElements","dbo");
+                });
+
+            modelBuilder.Entity("ApiClick.Models.ArrayModels.PaymentMethodsListElement", b =>
+                {
+                    b.Property<int>("PaymentMethodListElementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int?>("BrandId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.HasKey("PaymentMethodListElementId");
+
+                    b.HasIndex("BrandId");
+
+                    b.ToTable("PaymentMethodsListElement","dbo");
+                });
+
+            modelBuilder.Entity("ApiClick.Models.Brand", b =>
                 {
                     b.Property<int>("BrandId")
                         .ValueGeneratedOnAdd()
@@ -28,20 +102,25 @@ namespace ApiClick.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<bool>("Available")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("BrandName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30)
                         .IsUnicode(true);
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int>("Category")
                         .HasColumnType("int");
+
+                    b.Property<TimeSpan>("CloseTime")
+                        .HasColumnType("time");
 
                     b.Property<string>("Contact")
                         .HasColumnType("varchar(250)")
@@ -53,70 +132,51 @@ namespace ApiClick.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<string>("DeliveryTime")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.Property<string>("DescriptionMax")
+                        .IsRequired()
                         .HasColumnType("nvarchar(250)")
                         .HasMaxLength(250);
 
-                    b.Property<int?>("Hashtag1Id")
+                    b.Property<int?>("ImgBannerId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Hashtag2Id")
+                    b.Property<int?>("ImgLogoId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Hashtag3Id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImgBannerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ImgLogoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                    b.Property<TimeSpan>("OpenTime")
+                        .HasColumnType("time");
 
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 
                     b.Property<string>("Rules")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(250)")
+                        .HasMaxLength(250);
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<string>("WorkTime")
-                        .HasColumnType("varchar(250)")
-                        .HasMaxLength(250)
-                        .IsUnicode(false);
-
                     b.HasKey("BrandId")
-                        .HasName("PK_BrandCl_BrandId");
+                        .HasName("PK_Brand_BrandId");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("ImgBannerId");
 
-                    b.HasIndex("Hashtag1Id");
-
-                    b.HasIndex("Hashtag2Id");
-
-                    b.HasIndex("Hashtag3Id");
-
-                    b.HasIndex("ImgBannerId")
-                        .IsUnique();
-
-                    b.HasIndex("ImgLogoId")
-                        .IsUnique();
+                    b.HasIndex("ImgLogoId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BrandCL","dbo");
+                    b.ToTable("Brands","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.BrandMenuCl", b =>
+            modelBuilder.Entity("ApiClick.Models.BrandMenu", b =>
                 {
                     b.Property<int>("BrandMenuId")
                         .ValueGeneratedOnAdd()
@@ -127,8 +187,8 @@ namespace ApiClick.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("BrandMenuName")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.Property<DateTime>("CreatedDate")
                         .ValueGeneratedOnAdd()
@@ -139,86 +199,36 @@ namespace ApiClick.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("BrandMenuId")
-                        .HasName("PK_BrandMenuCl_BrandMenuId");
+                        .HasName("PK_BrandMenus_BrandMenuId");
 
                     b.HasIndex("BrandId");
 
-                    b.HasIndex("ImgId")
-                        .IsUnique()
-                        .HasFilter("[ImgId] IS NOT NULL");
+                    b.HasIndex("ImgId");
 
-                    b.ToTable("BrandMenuCl","dbo");
+                    b.ToTable("BrandMenus","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.CategoryCl", b =>
-                {
-                    b.Property<int>("CategoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("CategoryName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
-
-                    b.HasKey("CategoryId")
-                        .HasName("DF_CategoryCl_CategoryId");
-
-                    b.ToTable("CategoryCl","dbo");
-                });
-
-            modelBuilder.Entity("ApiClick.Models.EnumModels.OrderStatusCl", b =>
+            modelBuilder.Entity("ApiClick.Models.EnumModels.OrderStatus", b =>
                 {
                     b.Property<int>("OrderStatusId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("MasterRoleId")
+                    b.Property<int>("MasterRole")
                         .HasColumnType("int");
 
                     b.Property<string>("OrderStatusName")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.HasKey("OrderStatusId");
 
-                    b.HasIndex("MasterRoleId");
-
-                    b.ToTable("OrderStatusCl");
+                    b.ToTable("OrderStatuses","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.EnumModels.PaymentMethodCl", b =>
-                {
-                    b.Property<int>("PaymentMethodId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("PaymentMethodName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PaymentMethodId");
-
-                    b.ToTable("PaymentMethodCl");
-                });
-
-            modelBuilder.Entity("ApiClick.Models.EnumModels.UserRolesCl", b =>
-                {
-                    b.Property<int>("UserRoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("UserRoleName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("UserRoleId");
-
-                    b.ToTable("UserRolesCl");
-                });
-
-            modelBuilder.Entity("ApiClick.Models.ImageCl", b =>
+            modelBuilder.Entity("ApiClick.Models.Image", b =>
                 {
                     b.Property<int>("ImageId")
                         .ValueGeneratedOnAdd()
@@ -227,7 +237,8 @@ namespace ApiClick.Migrations
 
                     b.Property<string>("Path")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -236,10 +247,10 @@ namespace ApiClick.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ImageCl");
+                    b.ToTable("Images","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.MessageCl", b =>
+            modelBuilder.Entity("ApiClick.Models.Message", b =>
                 {
                     b.Property<int>("MessageId")
                         .ValueGeneratedOnAdd()
@@ -254,10 +265,7 @@ namespace ApiClick.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<int>("Dislikes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Likes")
+                    b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<int>("Rating")
@@ -271,45 +279,97 @@ namespace ApiClick.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Views")
-                        .HasColumnType("int");
-
                     b.HasKey("MessageId")
-                        .HasName("PK_MessageCl_MessageId");
+                        .HasName("PK_Messages_MessageId");
 
                     b.HasIndex("BrandId");
 
+                    b.HasIndex("OrderId");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("MessageCl","dbo");
+                    b.ToTable("Messages","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.MessageOpinionCl", b =>
+            modelBuilder.Entity("ApiClick.Models.Order", b =>
                 {
-                    b.Property<int>("MessageOpinionId")
+                    b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("MessageId")
+                    b.Property<int?>("Banknote")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Opinion")
+                    b.Property<int?>("BrandOwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Commentary")
+                        .HasColumnType("nvarchar(250)")
+                        .HasMaxLength(250);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<bool>("Delivery")
                         .HasColumnType("bit");
+
+                    b.Property<int?>("Etash")
+                        .HasColumnType("int");
+
+                    b.Property<string>("House")
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
+
+                    b.Property<int?>("Kv")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Padik")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
+
+                    b.Property<int?>("PointRegisterId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PointsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Street")
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("MessageOpinionId");
+                    b.HasKey("OrderId")
+                        .HasName("DF_Orders_OrdersId");
 
-                    b.HasIndex("MessageId");
+                    b.HasIndex("BrandOwnerId");
+
+                    b.HasIndex("PointRegisterId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MessageOpinionCl");
+                    b.ToTable("Orders","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.OrderDetailCl", b =>
+            modelBuilder.Entity("ApiClick.Models.OrderDetail", b =>
                 {
                     b.Property<int>("OrderDetailId")
                         .ValueGeneratedOnAdd()
@@ -334,84 +394,10 @@ namespace ApiClick.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderDetailCl");
+                    b.ToTable("OrderDetails","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.OrdersCl", b =>
-                {
-                    b.Property<int>("OrdersId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int?>("BrandOwnerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Commentary")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<int?>("Etash")
-                        .HasColumnType("int");
-
-                    b.Property<string>("House")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("Kv")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Padik")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PaymentMethodId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PointRegisterId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("PointsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Street")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrdersId")
-                        .HasName("DF_OrdersCl_OrdersId");
-
-                    b.HasIndex("BrandOwnerId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("PaymentMethodId");
-
-                    b.HasIndex("PointRegisterId")
-                        .IsUnique()
-                        .HasFilter("[PointRegisterId] IS NOT NULL");
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("OrdersCl","dbo");
-                });
-
-            modelBuilder.Entity("ApiClick.Models.ProductCl", b =>
+            modelBuilder.Entity("ApiClick.Models.Product", b =>
                 {
                     b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
@@ -440,19 +426,18 @@ namespace ApiClick.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ProductName")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.HasKey("ProductId")
-                        .HasName("PK_ProductCl_ProductId");
+                        .HasName("PK_Products_ProductId");
 
                     b.HasIndex("BrandMenuId");
 
-                    b.HasIndex("ImgId")
-                        .IsUnique()
-                        .HasFilter("[ImgId] IS NOT NULL");
+                    b.HasIndex("ImgId");
 
-                    b.ToTable("ProductCl","dbo");
+                    b.ToTable("Products","dbo");
                 });
 
             modelBuilder.Entity("ApiClick.Models.RegisterModels.PointRegister", b =>
@@ -462,23 +447,64 @@ namespace ApiClick.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<int>("OwnerId")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Points")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SenderId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("TransactionCompleted")
                         .HasColumnType("bit");
 
                     b.HasKey("PointRegisterId");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("OrderId");
 
-                    b.ToTable("PointRegisterCl");
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("PointRegisters","dbo");
+                });
+
+            modelBuilder.Entity("ApiClick.Models.Report", b =>
+                {
+                    b.Property<int>("ReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("BrandId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrderCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductOfDayId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Sum")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ReportId");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("ProductOfDayId");
+
+                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("ApiClick.Models.RequestDetail", b =>
@@ -508,10 +534,10 @@ namespace ApiClick.Migrations
 
                     b.HasIndex("WaterRequestId");
 
-                    b.ToTable("RequestDetails");
+                    b.ToTable("RequestDetails","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.UserCl", b =>
+            modelBuilder.Entity("ApiClick.Models.User", b =>
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
@@ -524,57 +550,66 @@ namespace ApiClick.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<string>("DeviceType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.Property<int?>("Etash")
                         .HasColumnType("int");
 
                     b.Property<string>("House")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.Property<int?>("Kv")
                         .HasColumnType("int");
 
                     b.Property<string>("Login")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<string>("Name")
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
+
+                    b.Property<string>("NotificationRegistration")
                         .HasColumnType("nvarchar(250)")
                         .HasMaxLength(250);
 
-                    b.Property<string>("NotificationRegistration")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("NotificationsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<int?>("Padik")
                         .HasColumnType("int");
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(450)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.Property<decimal>("Points")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Role")
+                    b.Property<string>("Street")
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
+
+                    b.Property<int>("UserRole")
                         .HasColumnType("int");
 
-                    b.Property<string>("Street")
-                        .HasColumnType("nvarchar(250)")
-                        .HasMaxLength(250);
-
                     b.HasKey("UserId")
-                        .HasName("DF_UserCl_UserId");
+                        .HasName("DF_Users_UserId");
 
                     b.HasIndex("Phone")
                         .IsUnique()
-                        .HasName("DF_UserCl_Phone_Unique")
-                        .HasFilter("[Phone] IS NOT NULL");
+                        .HasName("DF_Users_Phone_Unique");
 
-                    b.ToTable("UserCl","dbo");
+                    b.ToTable("Users","dbo");
                 });
 
             modelBuilder.Entity("ApiClick.Models.WaterRequest", b =>
@@ -596,198 +631,150 @@ namespace ApiClick.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("WaterRequests");
+                    b.ToTable("WaterRequests","dbo");
                 });
 
-            modelBuilder.Entity("Click.Models.HashTagCl", b =>
+            modelBuilder.Entity("Click.Models.Hashtag", b =>
                 {
                     b.Property<int>("HashTagId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int>("Category")
                         .HasColumnType("int");
 
                     b.Property<string>("HashTagName")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(30);
 
                     b.HasKey("HashTagId");
 
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("HashtagCl");
+                    b.ToTable("Hashtags","dbo");
                 });
 
-            modelBuilder.Entity("ApiClick.Models.BrandCl", b =>
+            modelBuilder.Entity("ApiClick.Models.AdBanner", b =>
                 {
-                    b.HasOne("ApiClick.Models.CategoryCl", "Category")
+                    b.HasOne("ApiClick.Models.Image", "Image")
                         .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .HasConstraintName("FK_BrandCl_CategoryId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .HasForeignKey("ImgId")
+                        .HasConstraintName("FK_AdBannerCl_ImgId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
 
-                    b.HasOne("Click.Models.HashTagCl", "HashTag1")
-                        .WithMany()
-                        .HasForeignKey("Hashtag1Id")
-                        .HasConstraintName("FK_BrandCl_Hashtag1Id")
+            modelBuilder.Entity("ApiClick.Models.ArrayModels.HashtagsListElement", b =>
+                {
+                    b.HasOne("ApiClick.Models.Brand", "Brand")
+                        .WithMany("HashtagsListElements")
+                        .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Click.Models.HashTagCl", "HashTag2")
+                    b.HasOne("Click.Models.Hashtag", "Hashtag")
                         .WithMany()
-                        .HasForeignKey("Hashtag2Id")
-                        .HasConstraintName("FK_BrandCl_Hashtag2Id")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Click.Models.HashTagCl", "HashTag3")
-                        .WithMany()
-                        .HasForeignKey("Hashtag3Id")
-                        .HasConstraintName("FK_BrandCl_Hashtag3Id")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("ApiClick.Models.ImageCl", "ImgBanner")
-                        .WithOne()
-                        .HasForeignKey("ApiClick.Models.BrandCl", "ImgBannerId")
-                        .HasConstraintName("FK_BrandCl_ImgBannerId")
+                        .HasForeignKey("HashtagId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                });
 
-                    b.HasOne("ApiClick.Models.ImageCl", "ImgLogo")
-                        .WithOne()
-                        .HasForeignKey("ApiClick.Models.BrandCl", "ImgLogoId")
-                        .HasConstraintName("FK_BrandCl_ImgLogoId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+            modelBuilder.Entity("ApiClick.Models.ArrayModels.PaymentMethodsListElement", b =>
+                {
+                    b.HasOne("ApiClick.Models.Brand", "Brand")
+                        .WithMany("PaymentMethodsListElements")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
 
-                    b.HasOne("ApiClick.Models.UserCl", "User")
+            modelBuilder.Entity("ApiClick.Models.Brand", b =>
+                {
+                    b.HasOne("ApiClick.Models.Image", "ImgBanner")
+                        .WithMany()
+                        .HasForeignKey("ImgBannerId")
+                        .HasConstraintName("FK_Brand_ImgBannerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ApiClick.Models.Image", "ImgLogo")
+                        .WithMany()
+                        .HasForeignKey("ImgLogoId")
+                        .HasConstraintName("FK_Brand_ImgLogoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ApiClick.Models.User", "User")
                         .WithMany("Brands")
                         .HasForeignKey("UserId")
-                        .HasConstraintName("FK_BrandCl_UserId")
+                        .HasConstraintName("FK_Brand_UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ApiClick.Models.BrandMenuCl", b =>
+            modelBuilder.Entity("ApiClick.Models.BrandMenu", b =>
                 {
-                    b.HasOne("ApiClick.Models.BrandCl", "Brand")
+                    b.HasOne("ApiClick.Models.Brand", "Brand")
                         .WithMany("BrandMenus")
                         .HasForeignKey("BrandId")
-                        .HasConstraintName("FK_BrandMenuCl_BrandId")
+                        .HasConstraintName("FK_BrandMenus_BrandId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("ApiClick.Models.ImageCl", "Image")
-                        .WithOne()
-                        .HasForeignKey("ApiClick.Models.BrandMenuCl", "ImgId")
-                        .HasConstraintName("FK_BrandMenuCl_ImgId")
+                    b.HasOne("ApiClick.Models.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImgId")
+                        .HasConstraintName("FK_BrandMenus_ImgId")
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
-            modelBuilder.Entity("ApiClick.Models.EnumModels.OrderStatusCl", b =>
+            modelBuilder.Entity("ApiClick.Models.Image", b =>
                 {
-                    b.HasOne("ApiClick.Models.EnumModels.UserRolesCl", "MasterRole")
-                        .WithMany()
-                        .HasForeignKey("MasterRoleId")
-                        .HasConstraintName("FK_OrderStatusCl_MasterRoleId")
+                    b.HasOne("ApiClick.Models.User", "User")
+                        .WithMany("UploadedImages")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ApiClick.Models.ImageCl", b =>
+            modelBuilder.Entity("ApiClick.Models.Message", b =>
                 {
-                    b.HasOne("ApiClick.Models.UserCl", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ApiClick.Models.MessageCl", b =>
-                {
-                    b.HasOne("ApiClick.Models.BrandCl", "Brand")
+                    b.HasOne("ApiClick.Models.Brand", "Brand")
                         .WithMany()
                         .HasForeignKey("BrandId")
-                        .HasConstraintName("FK_MessageCl_BrandId")
+                        .HasConstraintName("FK_Messages_BrandId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ApiClick.Models.UserCl", "User")
-                        .WithMany("Messages")
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("FK_MessageCl_UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ApiClick.Models.MessageOpinionCl", b =>
-                {
-                    b.HasOne("ApiClick.Models.MessageCl", "Message")
+                    b.HasOne("ApiClick.Models.Order", "Order")
                         .WithMany()
-                        .HasForeignKey("MessageId")
-                        .HasConstraintName("FK_MessageOpinion_MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiClick.Models.UserCl", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("FK_MessageOpinion_UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ApiClick.Models.OrderDetailCl", b =>
-                {
-                    b.HasOne("ApiClick.Models.OrdersCl", "Order")
-                        .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
-                        .HasConstraintName("FK_OrderDetails_OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiClick.Models.ProductCl", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .HasConstraintName("FK_OrderDetails_ProductId")
-                        .OnDelete(DeleteBehavior.Restrict);
-                });
-
-            modelBuilder.Entity("ApiClick.Models.OrdersCl", b =>
-                {
-                    b.HasOne("ApiClick.Models.UserCl", "BrandOwner")
-                        .WithMany()
-                        .HasForeignKey("BrandOwnerId")
-                        .HasConstraintName("FK_OrderCl_BrandOwnerId")
+                        .HasConstraintName("FK_Messages_OrderId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("ApiClick.Models.CategoryCl", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .HasConstraintName("FK_OrderCl_CategoryId")
+                    b.HasOne("ApiClick.Models.User", "User")
+                        .WithMany("Messages")
+                        .HasForeignKey("UserId")
+                        .HasConstraintName("FK_Messages_UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                });
 
-                    b.HasOne("ApiClick.Models.EnumModels.PaymentMethodCl", "PaymentMethod")
+            modelBuilder.Entity("ApiClick.Models.Order", b =>
+                {
+                    b.HasOne("ApiClick.Models.User", "BrandOwner")
                         .WithMany()
-                        .HasForeignKey("PaymentMethodId")
-                        .HasConstraintName("FK_OrderCl_PaymentMethodId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .HasForeignKey("BrandOwnerId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("ApiClick.Models.RegisterModels.PointRegister", "PointRegister")
-                        .WithOne("Order")
-                        .HasForeignKey("ApiClick.Models.OrdersCl", "PointRegisterId")
+                        .WithMany()
+                        .HasForeignKey("PointRegisterId")
                         .HasConstraintName("FK_OrderCl_PointRegisterId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("ApiClick.Models.EnumModels.OrderStatusCl", "OrderStatus")
+                    b.HasOne("ApiClick.Models.EnumModels.OrderStatus", "OrderStatus")
                         .WithMany()
                         .HasForeignKey("StatusId")
                         .HasConstraintName("FK_OrderCl_StatusId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ApiClick.Models.UserCl", "User")
+                    b.HasOne("ApiClick.Models.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .HasConstraintName("FK_OrderCl_UserId")
@@ -795,33 +782,74 @@ namespace ApiClick.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ApiClick.Models.ProductCl", b =>
+            modelBuilder.Entity("ApiClick.Models.OrderDetail", b =>
                 {
-                    b.HasOne("ApiClick.Models.BrandMenuCl", "BrandMenu")
+                    b.HasOne("ApiClick.Models.Order", "Order")
+                        .WithMany("OrderDetails")
+                        .HasForeignKey("OrderId")
+                        .HasConstraintName("FK_OrderDetails_OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiClick.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .HasConstraintName("FK_OrderDetails_ProductId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ApiClick.Models.Product", b =>
+                {
+                    b.HasOne("ApiClick.Models.BrandMenu", "BrandMenu")
                         .WithMany("Products")
                         .HasForeignKey("BrandMenuId")
-                        .HasConstraintName("FK_ProductCl_BrandMenuId")
+                        .HasConstraintName("FK_Products_BrandMenuId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("ApiClick.Models.ImageCl", "Image")
-                        .WithOne()
-                        .HasForeignKey("ApiClick.Models.ProductCl", "ImgId")
-                        .HasConstraintName("FK_ProductCl_ImgId")
+                    b.HasOne("ApiClick.Models.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImgId")
+                        .HasConstraintName("FK_Products_ImgId")
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("ApiClick.Models.RegisterModels.PointRegister", b =>
                 {
-                    b.HasOne("ApiClick.Models.UserCl", "Owner")
+                    b.HasOne("ApiClick.Models.Order", "Order")
                         .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("ApiClick.Models.User", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ApiClick.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ApiClick.Models.Report", b =>
+                {
+                    b.HasOne("ApiClick.Models.Product", "Brand")
+                        .WithMany()
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ApiClick.Models.Product", "ProductOfDay")
+                        .WithMany()
+                        .HasForeignKey("ProductOfDayId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("ApiClick.Models.RequestDetail", b =>
                 {
-                    b.HasOne("ApiClick.Models.ProductCl", "Product")
+                    b.HasOne("ApiClick.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -840,24 +868,15 @@ namespace ApiClick.Migrations
 
             modelBuilder.Entity("ApiClick.Models.WaterRequest", b =>
                 {
-                    b.HasOne("ApiClick.Models.BrandCl", "Brand")
+                    b.HasOne("ApiClick.Models.Brand", "Brand")
                         .WithMany()
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ApiClick.Models.OrdersCl", "Order")
+                    b.HasOne("ApiClick.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Click.Models.HashTagCl", b =>
-                {
-                    b.HasOne("ApiClick.Models.CategoryCl", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

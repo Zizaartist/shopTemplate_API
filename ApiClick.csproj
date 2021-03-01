@@ -6,17 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Migrations\20201021031732_cantthinkpleasesaveme.cs" />
-    <Compile Remove="Migrations\20201021031732_cantthinkpleasesaveme.Designer.cs" />
-    <Compile Remove="Migrations\20201022044652_theresnohope.cs" />
-    <Compile Remove="Migrations\20201022044652_theresnohope.Designer.cs" />
-    <Compile Remove="Migrations\20201022045107_theresnohope.cs" />
-    <Compile Remove="Migrations\20201022045107_theresnohope.Designer.cs" />
-    <Compile Remove="Migrations\20201022051502_maadneess.cs" />
-    <Compile Remove="Migrations\20201022051502_maadneess.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.6" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.8" />
     <PackageReference Include="Microsoft.Azure.NotificationHubs" Version="4.0.0" />
