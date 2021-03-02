@@ -1,7 +1,7 @@
 {
   "ConnectionStrings": {
     //"DefaultConnection": "Data Source=tcp:clickapisqldb.database.windows.net,1433;Initial Catalog=ClickDB-3;Persist Security Info=False;User ID=azureuser;Password=!CJGBBVF!3662!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-    "DefaultConnection": "Data Source=tcp:clickapisqldb.database.windows.net,1433;Initial Catalog=ClickDB-6;Persist Security Info=False;User ID=azureuser;Password=!CJGBBVF!3662!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+    "DefaultConnection": "Data Source=tcp:clickapisqldb.database.windows.net,1433;Initial Catalog=ClickDB-7;Persist Security Info=False;User ID=azureuser;Password=!CJGBBVF!3662!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
     "LocalConnection": "Data Source=localhost;Initial Catalog='22.02.21 clickDB';Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;"
     //"LocalConnection": "Data Source=localhost;Initial Catalog=NewClickDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;"
   }

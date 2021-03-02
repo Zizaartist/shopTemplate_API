@@ -34,7 +34,7 @@ namespace ApiClick.Controllers
         [Route("api/HashtagsTooltip")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<Hashtag>>> GetHashtagsByCategory(string hashtagText)
+        public async Task<ActionResult<List<Hashtag>>> GetTooltipHashtags(string hashtagText)
         {
             var inputCaps = hashtagText.ToUpper();
             return await _context.Hashtags.Where(e => e.HashTagName.ToUpper().Contains(inputCaps)).ToListAsync();

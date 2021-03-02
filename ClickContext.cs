@@ -109,12 +109,6 @@ namespace ApiClick
                 entity.Property(e => e.Address)
                     .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.OpenTime)
-                    .IsRequired();
-
-                entity.Property(e => e.CloseTime)
-                    .IsRequired();
-
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");

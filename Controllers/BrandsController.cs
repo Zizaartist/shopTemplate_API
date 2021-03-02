@@ -22,7 +22,7 @@ namespace ApiClick.Controllers
     {
         ClickContext _context;
         Functions funcs = new Functions();
-        public static int PAGE_SIZE = 1;
+        public static int PAGE_SIZE = 5;
         
         public BrandsController(ClickContext _context)
         {
@@ -57,7 +57,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Category category, int _page, [FromBody]List<int> HashTags = null, string name = null, bool openNow = false)
         {
-            var brands = _context.Brands.Where(p => p.Category == category);
+            var brands = _context.Brands.Where(p => p.Category == category && p.Available);
 
             //Урезаем выборку по критерию наличия хештега в списке
             if (HashTags != null)
@@ -79,7 +79,7 @@ namespace ApiClick.Controllers
             //Урезаем выборку по критерию доступности бренда
             if (openNow)
             {
-                brands = brands.Where(e => isBrandAvailable(e));
+                brands = brands.Where(e => IsBrandOpen(_context.ScheduleListElements.Where(x => x.BrandId == e.BrandId).ToList()));
             }
 
             //Урезаем по критерию страницы
@@ -217,7 +217,10 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<IActionResult> PutBrand(Brand brand)
         {
-            if (brand == null || !brand.PaymentMethods.Any())
+            if (brand == null || 
+                !brand.PaymentMethods.Any() || 
+                !brand.ScheduleListElements.Any() || 
+                brand.ScheduleListElements.GroupBy(e => e.DayOfWeek).Any(e => e.Count() > 1)) //дублирующиеся дни
             {
                 return BadRequest();
             }
@@ -229,9 +232,8 @@ namespace ApiClick.Controllers
             {
                 int TAGS_COUNT = 3;
 
-                brand.Hashtags = brand.Hashtags.Distinct() //Удаляем дубликаты
+                brand.Hashtags = brand.Hashtags.GroupBy(e => e.HashTagName).Select(e => e.First()) //Удаляем дубликаты
                     .OrderBy(e => e.HashTagId) //Сортируем
-                    .Where(e => _context.Hashtags.Find(e.HashTagId) != null) //Проверяем на валидность
                     .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
                     .ToList();
                 brand.PaymentMethods = brand.PaymentMethods.Distinct() //Удаляем дубликаты
@@ -259,7 +261,7 @@ namespace ApiClick.Controllers
                                 //Создаем новый тег
                                 var newHashtag = new Hashtag()
                                 {
-                                    HashTagName = _tag.HashTagName,
+                                    HashTagName = char.ToUpper(_tag.HashTagName[0]) + _tag.HashTagName.ToLower().Substring(1),
                                     Category = brand.Category
                                 };
                                 newHashtags.Add((_tag, newHashtag));
@@ -277,6 +279,8 @@ namespace ApiClick.Controllers
 
                 #endregion
 
+                #region hashtags
+
                 //Выводим 2 списка: новых элементов и исчезнувших
 
                 existingBrand.Hashtags = _context.HashtagsListElements.Where(e => e.BrandId == existingBrand.BrandId).Select(e => e.Hashtag).ToList();
@@ -285,9 +289,6 @@ namespace ApiClick.Controllers
                 var addHashtags = brand.Hashtags.Where(e => existingBrand.Hashtags.All(x => x.HashTagId != e.HashTagId)); //если в старой коллекции нет хэштегов с таким же id, то он новый
                 var subHashtags = existingBrand.Hashtags.Where(e => brand.Hashtags.All(x => x.HashTagId != e.HashTagId)); //если в новой коллекции нет хэштегов с таким же id, то это устаревший
 
-                var addtest = addHashtags.ToList();
-                var subtest = subHashtags.ToList();
-                
                 //Те, что нужно добавить
                 foreach (var hashtag in addHashtags)
                 {
@@ -323,6 +324,10 @@ namespace ApiClick.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+#endregion
+
+                #region paymentMethods
+
                 //Выводим 2 списка: новых элементов и исчезнувших
 
                 existingBrand.PaymentMethods = _context.PaymentMethodsListElements.Where(e => e.BrandId == existingBrand.BrandId).Select(e => e.PaymentMethod).ToList();
@@ -331,9 +336,6 @@ namespace ApiClick.Controllers
                 var addPaymentMethods = brand.PaymentMethods.Where(e => existingBrand.PaymentMethods.All(x => x != e));
                 var subPaymentMethods = existingBrand.PaymentMethods.Where(e => brand.PaymentMethods.All(x => x != e));
 
-                var addasd = addPaymentMethods.ToList();
-                var subasd = subPaymentMethods.ToList();
-                
                 //Те, что нужно добавить
                 foreach (var paymentMethod in addPaymentMethods)
                 {
@@ -356,18 +358,54 @@ namespace ApiClick.Controllers
                         _context.PaymentMethodsListElements.Remove(sacrifice);
                     }
                 }
-                
+
+#endregion
+
+                #region schedule
+
+                //Выводим 2 списка: новых элементов и исчезнувших
+
+                existingBrand.ScheduleListElements = _context.ScheduleListElements.Where(e => e.BrandId == existingBrand.BrandId).ToList();
+
+                //Находит элементы первого списка, отсутствующие во 2м
+                var addScheduleListElement = brand.ScheduleListElements.Where(e => existingBrand.ScheduleListElements.All(x => x != e));
+                var subScheduleListElement = existingBrand.ScheduleListElements.Where(e => brand.ScheduleListElements.All(x => x != e));
+
+                //Те, что нужно добавить
+                foreach (var scheduleElement in addScheduleListElement)
+                {
+                    _context.ScheduleListElements.Add(new ScheduleListElement()
+                    {
+                        OpenTime = scheduleElement.OpenTime,
+                        CloseTime = scheduleElement.CloseTime,
+                        DayOfWeek = scheduleElement.DayOfWeek,
+                        BrandId = existingBrand.BrandId
+                    });
+                }
+
+                //Те, что нужно удалить
+                foreach (var scheduleElement in subScheduleListElement)
+                {
+                    //Находить обязательно по 2м критериям
+                    var sacrifice = _context.ScheduleListElements.FirstOrDefault(e =>
+                        e.DayOfWeek == scheduleElement.DayOfWeek &&
+                        e.BrandId == existingBrand.BrandId);
+                    if (sacrifice != null)
+                    {
+                        _context.ScheduleListElements.Remove(sacrifice);
+                    }
+                }
+
+                #endregion
+
                 await _context.SaveChangesAsync();
 
                 existingBrand.Address = brand.Address;
                 existingBrand.BrandName = brand.BrandName;
                 existingBrand.Contact = brand.Contact;
                 existingBrand.Description = brand.Description;
-                existingBrand.DescriptionMax = brand.DescriptionMax;
                 existingBrand.ImgBannerId = brand.ImgBannerId;
                 existingBrand.ImgLogoId = brand.ImgLogoId;
-                existingBrand.OpenTime = brand.OpenTime;
-                existingBrand.CloseTime = brand.CloseTime;
 
                 await _context.SaveChangesAsync();
             }
@@ -385,7 +423,10 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<Brand>> PostBrand(Brand brand)
         {
-            if (brand == null || !brand.PaymentMethods.Any()) 
+            if (brand == null || 
+                !brand.PaymentMethods.Any() ||
+                !brand.ScheduleListElements.Any() ||
+                brand.ScheduleListElements.GroupBy(e => e.DayOfWeek).Any(e => e.Count() > 1)) 
             {
                 return BadRequest();
             }
@@ -405,9 +446,8 @@ namespace ApiClick.Controllers
 
             #region hashtagTrash
 
-            brand.Hashtags = brand.Hashtags.Distinct() //Удаляем дубликаты
+            brand.Hashtags = brand.Hashtags.GroupBy(e => e.HashTagName).Select(e => e.First()) //Удаляем дубликаты
                                             .OrderBy(e => e.HashTagId) //Сортируем
-                                            .Where(e => _context.Hashtags.Find(e.HashTagId) != null) //Проверяем на валидность
                                             .Take(TAGS_COUNT) //Оставляем первые TAGS_COUNT
                                             .ToList();
             //Проверяем, есть ли несуществующие теги
@@ -430,7 +470,7 @@ namespace ApiClick.Controllers
                             //Создаем новый тег
                             var newHashtag = new Hashtag()
                             {
-                                HashTagName = _tag.HashTagName,
+                                HashTagName = char.ToUpper(_tag.HashTagName[0]) + _tag.HashTagName.ToLower().Substring(1),
                                 Category = brand.Category
                             };
                             newHashtags.Add((_tag, newHashtag));
@@ -470,6 +510,19 @@ namespace ApiClick.Controllers
                 _context.PaymentMethodsListElements.Add(new PaymentMethodsListElement()
                 {
                     PaymentMethod = paymentMethod,
+                    BrandId = brand.BrandId
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            foreach (var scheduleElement in brand.ScheduleListElements)
+            {
+                _context.ScheduleListElements.Add(new ScheduleListElement()
+                {
+                    OpenTime = scheduleElement.OpenTime,
+                    CloseTime = scheduleElement.CloseTime,
+                    DayOfWeek = scheduleElement.DayOfWeek,
                     BrandId = brand.BrandId
                 });
             }
@@ -568,18 +621,28 @@ namespace ApiClick.Controllers
             brand.BrandMenus.First().Products = ListOfProducts;
         }
 
-        public static bool isBrandAvailable(Brand _brand) 
+        private bool IsBrandOpen(List<ScheduleListElement> _schedule) 
         {
-            if (_brand.Available)
+            var match = _schedule.FirstOrDefault(e => e.DayOfWeek == DateTime.Now.DayOfWeek);
+            if (match != null) 
             {
-                var now = DateTime.Now;
-
-                var openTime = new DateTime(now.Year, now.Month, now.Day, _brand.OpenTime.Hours, _brand.OpenTime.Minutes, 0);
-                var closeTime = new DateTime(now.Year, now.Month, now.Day, _brand.CloseTime.Hours, _brand.CloseTime.Minutes, 0);
-
-                //На случай позднего времени закрытия
-                if (_brand.OpenTime > _brand.CloseTime) closeTime.AddDays(1);
-                if (now >= openTime && now <= closeTime) 
+                //Попадаем ли мы во временной промежуток сейчас
+                var closeEarlierThanOpen = match.OpenTime > match.CloseTime;
+                var laterThanOpen = match.OpenTime <= DateTime.Now.TimeOfDay;
+                var earlierThanClose = match.CloseTime >= DateTime.Now.TimeOfDay;
+                if (
+                        (
+                            closeEarlierThanOpen
+                            || 
+                            (laterThanOpen && earlierThanClose)
+                        ) 
+                    &&
+                        (
+                            !closeEarlierThanOpen 
+                            || 
+                            (laterThanOpen || earlierThanClose)
+                        )
+                    ) 
                 {
                     return true;
                 }

@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-using DayOfWeek = ApiClick.Models.EnumModels.DayOfWeek;
 
 namespace ApiClick.Models.ArrayModels
 {
