@@ -51,11 +51,11 @@ namespace ApiClick.Controllers
             return brands;
         }
 
-        // POST: api/GetBrandsByFilter/5?name=blahbla&openNow=true
+        // POST: api/GetBrandsByFilter/0/3?name=blahbla&openNow=true
         [Route("api/GetBrandsByFilter/{category}/{_page}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Category category, int _page, [FromBody]List<int> HashTags = null, string name = null, bool openNow = false)
+        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Category category, int _page, [FromBody]List<int> HashTags = null, bool openNow = false)
         {
             var brands = _context.Brands.Where(p => p.Category == category && p.Available);
 
@@ -67,13 +67,6 @@ namespace ApiClick.Controllers
                     //Оставляет те бренды, в которых имеется текущий хэштег итерации
                     brands = brands.Where(e => e.HashtagsListElements.Any(x => x.HashtagId == hashTagId));
                 }
-            }
-
-            //Урезаем выборку по критерию наличия строки в имени бренда
-            if (name != null)
-            {
-                //Сводим обе строки к капсу и проверяем содержание одной в другой
-                brands = brands.Where(e => e.BrandName.ToUpper().Contains(name.ToUpper()));
             }
 
             //Урезаем выборку по критерию доступности бренда
@@ -106,6 +99,45 @@ namespace ApiClick.Controllers
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
             return resultBrands;
         }
+
+
+        // GET: api/GetBrandsByName/5?name=blahbla
+        [Route("api/GetBrandsByName/{category}")]
+        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [HttpGet]
+        public async Task<ActionResult<List<Brand>>> GetBrandsByName(Category category, string name = null)
+        {
+            var brands = _context.Brands.Where(p => p.Category == category);
+
+            //Урезаем выборку по критерию наличия строки в имени бренда
+            if (name != null)
+            {
+                //Сводим обе строки к капсу и проверяем содержание одной в другой
+                brands = brands.Where(e => e.BrandName.ToUpper().Contains(name.ToUpper()));
+            }
+
+            if (!brands.Any())
+            {
+                return NotFound();
+            }
+
+            var resultBrands = brands.ToList();
+
+            foreach (Brand brand in resultBrands)
+            {
+                var remoteBrand = await _context.Brands.FindAsync(brand.BrandId);
+                brand.ImgLogo = await _context.Images.FindAsync(brand.ImgLogoId);
+                brand.ImgBanner = await _context.Images.FindAsync(brand.ImgBannerId);
+                brand.Hashtags = await _context.HashtagsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.Hashtag).ToListAsync();
+                brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
+                    .Select(e => e.PaymentMethod).ToListAsync();
+            }
+
+            //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
+            return resultBrands;
+        }
+
 
         // GET: api/GetBrandsByCategory/5
         //Получить список брендов категории id
