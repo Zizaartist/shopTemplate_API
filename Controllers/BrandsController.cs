@@ -293,7 +293,7 @@ namespace ApiClick.Controllers
                                 //Создаем новый тег
                                 var newHashtag = new Hashtag()
                                 {
-                                    HashTagName = char.ToUpper(_tag.HashTagName[0]) + _tag.HashTagName.ToLower().Substring(1),
+                                    HashTagName = _tag.HashTagName.ToLower(),
                                     Category = brand.Category
                                 };
                                 newHashtags.Add((_tag, newHashtag));
@@ -502,7 +502,7 @@ namespace ApiClick.Controllers
                             //Создаем новый тег
                             var newHashtag = new Hashtag()
                             {
-                                HashTagName = char.ToUpper(_tag.HashTagName[0]) + _tag.HashTagName.ToLower().Substring(1),
+                                HashTagName = _tag.HashTagName.ToLower(),
                                 Category = brand.Category
                             };
                             newHashtags.Add((_tag, newHashtag));
