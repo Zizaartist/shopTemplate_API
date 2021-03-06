@@ -63,6 +63,7 @@ namespace ApiClick.Models
         public float? Rating { get; set; } //null if no reviews
         [MaxLength(ModelLengths.LENGTH_MAX)]
         public string? Rules { get; set; }
+        public Decimal? DeliveryPrice { get; set; } //Оба deliveryPrice и minimalPrice должны присутствовать
         public Decimal? MinimalPrice { get; set; }
 
         [ForeignKey("UserId")]

@@ -13,6 +13,7 @@ namespace ApiClick.StaticValues
         public readonly static int PRODUCT_ID_BOTTLED_WATER = 9;
         public readonly static int PRODUCT_ID_WATER = 10;
         public readonly static int PRODUCT_ID_CONTAINER = 11;
+        public readonly static int PRODUCT_ID_DELIVERY = 19;
 
         public static void Init() 
         {

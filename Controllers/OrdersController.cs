@@ -309,10 +309,22 @@ namespace ApiClick.Controllers
             order.BrandOwnerId = responsibleBrand.UserId;
             order.BrandOwner = await _context.Users.FindAsync(order.BrandOwnerId);
 
+            var orderSum = order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
+            //Добавляем доставку как еще 1 товар
+            if (order.Delivery)
+            {
+                var deliveryPrice = (orderSum < (responsibleBrand.MinimalPrice ?? 0)) ? (responsibleBrand.DeliveryPrice ?? 0) : 0;
+                order.OrderDetails.Add(new OrderDetail()
+                {
+                    ProductId = Constants.PRODUCT_ID_DELIVERY,
+                    Count = 1,
+                    Price = deliveryPrice
+                });
+            }
+
             //filling blanks and sending to DB
             if (order.PointsUsed)
             {
-                var orderSum = order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
                 //Если заказ бесплатный - убрать связь с банкнотами
                 if (orderSum <= order.User.Points)
                 {
