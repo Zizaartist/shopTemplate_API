@@ -18,6 +18,7 @@ namespace ApiClick.Controllers
     {
         ClickContext _context;
         Functions funcs = new Functions();
+        public static int PAGE_SIZE = 5;
 
         public ProductsController(ClickContext _context)
         {
@@ -40,26 +41,30 @@ namespace ApiClick.Controllers
             return products;
         }
 
-        // GET: api/GetProductsByMenu/5
+        // GET: api/GetProductsByMenu/5/1
         //Возвращает список продуктов принадлежащих меню с указаным id
-        [Route("api/GetProductsByMenu/{id}")]
+        [Route("api/GetProductsByMenu/{id}/{_page}")]
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByMenu(int id)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByMenu(int id, int _page)
         {
-            var products = await _context.Products.Where(p => p.BrandMenuId == id).ToListAsync();
+            var products = _context.Products.Where(p => p.BrandMenuId == id); 
+            
+            products = funcs.GetPageRange(products, _page, PAGE_SIZE);
 
-            if (products == null)
+            if (!products.Any())
             {
                 return NotFound();
             }
 
-            foreach (Product product in products) 
+            var result = await products.ToListAsync();
+
+            foreach (Product product in result) 
             {
                 product.Image = await _context.Images.FindAsync(product.ImgId);
             }
 
-            return products;
+            return result;
         }
 
         // GET: api/GetProductsByMenu/5
