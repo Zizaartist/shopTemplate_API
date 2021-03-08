@@ -133,6 +133,7 @@ namespace ApiClick.Controllers
                     .Select(e => e.Hashtag).ToListAsync();
                 brand.PaymentMethods = await _context.PaymentMethodsListElements.Where(e => e.BrandId == brand.BrandId)
                     .Select(e => e.PaymentMethod).ToListAsync();
+                brand.ScheduleListElements = await _context.ScheduleListElements.Where(e => e.BrandId == brand.BrandId).ToListAsync();
             }
 
             //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
