@@ -190,6 +190,13 @@ namespace ApiClick.Controllers
             foreach (var message in result) 
             {
                 message.User = funcs.getCleanUser(_context.Users.Find(message.UserId));
+
+                //Возвращаем первые 3 продукта заказа
+                var orderDetails = _context.OrderDetails.Where(e => e.OrderId == message.OrderId).Take(3);
+                foreach (var detail in orderDetails) 
+                {
+                    message.OrderedProducts.Add(funcs.getCleanModel(_context.Products.Find(detail.ProductId)));
+                }
             }
 
             return result;
