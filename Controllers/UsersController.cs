@@ -16,6 +16,7 @@ using ApiClick.Models.EnumModels;
 using ApiClick.Controllers.ScheduledTasks;
 using Quartz;
 using ApiClick.Controllers.ScheduledTasks.Jobs;
+using ApiClick.Controllers.FrequentlyUsed;
 
 namespace ApiClick.Controllers
 {

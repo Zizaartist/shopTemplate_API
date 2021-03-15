@@ -14,6 +14,7 @@ using ApiClick.Models.EnumModels;
 using ApiClick.Models.RegisterModels;
 using ApiClick.StaticValues;
 using System.ComponentModel;
+using ApiClick.Controllers.FrequentlyUsed;
 
 namespace ApiClick.Controllers
 {

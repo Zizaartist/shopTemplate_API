@@ -14,6 +14,7 @@ using System.Reflection;
 using ApiClick.Models.ArrayModels;
 using ApiClick.StaticValues;
 using Click.Models;
+using ApiClick.Controllers.FrequentlyUsed;
 
 namespace ApiClick.Controllers
 {

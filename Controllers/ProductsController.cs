@@ -10,6 +10,7 @@ using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using ApiClick.StaticValues;
+using ApiClick.Controllers.FrequentlyUsed;
 
 namespace ApiClick.Controllers
 {
