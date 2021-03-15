@@ -8,7 +8,7 @@ using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace ApiClick.Controllers
+namespace ApiClick.Controllers.FrequentlyUsed
 {
     public class Functions
     {

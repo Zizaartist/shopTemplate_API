@@ -7,7 +7,7 @@ using ApiClick.Models.RegisterModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApiClick.Controllers
+namespace ApiClick.Controllers.FrequentlyUsed
 {
     public class PointsController
     {

@@ -479,6 +479,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
+            ////Вроде баллы не должны работать у водных заказов
             //if (pointsUsed)
             //{
             //    order.PointsUsed = true;

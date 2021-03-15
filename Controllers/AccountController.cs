@@ -1,4 +1,5 @@
-﻿using ApiClick.Models;
+﻿using ApiClick.Controllers.FrequentlyUsed;
+using ApiClick.Models;
 using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +12,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
@@ -104,7 +104,7 @@ namespace ApiClick.Controllers
                     var senderIp = Request.HttpContext.Connection.RemoteIpAddress;
                     string moreReadable = senderIp.ToString();
 
-                    HttpClient client = new HttpClient();
+                    HttpClient client = HttpClientSingleton.HttpClient;
                     HttpResponseMessage response = await client.GetAsync($"https://sms.ru/sms/send?api_id=0F4D5813-DEF7-5914-2D97-42D0FBA75865&to={PhoneLoc}&msg={generatedCode}&json=1");
                     if (response.IsSuccessStatusCode)
                     {
