@@ -1,4 +1,5 @@
-﻿using ApiClick.Models;
+﻿using ApiClick.Controllers.FrequentlyUsed;
+using ApiClick.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using System;
