@@ -13,8 +13,6 @@ namespace ApiClick.Controllers.ScheduledTasks
 
         #region properies & fields
 
-        public static TimeSpan ORDER_LIFETIME = TimeSpan.FromHours(2);
-        public static string WATER_GROUP_NAME = "WaterOrderTasks";
         public static string REPORT_GROUP_NAME = "ReportTask";
 
         public static IScheduler scheduler { get; private set; }
@@ -34,26 +32,12 @@ namespace ApiClick.Controllers.ScheduledTasks
             //Создаем список задач
             var orders = _context.Orders.Where(e => e.Category == Models.Category.bottledWater || e.Category == Models.Category.water) //Водные заказы
                                         .Where(e => e.BrandOwnerId == null) //Не оккупированные
-                                        .Select(e => new { TriggerTime = e.CreatedDate.AddTicks(ORDER_LIFETIME.Ticks), OrderId = e.OrderId });
+                                        .Select(e => new { TriggerTime = e.CreatedDate, OrderId = e.OrderId });
 
             int i = 0;
             foreach (var order in orders)
             {
-                IJobDetail waterJob = JobBuilder.Create<WaterOrderRemover>()
-                    .WithIdentity(order.OrderId.ToString(), WATER_GROUP_NAME)
-                    .Build();
-
-                ITrigger waterTrigger = TriggerBuilder.Create()
-                    .StartAt(new DateTimeOffset(order.TriggerTime, TimeSpan.Zero))
-                    .Build();                               
-
-                await scheduler.ScheduleJob(waterJob, waterTrigger);
-
-                //Если работа выполнена до старта scheduler - выполнить вручную
-                if (DateTime.UtcNow >= order.TriggerTime)
-                {
-                    await scheduler.TriggerJob(new JobKey(order.OrderId.ToString()));
-                }
+                WaterOrderRemover.Add(order.TriggerTime, order.OrderId);
             }
 
             #endregion
@@ -76,17 +60,10 @@ namespace ApiClick.Controllers.ScheduledTasks
 
             #region test tasks
 
-            IJobDetail testJob = JobBuilder.Create<TestJob>()
-                .WithIdentity("1", "TestGroup")
-                .Build();
-
-            var activationTime = new DateTimeOffset(DateTime.UtcNow.AddSeconds(10), TimeSpan.Zero);
-
-            ITrigger testTrigger = TriggerBuilder.Create()
-                .StartAt(activationTime)
-                .Build();
-
-            await scheduler.ScheduleJob(testJob, testTrigger);
+            await TestJob.AddNewJob(TimeSpan.FromSeconds(20));
+            await TestJob.AddNewJob(TimeSpan.FromSeconds(30));
+            await TestJob.AddNewJob(TimeSpan.FromSeconds(30));
+            await TestJob.AddNewJob(TimeSpan.FromSeconds(30));
 
             #endregion
 

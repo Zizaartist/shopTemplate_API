@@ -14,6 +14,7 @@ using ApiClick.Models.EnumModels;
 using ApiClick.Models.RegisterModels;
 using ApiClick.StaticValues;
 using System.ComponentModel;
+using ApiClick.Controllers.ScheduledTasks;
 
 namespace ApiClick.Controllers
 {
@@ -499,6 +500,8 @@ namespace ApiClick.Controllers
 
             await _context.SaveChangesAsync();
 
+            WaterOrderRemover.Remove(order.OrderId);
+
             if (order.User.NotificationsEnabled)
             {
                 await new NotificationsController().ToSendNotificationAsync(order.BrandOwner.DeviceType, "Ваш запрос на доставку был принят!", order.BrandOwner.NotificationRegistration);
@@ -702,6 +705,8 @@ namespace ApiClick.Controllers
 
             _context.Orders.Add(ordersCl);
             await _context.SaveChangesAsync(); //вроде как рефрешит объект ordersCl
+
+            WaterOrderRemover.Add(ordersCl.CreatedDate, ordersCl.OrderId); //Удалит заказ через 2 часа если job не будет удален до триггера
 
             return Ok();
         }

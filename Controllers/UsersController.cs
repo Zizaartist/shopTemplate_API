@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Principal;
 using ApiClick.Models.EnumModels;
+using ApiClick.Controllers.ScheduledTasks;
+using Quartz;
+using ApiClick.Controllers.ScheduledTasks.Jobs;
 
 namespace ApiClick.Controllers
 {
@@ -22,6 +25,7 @@ namespace ApiClick.Controllers
         ClickContext _context;
         Functions funcs = new Functions();
         IMemoryCache _cache;
+        private object scheduler;
 
         public UsersController(IMemoryCache memoryCache, ClickContext _context)
         {
@@ -35,6 +39,9 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
+            await TestJob.AddNewJob(TimeSpan.FromSeconds(5));
+            await TestJob.RemoveJob(1);
+            await TestJob.RemoveJob(2);
             return await _context.Users.ToListAsync();
         }
 
