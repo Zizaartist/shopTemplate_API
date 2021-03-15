@@ -120,7 +120,7 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<IActionResult> PutProducts(Product productCl)
         {
-            if (productCl == null)
+            if (!Product.ModelIsValid(productCl))
             {
                 return BadRequest();
             }
@@ -151,12 +151,12 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProducts(Product productCl)
         {
-            if (productCl == null) 
+            if (!Product.ModelIsValid(productCl)) 
             {
                 return BadRequest();
             }
 
-            productCl.CreatedDate = DateTime.Now;
+            productCl.CreatedDate = DateTime.UtcNow;
 
             _context.Products.Add(productCl);
             await _context.SaveChangesAsync();
@@ -181,11 +181,6 @@ namespace ApiClick.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
-        }
-
-        private User identityToUser(IIdentity identity)
-        {
-            return _context.Users.FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         /// <summary>
@@ -223,11 +218,6 @@ namespace ApiClick.Controllers
         {
             return _context.Products.Where(m => m.BrandMenuId == product.BrandMenuId)
                                      .Any(m => m.ProductName == product.ProductName);
-        }
-
-        private bool ProductsExists(int id)
-        {
-            return _context.Products.Any(e => e.ProductId == id);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace ApiClick.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        ClickContext _context;
+        private readonly ClickContext _context;
         Functions funcs = new Functions();
         private static int PAGE_SIZE = 2;
         
@@ -208,7 +208,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<Message>> PostMessages(Message message)
         {
-            if (message == null || message.Rating > 5 || message.Rating < 1) 
+            if (!Message.ModelIsValid(message)) 
             {
                 return BadRequest();
             }
@@ -239,7 +239,7 @@ namespace ApiClick.Controllers
             }
 
             var oldReviewCount = _context.Messages.Where(e => e.BrandId == message.BrandId).Count();
-            message.CreatedDate = DateTime.Now;
+            message.CreatedDate = DateTime.UtcNow;
             _context.Messages.Add(message); //Выдаст 500 если обязательные поля не заполнены
 
             await _context.SaveChangesAsync();

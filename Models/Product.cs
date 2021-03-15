@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ApiClick.StaticValues;
+using System.Diagnostics;
 
 namespace ApiClick.Models
 {
@@ -32,5 +33,28 @@ namespace ApiClick.Models
         public virtual BrandMenu BrandMenu { get; set; }
         [ForeignKey("ImgId")]
         public virtual Image Image { get; set; }
+
+        /// <summary>
+        /// Проверяет валидность модели, полученной от клиента
+        /// </summary>
+        public static bool ModelIsValid(Product _product)
+        {
+            try
+            {
+                if (_product == null ||
+                    //Required
+                    _product.Price == default ||
+                    string.IsNullOrEmpty(_product.ProductName))
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception _ex)
+            {
+                Debug.WriteLine($"Ошибка при проверке данных продукции - {_ex}");
+                return false;
+            }
+        }
     }
 }

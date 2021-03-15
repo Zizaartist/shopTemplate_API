@@ -20,6 +20,8 @@ namespace ApiClick.Models
 
         //non-required
         public int? ProductOfDayId { get; set; }
+        public int? ProductOfDayCount { get; set; }
+        public Decimal? ProductOfDaySum { get; set; }
 
         [ForeignKey("ProductOfDayId")]
         public Product ProductOfDay { get; set; }

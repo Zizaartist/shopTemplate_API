@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ApiClick.Models.EnumModels;
 using ApiClick.StaticValues;
@@ -26,8 +27,11 @@ namespace ApiClick.Models
         public int UserId { get; set; } 
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string Phone { get; set; }
+        [Required]
         public UserRole UserRole { get; set; }
+        [Required]
         public decimal Points { get; set; }
+        [Required]
         public bool NotificationsEnabled { get; set; }
 
         //Nullable
@@ -59,5 +63,28 @@ namespace ApiClick.Models
         public virtual ICollection<Order> Orders { get; set; }
         [NotMapped]
         public ICollection<Image> UploadedImages { get; set; }
+
+        /// <summary>
+        /// Проверяет валидность модели, полученной от клиента
+        /// </summary>
+        public static bool ModelIsValid(User _user)
+        {
+            try
+            {
+                if (_user == null ||
+                    //Required
+                    string.IsNullOrEmpty(_user.Phone) ||
+                    _user.UserRole > UserRole.User)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception _ex)
+            {
+                Debug.WriteLine($"Ошибка при проверке данных пользователя - {_ex}");
+                return false;
+            }
+        }
     }
 }

@@ -87,7 +87,7 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<IActionResult> PutBrandMenus(BrandMenu brandMenuCl)
         {
-            if (brandMenuCl == null)
+            if (!BrandMenu.ModelIsValid(brandMenuCl))
             {
                 return BadRequest();
             }
@@ -115,12 +115,12 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<BrandMenu>> PostBrandMenus(BrandMenu brandMenuCl)
         {
-            if (brandMenuCl == null || SameNameMenu(brandMenuCl)) 
+            if (!BrandMenu.ModelIsValid(brandMenuCl) || SameNameMenu(brandMenuCl)) 
             {
                 return BadRequest();
             }
 
-            brandMenuCl.CreatedDate = DateTime.Now;
+            brandMenuCl.CreatedDate = DateTime.UtcNow;
 
             _context.BrandMenus.Add(brandMenuCl);
             await _context.SaveChangesAsync();

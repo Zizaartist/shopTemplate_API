@@ -89,7 +89,7 @@ namespace ApiClick.Controllers
                     ReceiverId = _receiverId,
                     OrderId = _orderId,
                     Points = _points,
-                    CreatedDate = DateTime.Now
+                    CreatedDate = DateTime.UtcNow
                 };
                 _context.PointRegisters.Add(register);
                 _context.SaveChanges();

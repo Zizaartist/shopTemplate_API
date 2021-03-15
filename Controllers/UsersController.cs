@@ -230,7 +230,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUsers(User userCl, string code)
         {
-            if (userCl == null)
+            if (!Models.User.ModelIsValid(userCl))
             {
                 return BadRequest();
             }
@@ -269,7 +269,7 @@ namespace ApiClick.Controllers
             }
             else
             {
-                userCl.CreatedDate = DateTime.Now;
+                userCl.CreatedDate = DateTime.UtcNow;
                 userCl.UserRole = Models.EnumModels.UserRole.User;
                 userCl.Points = 0;
 
@@ -297,7 +297,7 @@ namespace ApiClick.Controllers
             }
             else
             {
-                userCl.CreatedDate = DateTime.Now;
+                userCl.CreatedDate = DateTime.UtcNow;
                 userCl.UserRole = UserRole.User;
 
                 _context.Users.Add(userCl);

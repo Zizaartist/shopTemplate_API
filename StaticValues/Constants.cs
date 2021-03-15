@@ -9,11 +9,13 @@ namespace ApiClick.StaticValues
     {
         public static object CONSTRUCTOR_CALLER = null;
 
-        //Product ID
+        //Статические продукты
         public readonly static int PRODUCT_ID_BOTTLED_WATER = 9;
         public readonly static int PRODUCT_ID_WATER = 10;
         public readonly static int PRODUCT_ID_CONTAINER = 11;
         public readonly static int PRODUCT_ID_DELIVERY = 19;
+
+        public readonly static TimeSpan YAKUTSK_OFFSET = new TimeSpan(9, 0, 0); //GMT +9
 
         public static void Init() 
         {

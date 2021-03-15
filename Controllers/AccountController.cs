@@ -39,7 +39,7 @@ namespace ApiClick.Controllers
                 return BadRequest(new { errorText = "Invalid phone number." });
             }
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             // создаем JWT-токен
             var jwt = new JwtSecurityToken(
                     issuer: AuthOptions.ISSUER,
@@ -69,7 +69,7 @@ namespace ApiClick.Controllers
                 return BadRequest(new { errorText = "Invalid credentials." });
             }
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             // создаем JWT-токен
             var jwt = new JwtSecurityToken(
                     issuer: AuthOptions.ISSUER,

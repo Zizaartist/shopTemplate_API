@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using ApiClick.Controllers.ScheduledTasks;
+using ApiClick.Controllers.ScheduledTasks.Jobs;
 using ApiClick.StaticValues;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Quartz;
 
 namespace ApiClick
 {
@@ -61,9 +65,14 @@ namespace ApiClick
             services.AddControllersWithViews()
                 .AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-            ); 
-            services.AddHttpContextAccessor();
-            services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            );
+
+            //transient создает новый объект при каждом обращении
+            services.AddTransient<JobFactory>();
+            //scoped дл€ каждого запроса создаетс€ свой объект сервиса, но при всех обращени€х используетс€ именно данный экземпл€р
+            services.AddScoped<WaterOrderRemover>();
+            services.AddScoped<ReportSender>();
+            services.AddScoped<TestJob>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

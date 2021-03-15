@@ -80,6 +80,9 @@ namespace ApiClick
                 entity.Property(e => e.Available)
                     .HasDefaultValue(true);
 
+                entity.Property(e => e.PointsPercentage)
+                    .IsRequired();
+
                 entity.Property(e => e.OfficialName)
                     .IsRequired()
                     .HasMaxLength(ModelLengths.LENGTH_MEDIUM);

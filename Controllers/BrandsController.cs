@@ -252,10 +252,7 @@ namespace ApiClick.Controllers
         [HttpPut]
         public async Task<IActionResult> PutBrand(Brand brand)
         {
-            if (brand == null || 
-                !brand.PaymentMethods.Any() || 
-                !brand.ScheduleListElements.Any() || 
-                brand.ScheduleListElements.GroupBy(e => e.DayOfWeek).Any(e => e.Count() > 1)) //дублирующиеся дни
+            if (!Brand.ModelIsValid(brand)) //дублирующиеся дни
             {
                 return BadRequest();
             }
@@ -458,10 +455,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<Brand>> PostBrand(Brand brand)
         {
-            if (brand == null || 
-                !brand.PaymentMethods.Any() ||
-                !brand.ScheduleListElements.Any() ||
-                brand.ScheduleListElements.GroupBy(e => e.DayOfWeek).Any(e => e.Count() > 1)) 
+            if (!Brand.ModelIsValid(brand)) 
             {
                 return BadRequest();
             }
@@ -475,7 +469,7 @@ namespace ApiClick.Controllers
             //Заполняем пробелы
             brand.User = funcs.identityToUser(User.Identity, _context);
             brand.UserId = brand.User.UserId;
-            brand.CreatedDate = DateTime.Now;
+            brand.CreatedDate = DateTime.UtcNow;
 
             int TAGS_COUNT = 3;
 
@@ -658,13 +652,14 @@ namespace ApiClick.Controllers
 
         private bool IsBrandOpen(List<ScheduleListElement> _schedule) 
         {
-            var match = _schedule.FirstOrDefault(e => e.DayOfWeek == DateTime.Now.DayOfWeek);
+            var currentYakutskTime = new DateTimeOffset(DateTime.UtcNow, Constants.YAKUTSK_OFFSET);
+            var match = _schedule.FirstOrDefault(e => e.DayOfWeek == currentYakutskTime.DayOfWeek);
             if (match != null) 
             {
                 //Попадаем ли мы во временной промежуток сейчас
                 var closeEarlierThanOpen = match.OpenTime > match.CloseTime;
-                var laterThanOpen = match.OpenTime <= DateTime.Now.TimeOfDay;
-                var earlierThanClose = match.CloseTime >= DateTime.Now.TimeOfDay;
+                var laterThanOpen = match.OpenTime <= currentYakutskTime.TimeOfDay;
+                var earlierThanClose = match.CloseTime >= currentYakutskTime.TimeOfDay;
                 if (
                         (
                             closeEarlierThanOpen

@@ -279,9 +279,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<List<Order>>> PostOrders(Order order)
         {
-            if (order == null ||
-                order.OrderDetails == null ||
-                order.OrderDetails.Count < 1)
+            if (!Order.ModelIsValid(order))
             {
                 return BadRequest();
             }
@@ -301,7 +299,7 @@ namespace ApiClick.Controllers
 
             order.OrderDetails = funcs.getCleanListOfModels(order.OrderDetails.ToList());
             order.Category = responsibleBrand.Category;
-            order.CreatedDate = DateTime.Now;
+            order.CreatedDate = DateTime.UtcNow;
             order.OrderStatus = OrderStatus.received;
             order.User = funcs.identityToUser(User.Identity, _context);
             order.UserId = order.User.UserId;
@@ -313,7 +311,7 @@ namespace ApiClick.Controllers
             //Добавляем доставку как еще 1 товар
             if (order.Delivery)
             {
-                var deliveryPrice = (orderSum < (responsibleBrand.MinimalPrice ?? 0)) ? (responsibleBrand.DeliveryPrice ?? 0) : 0;
+                var deliveryPrice = (orderSum < responsibleBrand.MinimalPrice) ? responsibleBrand.DeliveryPrice : 0;
                 order.OrderDetails.Add(new OrderDetail()
                 {
                     ProductId = Constants.PRODUCT_ID_DELIVERY,
@@ -696,7 +694,7 @@ namespace ApiClick.Controllers
             }
 
             //filling blanks and sending to DB
-            ordersCl.CreatedDate = DateTime.Now;
+            ordersCl.CreatedDate = DateTime.UtcNow;
             ordersCl.OrderStatus = OrderStatus.sent;
             ordersCl.UserId = funcs.identityToUser(User.Identity, _context).UserId;
             ordersCl.User = await _context.Users.FindAsync(ordersCl.UserId);

@@ -7,6 +7,7 @@ using System.Linq;
 using ApiClick.Models.ArrayModels;
 using ApiClick.Models.EnumModels;
 using ApiClick.StaticValues;
+using System.Diagnostics;
 
 namespace ApiClick.Models
 {
@@ -24,7 +25,9 @@ namespace ApiClick.Models
         //Not nullable
         [Key]
         public int BrandId { get; set; }
+        [Required]
         public Category Category { get; set; }
+        [Required]
         public int UserId { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
         public string BrandName { get; set; }
@@ -37,6 +40,8 @@ namespace ApiClick.Models
         public bool Available { get; set; }
         [Required]
         public bool HasDiscounts { get; set; } //Изменяется при каждом изменении параметра скидки у product
+        [Required]
+        public int PointsPercentage { get; set; }
         //Документация
         [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string OfficialName { get; set; }
@@ -48,6 +53,10 @@ namespace ApiClick.Models
         public string LegalAddress { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Executor { get; set; }
+        [Required]
+        public Decimal DeliveryPrice { get; set; }
+        [Required]
+        public Decimal MinimalPrice { get; set; }
         [Required]
         public DateTime CreatedDate { get; set; }
 
@@ -63,8 +72,6 @@ namespace ApiClick.Models
         public float? Rating { get; set; } //null if no reviews
         [MaxLength(ModelLengths.LENGTH_MAX)]
         public string? Rules { get; set; }
-        public Decimal? DeliveryPrice { get; set; } //Оба deliveryPrice и minimalPrice должны присутствовать
-        public Decimal? MinimalPrice { get; set; }
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
@@ -83,7 +90,48 @@ namespace ApiClick.Models
         [NotMapped]
         public virtual ICollection<ScheduleListElement> ScheduleListElements { get; set; }
 
+        [NotMapped]
         public ICollection<PaymentMethod> PaymentMethods;
+        [NotMapped]
         public ICollection<Hashtag> Hashtags;
+
+        /// <summary>
+        /// Проверяет валидность модели, полученной от клиента
+        /// </summary>
+        public static bool ModelIsValid(Brand _brand) 
+        {
+            try
+            {
+                if (_brand == null ||
+                    //collections
+                    _brand.PaymentMethods == null ||
+                    !_brand.PaymentMethods.Any() ||
+                    _brand.Hashtags == null ||
+                    _brand.ScheduleListElements == null ||
+                    !_brand.ScheduleListElements.Any() ||
+                    //required
+                    string.IsNullOrEmpty(_brand.BrandName) ||
+                    string.IsNullOrEmpty(_brand.Description) ||
+                    _brand.PointsPercentage == default ||
+                    string.IsNullOrEmpty(_brand.OfficialName) ||
+                    string.IsNullOrEmpty(_brand.OGRN) ||
+                    string.IsNullOrEmpty(_brand.INN) ||
+                    string.IsNullOrEmpty(_brand.LegalAddress) ||
+                    string.IsNullOrEmpty(_brand.Executor) ||
+                    _brand.DeliveryPrice == default ||
+                    _brand.MinimalPrice == default ||
+                    //chunky
+                    _brand.ScheduleListElements.GroupBy(e => e.DayOfWeek).Any(e => e.Count() > 1)) //Нет дубликатов дней
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception _ex) 
+            {
+                Debug.WriteLine($"Ошибка при проверке данных бренда - {_ex}");
+                return false;
+            }
+        }
     }
 }
