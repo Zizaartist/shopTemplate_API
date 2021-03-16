@@ -38,6 +38,7 @@ namespace ApiClick
         //Модели-регистры
         public virtual DbSet<Image> Images { get; set; }
         public virtual DbSet<PointRegister> PointRegisters { get; set; }
+        public virtual DbSet<ErrorReport> ErrorReports { get; set; }
 
         //Enum модели
         public virtual DbSet<Hashtag> Hashtags { get; set; }
@@ -520,6 +521,14 @@ namespace ApiClick
                     .IsRequired();
 
                 entity.Property(e => e.CreatedDate)
+                    .IsRequired();
+            });
+
+            modelBuilder.Entity<ErrorReport>(entity => 
+            {
+                entity.HasKey(e => e.ErrorReportId);
+                entity.Property(e => e.Text)
+                    .HasMaxLength(ModelLengths.LENGTH_MAX)
                     .IsRequired();
             });
 
