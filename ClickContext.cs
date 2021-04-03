@@ -527,9 +527,15 @@ namespace ApiClick
             modelBuilder.Entity<ErrorReport>(entity => 
             {
                 entity.HasKey(e => e.ErrorReportId);
+
                 entity.Property(e => e.Text)
                     .HasMaxLength(ModelLengths.LENGTH_MAX)
                     .IsRequired();
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             OnModelCreatingPartial(modelBuilder);

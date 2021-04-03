@@ -1,4 +1,5 @@
-﻿using ApiClick.Models;
+﻿using ApiClick.Controllers.FrequentlyUsed;
+using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
 {
-    [Route("api/ErrorReport")]
-    public class ErrorReportsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ErrorReportsController : ControllerBase
     {
         ClickContext _context;
 
@@ -18,6 +20,7 @@ namespace ApiClick.Controllers
             this._context = _context;
         }
 
+        //Пока без серьезных ограничений, но может быть слабым местом для спама
         // POST: api/ErrorReport
         [Authorize(Roles = "SuperAdmin, Admin, User")]
         [HttpPost]
@@ -27,6 +30,8 @@ namespace ApiClick.Controllers
             {
                 return BadRequest();
             }
+
+            _errorReport.UserId = new Functions().identityToUser(User.Identity, _context).UserId;
 
             _context.ErrorReports.Add(_errorReport);
             await _context.SaveChangesAsync();

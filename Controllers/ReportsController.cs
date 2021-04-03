@@ -13,8 +13,9 @@ using ApiClick.Controllers.FrequentlyUsed;
 
 namespace ApiClick.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
-    public class ReportsController : Controller
+    public class ReportsController : ControllerBase
     {
         private Functions funcs;
         private readonly ClickContext _context;

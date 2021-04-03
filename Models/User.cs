@@ -63,6 +63,8 @@ namespace ApiClick.Models
         public virtual ICollection<Order> Orders { get; set; }
         [NotMapped]
         public ICollection<Image> UploadedImages { get; set; }
+        [NotMapped]
+        public ICollection<ErrorReport> ErrorReports { get; set; }
 
         /// <summary>
         /// Проверяет валидность модели, полученной от клиента

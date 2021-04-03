@@ -39,6 +39,8 @@ namespace ApiClick.Models
         [Required]
         public bool Delivery { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
+        public string Orderer { get; set; }
+        [Required, MaxLength(ModelLengths.LENGTH_MEDIUM)]
         public string Street { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_MIN)]
         public string House { get; set; }

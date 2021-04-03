@@ -10,10 +10,17 @@ namespace ApiClick.Models
 {
     public class ErrorReport
     {
+        //Not nullable
         [Key]
         public int ErrorReportId { get; set; }
         [Required, MaxLength(ModelLengths.LENGTH_MAX)]
         public string Text { get; set; }
+
+        //Nullable
+        public int? UserId { get; set; }
+
+        //Nav. properties
+        public virtual User User { get; set; }
 
         /// <summary>
         /// Проверяет валидность модели, полученной от клиента
