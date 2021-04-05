@@ -1,31 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
+
+// Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
+// If you have enabled NRTs for your project, then un-comment the following line:
+// #nullable disable
 
 namespace ApiClick.Models
 {
-    public class Report
+    public partial class Report
     {
-        //required
-
-        [Key]
         public int ReportId { get; set; }
         public int OrderCount { get; set; }
-        public Decimal Sum { get; set; }
+        public decimal Sum { get; set; }
         public int BrandId { get; set; }
         public DateTime CreatedDate { get; set; }
-
-        //non-required
         public int? ProductOfDayId { get; set; }
         public int? ProductOfDayCount { get; set; }
-        public Decimal? ProductOfDaySum { get; set; }
+        public decimal? ProductOfDaySum { get; set; }
 
-        [ForeignKey("ProductOfDayId")]
-        public Product ProductOfDay { get; set; }
-        [ForeignKey("BrandId")]
-        public Product Brand { get; set; }
+        public virtual Brand Brand { get; set; }
+        public virtual Product ProductOfDay { get; set; }
     }
 }

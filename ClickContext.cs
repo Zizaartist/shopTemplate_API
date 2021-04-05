@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Linq;
 using ApiClick.Models;
-using ApiClick.Models.ArrayModels;
-using ApiClick.Models.EnumModels;
-using ApiClick.Models.RegisterModels;
-using ApiClick.StaticValues;
-using Click.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+
+// Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
+// If you have enabled NRTs for your project, then un-comment the following line:
+// #nullable disable
 
 namespace ApiClick
 {
@@ -22,520 +20,567 @@ namespace ApiClick
         {
         }
 
-        //Обычные модели
+        public virtual DbSet<AdBanner> AdBanners { get; set; }
         public virtual DbSet<Brand> Brands { get; set; }
-        public virtual DbSet<BrandMenu> BrandMenus { get; set; }
-        public virtual DbSet<Message> Messages { get; set; }
+        public virtual DbSet<BrandDoc> BrandDocs { get; set; }
+        public virtual DbSet<BrandHashtag> BrandHashtags { get; set; }
+        public virtual DbSet<BrandInfo> BrandInfo { get; set; }
+        public virtual DbSet<BrandPaymentMethod> BrandPaymentMethods { get; set; }
+        public virtual DbSet<Category> Categories { get; set; }
+        public virtual DbSet<ErrorReport> ErrorReports { get; set; }
+        public virtual DbSet<Executor> Executors { get; set; }
+        public virtual DbSet<Hashtag> Hashtags { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
-        public virtual DbSet<Product> Products { get; set; }
-        public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<WaterRequest> WaterRequests { get; set; }
-        public virtual DbSet<RequestDetail> RequestDetails { get; set; }
-        public virtual DbSet<AdBanner> AdBanners { get; set; }
-        public virtual DbSet<Report> Reports { get; set; }
-
-        //Модели-регистры
-        public virtual DbSet<Image> Images { get; set; }
+        public virtual DbSet<OrderInfo> OrderInfo { get; set; }
         public virtual DbSet<PointRegister> PointRegisters { get; set; }
-        public virtual DbSet<ErrorReport> ErrorReports { get; set; }
-
-        //Enum модели
-        public virtual DbSet<Hashtag> Hashtags { get; set; }
-        
-        //Списки-посредники
-        public virtual DbSet<HashtagsListElement> HashtagsListElements { get; set; }
-        public virtual DbSet<PaymentMethodsListElement> PaymentMethodsListElements { get; set; }
+        public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<Report> Reports { get; set; }
+        public virtual DbSet<Review> Reviews { get; set; }
         public virtual DbSet<ScheduleListElement> ScheduleListElements { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<UserInfo> UserInfo { get; set; }
+        public virtual DbSet<WaterBrand> WaterBrands { get; set; }
+        public virtual DbSet<WaterOrder> WaterOrders { get; set; }
+        public virtual DbSet<WaterRequest> WaterRequests { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseSqlServer("Server=localhost;Database=Redesign_Click_DB;Trusted_Connection=True");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Relational:DefaultSchema", "dbo");
+            modelBuilder.Entity<AdBanner>(entity =>
+            {
+                entity.HasIndex(e => e.Image)
+                    .HasName("IX_AdBanners_ImgId");
 
-            //modelBuilder.UseCollation("SQL_Latin1_General_CP1_CS_AS");
+                entity.Property(e => e.Image).HasMaxLength(10);
+
+                entity.Property(e => e.RemoveDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Text).HasMaxLength(50);
+
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.AdBanner)
+                    .HasForeignKey(d => d.BrandId)
+                    .HasConstraintName("FK_AdBanner_Brand");
+            });
 
             modelBuilder.Entity<Brand>(entity =>
             {
-                entity.HasKey(e => e.BrandId)
-                    .HasName("PK_Brand_BrandId");
+                entity.HasIndex(e => e.UserId)
+                    .HasName("IX_Brands_UserId");
 
-                //Not nullable
-
-                entity.ToTable("Brands", "dbo");
+                entity.Property(e => e.Available)
+                    .IsRequired()
+                    .HasDefaultValueSql("(CONVERT([bit],(1)))");
 
                 entity.Property(e => e.BrandName)
                     .IsRequired()
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsUnicode();
+                    .HasMaxLength(30);
 
-                entity.Property(e => e.Description)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Rules)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX);
+                entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
 
-                entity.Property(e => e.Available)
-                    .HasDefaultValue(true);
+                entity.Property(e => e.MinimalPrice).HasColumnType("decimal(18, 2)");
 
-                entity.Property(e => e.PointsPercentage)
-                    .IsRequired();
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Brand)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Brand_UserId");
+            });
 
-                entity.Property(e => e.OfficialName)
-                    .IsRequired()
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+            modelBuilder.Entity<BrandDoc>(entity =>
+            {
+                entity.HasKey(e => e.BrandDocsId);
 
-                entity.Property(e => e.OGRN)
-                    .IsRequired()
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-
-                entity.Property(e => e.INN)
-                    .IsRequired()
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-
-                entity.Property(e => e.LegalAddress)
-                    .IsRequired()
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_BrandDoc")
+                    .IsUnique();
 
                 entity.Property(e => e.Executor)
                     .IsRequired()
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+                    .HasMaxLength(50);
 
-                //Nullable
+                entity.Property(e => e.Inn)
+                    .IsRequired()
+                    .HasColumnName("INN")
+                    .HasMaxLength(30);
 
-                entity.Property(e => e.Contact)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX)
-                    .IsUnicode(false);
+                entity.Property(e => e.LegalAddress)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-                entity.Property(e => e.Address)
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+                entity.Property(e => e.OfficialName)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Brands)
-                    .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_Brand_UserId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(d => d.ImgLogo)
-                    .WithMany()
-                    .HasForeignKey(e => e.ImgLogoId)
-                    .HasConstraintName("FK_Brand_ImgLogoId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(d => d.ImgBanner)
-                    .WithMany()
-                    .HasForeignKey(e => e.ImgBannerId)
-                    .HasConstraintName("FK_Brand_ImgBannerId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(d => d.Certificate)
-                    .WithMany()
-                    .HasForeignKey(e => e.CertificateId)
-                    .HasConstraintName("FK_Brand_CertificateId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasMany(e => e.HashtagsListElements)
-                    .WithOne(e => e.Brand)
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasMany(e => e.PaymentMethodsListElements)
-                    .WithOne(e => e.Brand)
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasMany(e => e.ScheduleListElements)
-                    .WithOne(e => e.Brand)
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            modelBuilder.Entity<BrandMenu>(entity =>
-            {
-                //Not nullable
-                entity.HasKey(e => e.BrandMenuId)
-                    .HasName("PK_BrandMenus_BrandMenuId");
-
-                entity.ToTable("BrandMenus", "dbo");
-
-                entity.Property(e => e.BrandMenuName)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-
-                //Nullable
-
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.Ogrn)
+                    .IsRequired()
+                    .HasColumnName("OGRN")
+                    .HasMaxLength(30);
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.BrandMenus)
-                    .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_BrandMenus_BrandId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(d => d.Image)
-                    .WithMany()
-                    .HasForeignKey(d => d.ImgId)
-                    .HasConstraintName("FK_BrandMenus_ImgId")
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .WithOne(p => p.BrandDoc)
+                    .HasForeignKey<BrandDoc>(d => d.BrandId)
+                    .HasConstraintName("FK_BrandDoc_Brand");
             });
 
-            modelBuilder.Entity<Message>(entity =>
+            modelBuilder.Entity<BrandHashtag>(entity =>
             {
-                entity.HasKey(e => e.MessageId)
-                    .HasName("PK_Messages_MessageId");
+                entity.HasKey(e => e.BrandHashtagsId)
+                    .HasName("PK_HashtagsListElements");
 
-                entity.ToTable("Messages", "dbo");
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_HashtagsListElements_BrandId");
 
-                //Not nullable
+                entity.HasIndex(e => e.HashtagId)
+                    .HasName("IX_HashtagsListElements_HashtagId");
 
-                entity.Property(e => e.Rating)
-                    .IsRequired();
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.BrandHashtag)
+                    .HasForeignKey(d => d.BrandId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_HashtagsListElements_Brands_BrandId");
 
-                //Nullable
+                entity.HasOne(d => d.Hashtag)
+                    .WithMany(p => p.BrandHashtag)
+                    .HasForeignKey(d => d.HashtagId)
+                    .HasConstraintName("FK_HashtagsListElements_Hashtags_HashtagId");
+            });
+
+            modelBuilder.Entity<BrandInfo>(entity =>
+            {
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_BrandInfo")
+                    .IsUnique();
+
+                entity.Property(e => e.Address).HasMaxLength(50);
+
+                entity.Property(e => e.Banner).HasMaxLength(10);
+
+                entity.Property(e => e.Conditions).HasMaxLength(250);
+
+                entity.Property(e => e.Contact).HasMaxLength(250);
+
+                entity.Property(e => e.DeliveryTime).HasMaxLength(30);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.Property(e => e.Logo).HasMaxLength(10);
+
+                entity.HasOne(d => d.Brand)
+                    .WithOne(p => p.BrandInfo)
+                    .HasForeignKey<BrandInfo>(d => d.BrandId)
+                    .HasConstraintName("FK_BrandInfo_Brand");
+            });
+
+            modelBuilder.Entity<BrandPaymentMethod>(entity =>
+            {
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_PaymentMethodsListElement_BrandId");
+
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.BrandPaymentMethod)
+                    .HasForeignKey(d => d.BrandId)
+                    .HasConstraintName("FK_PaymentMethodsListElement_Brands_BrandId");
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_BrandMenus_BrandId");
+
+                entity.HasIndex(e => e.Image)
+                    .HasName("IX_BrandMenus_ImgId");
+
+                entity.Property(e => e.CategoryName)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Image).HasMaxLength(10);
+
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.Category)
+                    .HasForeignKey(d => d.BrandId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_BrandMenus_BrandId");
+            });
+
+            modelBuilder.Entity<ErrorReport>(entity =>
+            {
+                entity.HasIndex(e => e.UserId)
+                    .HasName("IX_ErrorReports_UserId");
 
                 entity.Property(e => e.Text)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX)
-                    .IsRequired();
-
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
+                    .IsRequired()
+                    .HasMaxLength(250);
 
                 entity.HasOne(d => d.User)
-                    .WithMany(p => p.Messages)
+                    .WithMany(p => p.ErrorReport)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_Messages_UserId")
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_ErrorReports_Users_UserId");
+            });
+
+            modelBuilder.Entity<Executor>(entity =>
+            {
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_Executor_Brand")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Login)
+                    .IsUnique();
+
+                entity.HasIndex(e => e.UserId)
+                    .HasName("IX_Executor_User")
+                    .IsUnique();
+
+                entity.Property(e => e.Login)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Password)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany()
-                    .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_Messages_BrandId")
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .WithOne(p => p.Executor)
+                    .HasForeignKey<Executor>(d => d.BrandId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Executor_Brand");
 
-                entity.HasOne(d => d.Order)
-                    .WithMany()
-                    .HasForeignKey(d => d.OrderId)
-                    .HasConstraintName("FK_Messages_OrderId")
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .IsRequired(false);
+                entity.HasOne(d => d.User)
+                    .WithOne(p => p.Executor)
+                    .HasForeignKey<Executor>(d => d.UserId)
+                    .HasConstraintName("FK_Executor_User");
+            });
+
+            modelBuilder.Entity<Hashtag>(entity =>
+            {
+                entity.Property(e => e.HashTagName)
+                    .IsRequired()
+                    .HasMaxLength(30);
             });
 
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.HasKey(e => e.OrderId)
-                    .HasName("DF_Orders_OrdersId");
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_Orders_BrandId");
 
-                entity.ToTable("Orders", "dbo");
+                entity.HasIndex(e => e.OrdererId)
+                    .HasName("IX_Orders_UserId");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Phone)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.Order)
+                    .HasForeignKey(d => d.BrandId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Order_Brand");
 
-                entity.Property(e => e.Street)
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
-
-                entity.Property(e => e.House)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-
-                entity.Property(e => e.Commentary)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX)
-                    .IsRequired(false);
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK_OrderCl_UserId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.BrandOwner)
-                    .WithMany()
-                    .HasForeignKey(e => e.BrandOwnerId)
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.PointRegister)
-                    .WithMany()
-                    .HasForeignKey(e => e.PointRegisterId)
-                    .HasConstraintName("FK_OrderCl_PointRegisterId")
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .IsRequired(false);
+                entity.HasOne(d => d.Orderer)
+                    .WithMany(p => p.Order)
+                    .HasForeignKey(d => d.OrdererId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OrderCl_UserId");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
             {
-                entity.HasKey(e => e.OrderDetailId);
-                
-                entity.ToTable("OrderDetails", "dbo");
+                entity.HasIndex(e => e.OrderId)
+                    .HasName("IX_OrderDetails_OrderId");
+
+                entity.HasIndex(e => e.ProductId)
+                    .HasName("IX_OrderDetails_ProductId");
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
                 entity.HasOne(d => d.Order)
-                    .WithMany(p => p.OrderDetails)
+                    .WithMany(p => p.OrderDetail)
                     .HasForeignKey(d => d.OrderId)
                     .HasConstraintName("FK_OrderDetails_OrderId");
 
-                entity.HasOne(p => p.Product)
-                    .WithMany()
-                    .HasForeignKey(k => k.ProductId)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("FK_OrderDetails_ProductId");
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.OrderDetail)
+                    .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_OrderDetail_Product");
             });
 
-            modelBuilder.Entity<Product>(entity =>
+            modelBuilder.Entity<OrderInfo>(entity =>
             {
-                entity.HasKey(e => e.ProductId)
-                    .HasName("PK_Products_ProductId");
-
-                entity.ToTable("Products", "dbo");
-
-                entity.Property(e => e.Description)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX);
-
-                entity.Property(e => e.Price)
-                    .IsRequired();
-
-                entity.Property(e => e.ProductName)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsRequired();
-
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.HasOne(e => e.Image)
-                    .WithMany()
-                    .HasForeignKey(e => e.ImgId)
-                    .HasConstraintName("FK_Products_ImgId")
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(d => d.BrandMenu)
-                    .WithMany(p => p.Products)
-                    .HasForeignKey(d => d.BrandMenuId)
-                    .HasConstraintName("FK_Products_BrandMenuId")
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.UserId)
-                    .HasName("DF_Users_UserId");
-
-                entity.ToTable("Users", "dbo");
-
-                entity.HasIndex(e => e.Phone)
-                    .HasName("DF_Users_Phone_Unique")
+                entity.HasIndex(e => e.OrderId)
+                    .HasName("IX_OrderInfo")
                     .IsUnique();
 
-                entity.Property(e => e.Name)
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+                entity.Property(e => e.Commentary).HasMaxLength(250);
 
-                entity.Property(e => e.Login)
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+                entity.Property(e => e.House)
+                    .IsRequired()
+                    .HasMaxLength(30);
 
-                entity.Property(e => e.Password)
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+                entity.Property(e => e.OrdererName)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.Phone)
+                    .IsRequired()
+                    .HasMaxLength(30);
 
                 entity.Property(e => e.Street)
-                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
-                
-                entity.Property(e => e.House)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-                
-                entity.Property(e => e.NotificationRegistration)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX);
-                
-                entity.Property(e => e.DeviceType)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
-
-                entity.Property(e => e.NotificationsEnabled)
-                    .HasDefaultValue(true);
-            });
-            
-            modelBuilder.Entity<AdBanner>(entity =>
-            {
-                entity.HasKey(e => e.AdBannerId);
-                
-                entity.ToTable("AdBanners", "dbo");
-                
-                entity.HasOne(e => e.Image)
-                    .WithMany()
-                    .HasForeignKey(e => e.ImgId)
-                    .HasConstraintName("FK_AdBannerCl_ImgId")
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            modelBuilder.Entity<Image>(entity => 
-            {
-                entity.HasKey(k => k.ImageId);
-                
-                entity.ToTable("Images", "dbo");
-
-                entity.HasOne(u => u.User)
-                    .WithMany(e => e.UploadedImages)
-                    .HasForeignKey(k => k.UserId)
                     .IsRequired()
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .HasMaxLength(50);
 
-                entity.Property(p => p.Path).IsRequired();
-            });
-
-            modelBuilder.Entity<Hashtag>(entity => 
-            {
-                entity.HasKey(e => e.HashTagId);
-
-                entity.ToTable("Hashtags", "dbo");
-
-                entity.Property(e => e.HashTagName)
-                    .HasMaxLength(ModelLengths.LENGTH_SMALL)
-                    .IsRequired();
+                entity.HasOne(d => d.Order)
+                    .WithOne(p => p.OrderInfo)
+                    .HasForeignKey<OrderInfo>(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_OrderInfo_Order");
             });
 
             modelBuilder.Entity<PointRegister>(entity =>
             {
-                entity.HasKey(e => e.PointRegisterId);
+                entity.HasIndex(e => e.OrderId)
+                    .HasName("IX_PointRegisters_OrderId");
 
-                entity.ToTable("PointRegisters", "dbo");
-                
-                entity.HasOne(e => e.Order)
-                    .WithMany()
-                    .HasForeignKey(e => e.OrderId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasIndex(e => e.ReceiverId)
+                    .HasName("IX_PointRegisters_ReceiverId");
 
-                entity.HasOne(e => e.Receiver)
-                    .WithMany()
-                    .HasForeignKey(e => e.ReceiverId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasIndex(e => e.SenderId)
+                    .HasName("IX_PointRegisters_SenderId");
 
-                entity.HasOne(e => e.Sender)
-                    .WithMany()
-                    .HasForeignKey(e => e.SenderId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.PointRegister)
+                    .HasForeignKey(d => d.OrderId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_PointRegister_Order");
+
+                entity.HasOne(d => d.Receiver)
+                    .WithMany(p => p.PointRegisterReceiver)
+                    .HasForeignKey(d => d.ReceiverId)
+                    .HasConstraintName("FK_PointRegisters_Users_ReceiverId");
+
+                entity.HasOne(d => d.Sender)
+                    .WithMany(p => p.PointRegisterSender)
+                    .HasForeignKey(d => d.SenderId)
+                    .HasConstraintName("FK_PointRegisters_Users_SenderId");
             });
 
-            modelBuilder.Entity<WaterRequest>(entity => 
+            modelBuilder.Entity<Product>(entity =>
             {
-                entity.HasKey(e => e.WaterRequestId);
+                entity.HasIndex(e => e.CategoryId)
+                    .HasName("IX_Products_BrandMenuId");
 
-                entity.ToTable("WaterRequests", "dbo");
+                entity.HasIndex(e => e.Image)
+                    .HasName("IX_Products_ImgId");
 
-                entity.HasOne(e => e.Order)
-                    .WithMany()
-                    .HasForeignKey(k => k.OrderId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
-                entity.HasOne(e => e.Brand)
-                    .WithMany()
-                    .HasForeignKey(k => k.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.Property(e => e.Description).HasMaxLength(250);
+
+                entity.Property(e => e.Image).HasMaxLength(10);
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.ProductName)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.HasOne(d => d.Category)
+                    .WithMany(p => p.Product)
+                    .HasForeignKey(d => d.CategoryId)
+                    .HasConstraintName("FK_Products_CategoryId");
             });
 
-            modelBuilder.Entity<RequestDetail>(entity => 
+            modelBuilder.Entity<Report>(entity =>
             {
-                entity.HasKey(e => e.RequestDetailId);
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_Reports_BrandId");
 
-                entity.ToTable("RequestDetails", "dbo");
+                entity.HasIndex(e => e.ProductOfDayId)
+                    .HasName("IX_Reports_ProductOfDayId");
 
-                entity.HasOne(e => e.Request)
-                    .WithMany()
-                    .HasForeignKey(e => e.RequestId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.Property(e => e.ProductOfDaySum).HasColumnType("decimal(18, 2)");
 
-                entity.HasOne(e => e.Product)
-                    .WithMany()
-                    .HasForeignKey(e => e.ProductId)
-                    .OnDelete(DeleteBehavior.NoAction); //статические продукты не должны пропасть
+                entity.Property(e => e.Sum).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.Report)
+                    .HasForeignKey(d => d.BrandId)
+                    .HasConstraintName("FK_Report_Brand");
+
+                entity.HasOne(d => d.ProductOfDay)
+                    .WithMany(p => p.Report)
+                    .HasForeignKey(d => d.ProductOfDayId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Reports_Products_ProductOfDayId");
             });
 
-            modelBuilder.Entity<HashtagsListElement>(entity =>
+            modelBuilder.Entity<Review>(entity =>
             {
-                entity.HasKey(e => e.HashtagsListElementId);
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_Brand");
 
-                entity.ToTable("HashtagsListElements", "dbo");
+                entity.HasIndex(e => e.OrderId)
+                    .HasName("IX_Order")
+                    .IsUnique();
 
-                entity.HasOne(e => e.Brand)
-                    .WithMany(e => e.HashtagsListElements)
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasIndex(e => e.SenderId)
+                    .HasName("IX_Sender");
 
-                entity.HasOne(e => e.Hashtag)
-                    .WithMany()
-                    .HasForeignKey(e => e.HashtagId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
-            modelBuilder.Entity<PaymentMethodsListElement>(entity =>
-            {
-                entity.HasKey(e => e.PaymentMethodListElementId);
+                entity.Property(e => e.Text)
+                    .IsRequired()
+                    .HasMaxLength(250);
 
-                entity.ToTable("PaymentMethodsListElement", "dbo");
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.Review)
+                    .HasForeignKey(d => d.BrandId)
+                    .HasConstraintName("FK_Messages_BrandId");
 
-                entity.HasOne(e => e.Brand)
-                    .WithMany(e => e.PaymentMethodsListElements)
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(d => d.Order)
+                    .WithOne(p => p.Review)
+                    .HasForeignKey<Review>(d => d.OrderId)
+                    .HasConstraintName("FK_Messages_OrderId");
+
+                entity.HasOne(d => d.Sender)
+                    .WithMany(p => p.Review)
+                    .HasForeignKey(d => d.SenderId)
+                    .HasConstraintName("FK_Messages_UserId");
             });
 
             modelBuilder.Entity<ScheduleListElement>(entity =>
             {
-                entity.HasKey(e => e.ScheduleListElementId);
+                entity.HasIndex(e => e.BrandId);
 
-                entity.ToTable("ScheduleListElement", "dbo");
-
-                entity.HasOne(e => e.Brand)
-                    .WithMany(e => e.ScheduleListElements)
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.ScheduleListElement)
+                    .HasForeignKey(d => d.BrandId)
+                    .HasConstraintName("FK_ScheduleListElement_Brands_BrandId");
             });
 
-            modelBuilder.Entity<Report>(entity => 
+            modelBuilder.Entity<User>(entity =>
             {
-                entity.HasKey(e => e.ReportId);
-                entity.HasOne(e => e.Brand)
-                    .WithMany()
-                    .HasForeignKey(e => e.BrandId)
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.ProductOfDay)
-                    .WithMany()
-                    .HasForeignKey(e => e.ProductOfDayId)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .IsRequired(false);
-
-                entity.Property(e => e.Sum)
-                    .IsRequired();
-
-                entity.Property(e => e.OrderCount)
-                    .IsRequired();
+                entity.HasIndex(e => e.Phone)
+                    .HasName("DF_Users_Phone_Unique")
+                    .IsUnique();
 
                 entity.Property(e => e.CreatedDate)
-                    .IsRequired();
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.DeviceType).HasMaxLength(30);
+
+                entity.Property(e => e.NotificationRegistration).HasMaxLength(250);
+
+                entity.Property(e => e.NotificationsEnabled)
+                    .IsRequired()
+                    .HasDefaultValueSql("(CONVERT([bit],(1)))");
+
+                entity.Property(e => e.Phone)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
             });
 
-            modelBuilder.Entity<ErrorReport>(entity => 
+            modelBuilder.Entity<UserInfo>(entity =>
             {
-                entity.HasKey(e => e.ErrorReportId);
+                entity.HasIndex(e => e.UserId)
+                    .HasName("IX_UserInfo")
+                    .IsUnique();
 
-                entity.Property(e => e.Text)
-                    .HasMaxLength(ModelLengths.LENGTH_MAX)
-                    .IsRequired();
+                entity.Property(e => e.House).HasMaxLength(30);
 
-                entity.HasOne(e => e.User)
-                    .WithMany()
-                    .HasForeignKey(e => e.UserId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                entity.Property(e => e.Name).HasMaxLength(50);
+
+                entity.Property(e => e.Street).HasMaxLength(50);
+
+                entity.HasOne(d => d.User)
+                    .WithOne(p => p.UserInfo)
+                    .HasForeignKey<UserInfo>(d => d.UserId)
+                    .HasConstraintName("FK_UserInfo_User");
+            });
+
+            modelBuilder.Entity<WaterBrand>(entity =>
+            {
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_WaterBrand")
+                    .IsUnique();
+
+                entity.Property(e => e.Certificate).HasMaxLength(10);
+
+                entity.Property(e => e.ContainerPrice).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.WaterPrice).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Brand)
+                    .WithOne(p => p.WaterBrand)
+                    .HasForeignKey<WaterBrand>(d => d.BrandId)
+                    .HasConstraintName("FK_WaterBrand_Brand");
+            });
+
+            modelBuilder.Entity<WaterOrder>(entity =>
+            {
+                entity.HasIndex(e => e.OrderId)
+                    .HasName("IX_WaterOrder")
+                    .IsUnique();
+
+                entity.Property(e => e.DeliveryDate)
+                    .HasMaxLength(10)
+                    .IsFixedLength();
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Order)
+                    .WithOne(p => p.WaterOrder)
+                    .HasForeignKey<WaterOrder>(d => d.OrderId)
+                    .HasConstraintName("FK_WaterOrder_Order");
+            });
+
+            modelBuilder.Entity<WaterRequest>(entity =>
+            {
+                entity.HasIndex(e => e.BrandId)
+                    .HasName("IX_WaterRequests_BrandId");
+
+                entity.HasIndex(e => e.WaterOrderId)
+                    .HasName("IX_WaterRequests_OrderId");
+
+                entity.HasOne(d => d.Brand)
+                    .WithMany(p => p.WaterRequest)
+                    .HasForeignKey(d => d.BrandId)
+                    .HasConstraintName("FK_WaterRequests_Brands_BrandId");
+
+                entity.HasOne(d => d.WaterOrder)
+                    .WithMany(p => p.WaterRequest)
+                    .HasForeignKey(d => d.WaterOrderId)
+                    .HasConstraintName("FK_WaterRequest_WaterOrder");
             });
 
             OnModelCreatingPartial(modelBuilder);

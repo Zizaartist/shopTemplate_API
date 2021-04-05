@@ -7,14 +7,13 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
-    public partial class AdBanner
+    public partial class BrandHashtag
     {
-        public int AdBannerId { get; set; }
-        public string Image { get; set; }
-        public int BrandId { get; set; }
-        public string Text { get; set; }
-        public DateTime RemoveDate { get; set; }
+        public int BrandHashtagsId { get; set; }
+        public int HashtagId { get; set; }
+        public int? BrandId { get; set; }
 
         public virtual Brand Brand { get; set; }
+        public virtual Hashtag Hashtag { get; set; }
     }
 }

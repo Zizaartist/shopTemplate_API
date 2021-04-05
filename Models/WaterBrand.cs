@@ -7,13 +7,13 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
-    public partial class AdBanner
+    public partial class WaterBrand
     {
-        public int AdBannerId { get; set; }
-        public string Image { get; set; }
+        public int WaterBrandId { get; set; }
         public int BrandId { get; set; }
-        public string Text { get; set; }
-        public DateTime RemoveDate { get; set; }
+        public decimal WaterPrice { get; set; }
+        public decimal? ContainerPrice { get; set; }
+        public string Certificate { get; set; }
 
         public virtual Brand Brand { get; set; }
     }

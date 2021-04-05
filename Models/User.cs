@@ -1,92 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using ApiClick.Models.EnumModels;
-using ApiClick.StaticValues;
+
+// Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
+// If you have enabled NRTs for your project, then un-comment the following line:
+// #nullable disable
 
 namespace ApiClick.Models
 {
-    /// <summary>
-    /// Модель, содержащая пользовательские данные
-    /// </summary>
-    [Serializable]
     public partial class User
     {
-        public User() 
+        public User()
         {
-            Brands = new List<Brand>();
-            Messages = new List<Message>();
-            Orders = new List<Order>();
+            Brand = new HashSet<Brand>();
+            ErrorReport = new HashSet<ErrorReport>();
+            Order = new HashSet<Order>();
+            PointRegisterReceiver = new HashSet<PointRegister>();
+            PointRegisterSender = new HashSet<PointRegister>();
+            Review = new HashSet<Review>();
         }
 
-        //Not nullable
-        [Key]
-        public int UserId { get; set; } 
-        [Required, MaxLength(ModelLengths.LENGTH_SMALL)]
+        public int UserId { get; set; }
         public string Phone { get; set; }
-        [Required]
-        public UserRole UserRole { get; set; }
-        [Required]
+        public int UserRole { get; set; }
         public decimal Points { get; set; }
-        [Required]
-        public bool NotificationsEnabled { get; set; }
-
-        //Nullable
-        [MaxLength(ModelLengths.LENGTH_MEDIUM)]
+        public bool? NotificationsEnabled { get; set; }
         public string NotificationRegistration { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MIN)]
         public string DeviceType { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MEDIUM)]
-        public string Login { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MEDIUM)]
-        public string Password { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MEDIUM)]
-        public string Name { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MEDIUM)]
-        public string Street { get; set; }
-        [MaxLength(ModelLengths.LENGTH_MIN)]
-        public string House { get; set; }
-        public int? Padik { get; set; }
-        public int? Etash { get; set; }
-        public int? Kv { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        //Теневые свойства
-        [NotMapped]
-        public virtual ICollection<Brand> Brands { get; set; }
-        [NotMapped]
-        public virtual ICollection<Message> Messages { get; set; }
-        [NotMapped]
-        public virtual ICollection<Order> Orders { get; set; }
-        [NotMapped]
-        public ICollection<Image> UploadedImages { get; set; }
-        [NotMapped]
-        public ICollection<ErrorReport> ErrorReports { get; set; }
-
-        /// <summary>
-        /// Проверяет валидность модели, полученной от клиента
-        /// </summary>
-        public static bool ModelIsValid(User _user)
-        {
-            try
-            {
-                if (_user == null ||
-                    //Required
-                    string.IsNullOrEmpty(_user.Phone) ||
-                    _user.UserRole > UserRole.User)
-                {
-                    return false;
-                }
-                return true;
-            }
-            catch (Exception _ex)
-            {
-                Debug.WriteLine($"Ошибка при проверке данных пользователя - {_ex}");
-                return false;
-            }
-        }
+        public virtual Executor Executor { get; set; }
+        public virtual UserInfo UserInfo { get; set; }
+        public virtual ICollection<Brand> Brand { get; set; }
+        public virtual ICollection<ErrorReport> ErrorReport { get; set; }
+        public virtual ICollection<Order> Order { get; set; }
+        public virtual ICollection<PointRegister> PointRegisterReceiver { get; set; }
+        public virtual ICollection<PointRegister> PointRegisterSender { get; set; }
+        public virtual ICollection<Review> Review { get; set; }
     }
 }

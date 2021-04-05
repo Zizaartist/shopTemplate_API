@@ -7,13 +7,15 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
-    public partial class AdBanner
+    public partial class BrandDoc
     {
-        public int AdBannerId { get; set; }
-        public string Image { get; set; }
+        public int BrandDocsId { get; set; }
         public int BrandId { get; set; }
-        public string Text { get; set; }
-        public DateTime RemoveDate { get; set; }
+        public string OfficialName { get; set; }
+        public string Ogrn { get; set; }
+        public string Inn { get; set; }
+        public string LegalAddress { get; set; }
+        public string Executor { get; set; }
 
         public virtual Brand Brand { get; set; }
     }
