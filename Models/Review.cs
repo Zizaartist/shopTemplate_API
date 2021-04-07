@@ -11,15 +11,14 @@ namespace ApiClick.Models
 {
     public partial class Review
     {
-        public Review() 
+        public Review()
         {
             Products = new HashSet<string>();
         }
-
         public int ReviewId { get; set; }
-        public int SenderId { get; set; }
+        public int? SenderId { get; set; }
         public int BrandId { get; set; }
-        public int OrderId { get; set; }
+        public int? OrderId { get; set; }
         public int Rating { get; set; }
         public string Text { get; set; }
         public DateTime CreatedDate { get; set; }

@@ -37,7 +37,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Brand>>> GetBrand()
         {
-            var brands = await _context.Brands.ToListAsync();
+            var brands = await _context.Brand.ToListAsync();
 
             return brands;
         }
@@ -48,7 +48,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Kind _kind, int _page, [FromBody]List<int> HashTags = null, bool openNow = false)
         {
-            var brands = _context.Brands.Where(p => p.Kind == _kind);
+            var brands = _context.Brand.Where(p => p.Kind == _kind);
 
             //Урезаем выборку по критерию наличия хештега в списке
             if (HashTags != null)
@@ -87,7 +87,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Brand>>> GetBrandsByName(Kind category, string name = null)
         {
-            var brands = _context.Brands.Where(p => p.Kind == category);
+            var brands = _context.Brand.Where(p => p.Kind == category);
 
             //Урезаем выборку по критерию наличия строки в имени бренда
             if (name != null)
@@ -115,7 +115,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Brand>>> GetBrandsByKind(Kind category)
         {
-            var brands = _context.Brands.Where(p => p.Kind == category);
+            var brands = _context.Brand.Where(p => p.Kind == category);
 
             if (!brands.Any())
             {
@@ -135,7 +135,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<Brand>> GetBrand(int id)
         {
-            var brand = await _context.Brands.FindAsync(id);
+            var brand = await _context.Brand.FindAsync(id);
 
             if (brand == null)
             {
@@ -154,7 +154,7 @@ namespace ApiClick.Controllers
         {
             var mySelf = Functions.identityToUser(User.Identity, _context);
 
-            var brands = _context.Brands.Where(p => p.ExecutorId == mySelf.Executor.ExecutorId);
+            var brands = _context.Brand.Where(p => p.ExecutorId == mySelf.Executor.ExecutorId);
 
             if (brands == null)
             {
@@ -177,7 +177,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            var brand = _context.Brands.Find(_brandData.BrandId);
+            var brand = _context.Brand.Find(_brandData.BrandId);
 
             if (brand == null) 
             {
@@ -192,13 +192,13 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            _context.BrandHashtags.RemoveRange(brand.BrandHashtags);
+            _context.BrandHashtag.RemoveRange(brand.BrandHashtags);
             brand.BrandHashtags = _brandData.BrandHashtags;
 
-            _context.BrandPaymentMethods.RemoveRange(brand.BrandPaymentMethods);
+            _context.BrandPaymentMethod.RemoveRange(brand.BrandPaymentMethods);
             brand.BrandPaymentMethods = _brandData.BrandPaymentMethods;
             
-            _context.ScheduleListElements.RemoveRange(brand.ScheduleListElements);
+            _context.ScheduleListElement.RemoveRange(brand.ScheduleListElements);
             brand.ScheduleListElements = _brandData.ScheduleListElements;
 
             brand.BrandName = _brandData.BrandName;
@@ -233,7 +233,7 @@ namespace ApiClick.Controllers
             }
 
             //Не позволять создавать бренды с уже имеющимся именем
-            if (_context.Brands.Any(a => a.BrandName == _brand.BrandName)) 
+            if (_context.Brand.Any(a => a.BrandName == _brand.BrandName)) 
             {
                 return Forbid();
             }
@@ -257,7 +257,7 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public ActionResult<Brand> DeleteBrand(int id)
         {
-            var brand = _context.Brands.Find(id);
+            var brand = _context.Brand.Find(id);
 
             _context.Remove(brand);
             _context.SaveChanges();
@@ -290,7 +290,7 @@ namespace ApiClick.Controllers
                     return false;
                 }
 
-                var owner = _context.Users.Find(_brand.ExecutorId);
+                var owner = _context.User.Find(_brand.ExecutorId);
                 if (owner == null) return false;
 
                 return true;
@@ -330,7 +330,7 @@ namespace ApiClick.Controllers
 
         private bool AreHashtagsValid(IEnumerable<int> _ids, Kind _kind) 
         {
-            if (_context.Hashtags.All(tag => _ids.Contains(tag.HashTagId) && tag.Kind == _kind)) 
+            if (_context.Hashtag.All(tag => _ids.Contains(tag.HashTagId) && tag.Kind == _kind)) 
             {
                 return true;
             }
@@ -340,7 +340,7 @@ namespace ApiClick.Controllers
         private bool IsBrandNameTaken(string _suggestedName) 
         {
             var caps = _suggestedName.ToUpper();
-            if (_context.Brands.Any(brand => brand.BrandName.ToUpper() == caps)) 
+            if (_context.Brand.Any(brand => brand.BrandName.ToUpper() == caps)) 
             {
                 return true;
             }

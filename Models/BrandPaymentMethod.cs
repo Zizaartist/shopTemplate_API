@@ -13,7 +13,7 @@ namespace ApiClick.Models
     {
         public int BrandPaymentMethodId { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
-        public int? BrandId { get; set; }
+        public int BrandId { get; set; }
 
         [JsonIgnore]
         public Brand Brand { get; set; }

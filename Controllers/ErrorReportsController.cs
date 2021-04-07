@@ -36,7 +36,7 @@ namespace ApiClick.Controllers
 
             _errorReport.UserId = Functions.identityToUser(User.Identity, _context).UserId;
 
-            _context.ErrorReports.Add(_errorReport);
+            _context.ErrorReport.Add(_errorReport);
             await _context.SaveChangesAsync();
 
             return Ok();

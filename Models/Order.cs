@@ -14,7 +14,7 @@ namespace ApiClick.Models
         public Order()
         {
             OrderDetails = new HashSet<OrderDetail>();
-            PointRegisters = new HashSet<PointRegister>();
+            PointRegisterNavigations = new HashSet<PointRegister>();
         }
 
         public int OrderId { get; set; }
@@ -30,12 +30,12 @@ namespace ApiClick.Models
 
         public virtual OrderInfo OrderInfo { get; set; }
         public virtual WaterOrder WaterOrder { get; set; }
+        public virtual PointRegister PointRegister { get; set; }
         public Brand Brand { get; set; }
         public User Orderer { get; set; }
         public Review Review { get; set; }
-        public virtual PointRegister PointRegister { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-        public ICollection<PointRegister> PointRegisters { get; set; }
+        public virtual ICollection<PointRegister> PointRegisterNavigations { get; set; }
 
         [NotMapped]
         public bool? Delivery { get; set; } //Получаем от клиента

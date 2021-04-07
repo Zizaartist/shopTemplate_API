@@ -33,7 +33,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-            var menus = await _context.Categories.ToListAsync();
+            var menus = await _context.Category.ToListAsync();
 
             return menus;
         }
@@ -45,7 +45,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Category>> GetMenusByBrand(int id)
         {
-            var categories = _context.Categories.Where(p => p.BrandId == id);
+            var categories = _context.Category.Where(p => p.BrandId == id);
 
             if (!categories.Any())
             {
@@ -64,7 +64,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Category.FindAsync(id);
 
             if (category == null)
             {
@@ -84,7 +84,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            var category = _context.Categories.Find(_categoryData.CategoryId);
+            var category = _context.Category.Find(_categoryData.CategoryId);
 
             if (category == null) 
             {
@@ -121,7 +121,7 @@ namespace ApiClick.Controllers
 
             _category.CreatedDate = DateTime.UtcNow.Date;
 
-            _context.Categories.Add(_category);
+            _context.Category.Add(_category);
             _context.SaveChanges();
 
             return Ok();
@@ -133,7 +133,7 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public ActionResult<Category> DeleteCategories(int id)
         {
-            var category = _context.Categories.Find(id);
+            var category = _context.Category.Find(id);
 
             if (category == null) 
             {
@@ -145,7 +145,7 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            _context.Categories.Remove(category);
+            _context.Category.Remove(category);
             _context.SaveChanges();
 
             return Ok();
@@ -154,7 +154,7 @@ namespace ApiClick.Controllers
         private bool IsOwner(Category _categoryData) 
         {
             var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
-            var brand = _context.Brands.Find(_categoryData.BrandId);
+            var brand = _context.Brand.Find(_categoryData.BrandId);
 
             if (brand == null || brand.ExecutorId != mySelf.ExecutorId)
             {
@@ -216,7 +216,7 @@ namespace ApiClick.Controllers
         private bool IsCategoryNameTaken(string _suggestedName, int _brandId)
         {
             var caps = _suggestedName.ToUpper();
-            if (_context.Categories.Any(cat => cat.CategoryName.ToUpper() == caps && cat.BrandId == _brandId))
+            if (_context.Category.Any(cat => cat.CategoryName.ToUpper() == caps && cat.BrandId == _brandId))
             {
                 return true;
             }

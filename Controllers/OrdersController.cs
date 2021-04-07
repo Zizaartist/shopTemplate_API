@@ -37,7 +37,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            return await _context.Orders.ToListAsync();
+            return await _context.Order.ToListAsync();
         }
 
         // GET: api/Orders/5
@@ -46,7 +46,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult<Order> GetOrders(int id)
         {
-            var order = _context.Orders.Include(order => order.Brand)
+            var order = _context.Order.Include(order => order.Brand)
                                         .FirstOrDefault(order => order.OrderId == id);
 
             if (order == null)
@@ -54,7 +54,7 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var brand = _context.Brands.Include(brand => brand.Executor)
+            var brand = _context.Brand.Include(brand => brand.Executor)
                                         .FirstOrDefault(brand => brand.BrandId == order.BrandId);
 
             //Является ли отправитель исполнителем?
@@ -73,7 +73,7 @@ namespace ApiClick.Controllers
         public ActionResult<IEnumerable<Order>> GetMyOrders()
         {
             //Находит заказы принадлежащие пользователю и отсеивает заказы со статусом "Завершенный"
-            var ordersFound = _context.Orders.Where(e => e.OrdererId == Functions.identityToUser(User.Identity, _context).UserId);
+            var ordersFound = _context.Order.Where(e => e.OrdererId == Functions.identityToUser(User.Identity, _context).UserId);
 
             if (!ordersFound.Any())
             {
@@ -98,7 +98,7 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var ordersFound = _context.Orders.Where(order => order.BrandId == myBrand.BrandId &&
+            var ordersFound = _context.Order.Where(order => order.BrandId == myBrand.BrandId &&
                                                             order.OrderStatus < OrderStatus.delivered);
 
             if (!ordersFound.Any())
@@ -124,7 +124,7 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var ordersFound = _context.Orders.Where(order => order.BrandId == myBrand.BrandId &&
+            var ordersFound = _context.Order.Where(order => order.BrandId == myBrand.BrandId &&
                                                             order.OrderStatus >= OrderStatus.delivered);
 
             if (!ordersFound.Any())
@@ -144,7 +144,7 @@ namespace ApiClick.Controllers
         public async Task<ActionResult> PutOrders(int id, OrderStatus? _status = null)
         {
             //Сперва проверяем на физическую возможность смены статуса
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Order.FindAsync(id);
 
             if (order == null)
             {
@@ -205,7 +205,7 @@ namespace ApiClick.Controllers
                 }
 
                 //Переводим кэшбэк
-                Order orderTemp = new Order() { OrderDetails = Functions.getCleanListOfModels(_context.OrderDetails.Where(e => e.OrderId == order.OrderId).ToList()) };
+                Order orderTemp = new Order() { OrderDetails = Functions.getCleanListOfModels(_context.OrderDetail.Where(e => e.OrderId == order.OrderId).ToList()) };
                 PointRegister cashbackRegister;
                 //Если любой из процессов кэшбэка даст сбой
                 if (!pointsController.StartTransaction(pointsController.CalculateCashback(order), mySelf.UserId, order, out cashbackRegister) ||
@@ -229,7 +229,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            var brand = _context.Brands.Include(brand => brand.Executor)
+            var brand = _context.Brand.Include(brand => brand.Executor)
                                             .ThenInclude(exe => exe.User)
                                         .First(brand => brand.BrandId == _order.BrandId);
             var mySelf = Functions.identityToUser(User.Identity, _context);
@@ -241,7 +241,7 @@ namespace ApiClick.Controllers
                     {
                         ProductId = detail.ProductId,
                         Count = detail.Count,
-                        Price = _context.Products.Find(detail.ProductId).Price
+                        Price = _context.Product.Find(detail.ProductId).Price
                     }
                 ).ToList();
             }
@@ -279,7 +279,7 @@ namespace ApiClick.Controllers
                 }
             }
 
-            _context.Orders.Add(_order);
+            _context.Order.Add(_order);
             await _context.SaveChangesAsync();
 
             if (mySelf.NotificationsEnabled)
@@ -295,7 +295,7 @@ namespace ApiClick.Controllers
             Product product;
             try
             {
-                product = _context.Products.Find(_productId);
+                product = _context.Product.Find(_productId);
             }
             catch
             {
@@ -315,13 +315,13 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public async Task<ActionResult<Order>> DeleteOrders(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Order.FindAsync(id);
             if (order == null)
             {
                 return NotFound();
             }
 
-            _context.Orders.Remove(order);
+            _context.Order.Remove(order);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -338,14 +338,14 @@ namespace ApiClick.Controllers
         public ActionResult<IEnumerable<WaterRequest>> GetRequestsByOrder(int id)
         {
             var mySelf = Functions.identityToUser(User.Identity, _context);
-            var order = _context.Orders.Find(id);
+            var order = _context.Order.Find(id);
 
             if (order == null || order.OrdererId != mySelf.UserId)
             {
                 return BadRequest();
             }
 
-            var requests = _context.WaterRequests.Where(request => request.WaterOrderId == order.WaterOrder.WaterOrderId);
+            var requests = _context.WaterRequest.Where(request => request.WaterOrderId == order.WaterOrder.WaterOrderId);
 
             if (!requests.Any())
             {
@@ -367,7 +367,7 @@ namespace ApiClick.Controllers
         [HttpPut]
         public ActionResult SelectVodaBrand(int id)
         {
-            var request = _context.WaterRequests.Find(id);
+            var request = _context.WaterRequest.Find(id);
 
             if (request == null)
             {
@@ -375,10 +375,10 @@ namespace ApiClick.Controllers
             }
 
             var mySelf = Functions.identityToUser(User.Identity, _context);
-            var order = _context.WaterOrders.Include(wo => wo.Order)
+            var order = _context.WaterOrder.Include(wo => wo.Order)
                                             .FirstOrDefault(wo => wo.WaterOrderId == request.WaterOrderId);
-            var brand = _context.Brands.Include(brand => brand.Executor)
-                                        .FirstOrDefault(brand => brand.BrandId == request.BrandId);
+            var brand = _context.Brand.Include(brand => brand.Executor)
+                                        .FirstOrDefault(brand => brand.WaterBrand.WaterBrandId == request.WaterBrandId);
 
             //Если клиент не является владельцем заказа - посылать подальше
             if (order.Order.OrdererId != brand.Executor.UserId)
@@ -412,13 +412,13 @@ namespace ApiClick.Controllers
         public ActionResult<IEnumerable<WaterOrder>> GetOpenVodaOrders(Kind category) //category id
         {
             var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
-            var myBrand = _context.Brands.First(brand => brand.ExecutorId == mySelf.ExecutorId);
-            var myRequests = _context.WaterRequests.Where(wr => wr.BrandId == myBrand.BrandId);
+            var myBrand = _context.Brand.First(brand => brand.ExecutorId == mySelf.ExecutorId);
+            var myRequests = _context.WaterRequest.Where(wr => wr.WaterBrandId == myBrand.WaterBrand.WaterBrandId);
 
             //Категория совпадает с указанной
             //Владелец бренда еще не привязан
             //В "мокрых" запросах нет записи с id заказа текущей итерации
-            var allOrdersFound = _context.WaterOrders.Include(wr => wr.Order)
+            var allOrdersFound = _context.WaterOrder.Include(wr => wr.Order)
                                                         .Where(wr => wr.Order.Kind == category &&
                                                                     wr.Order.BrandId == null);
             //найти все те заказы, в которых отсутствует связь с "моими запросами"
@@ -493,7 +493,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            var order = _context.WaterOrders.Include(wo => wo.Order)
+            var order = _context.WaterOrder.Include(wo => wo.Order)
                                             .First(wo => wo.WaterOrderId == _waterRequestData.WaterOrderId);
 
             //Если заказ занят - запретить
@@ -504,21 +504,21 @@ namespace ApiClick.Controllers
 
             //получаем первый бренд отправителя
             var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
-            var myBrand = _context.Brands.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
+            var myBrand = _context.Brand.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
 
             //... и проверяем наличие хотя бы одной записи с id этого бренда, подавляем попытку создать дубликат
-            if (_context.WaterRequests.Where(wr => wr.WaterOrderId == order.WaterOrderId)
-                                        .Any(e => e.BrandId == myBrand.BrandId))
+            if (_context.WaterRequest.Where(wr => wr.WaterOrderId == order.WaterOrderId)
+                                        .Any(e => e.WaterBrandId == myBrand.WaterBrand.WaterBrandId))
             {
                 return Forbid();
             }
 
             var request = new WaterRequest()
             {
-                BrandId = myBrand.BrandId,
+                WaterBrandId = myBrand.WaterBrand.WaterBrandId,
                 WaterOrderId = order.WaterOrderId
             };
-            _context.WaterRequests.Add(request);
+            _context.WaterRequest.Add(request);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -541,7 +541,7 @@ namespace ApiClick.Controllers
             _order.OrderStatus = OrderStatus.sent;
             _order.OrdererId = mySelf.UserId;
 
-            _context.Orders.Add(_order);
+            _context.Order.Add(_order);
             _context.SaveChanges();
 
             WaterOrderRemover.Add(_order.CreatedDate, _order.OrderId); //Удалит заказ через 2 часа если job не будет удален до триггера
@@ -577,7 +577,7 @@ namespace ApiClick.Controllers
                         return false;
                     }
                 }
-                var brand = _context.Brands.Find(_order.BrandId);
+                var brand = _context.Brand.Find(_order.BrandId);
                 if (!brand.BrandPaymentMethods.Any(pm => pm.PaymentMethod == _order.PaymentMethod) ||
                     brand.Kind != _order.Kind)
                 {
@@ -617,7 +617,7 @@ namespace ApiClick.Controllers
                     {
                         return false;
                     }
-                    var brand = _context.Brands.Find(_order.BrandId);
+                    var brand = _context.Brand.Find(_order.BrandId);
                     if (!brand.BrandPaymentMethods.Any(pm => pm.PaymentMethod == _order.PaymentMethod) ||
                         brand.Kind != _order.Kind)
                     {
@@ -642,7 +642,7 @@ namespace ApiClick.Controllers
                 {
                     return false;
                 }
-                var waterOrder = _context.WaterOrders.Find(_waterRequest.WaterOrderId);
+                var waterOrder = _context.WaterOrder.Find(_waterRequest.WaterOrderId);
                 if (waterOrder == null) 
                 {
                     return false;

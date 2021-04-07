@@ -32,7 +32,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
         {
-            return await _context.Reviews.ToListAsync();
+            return await _context.Review.ToListAsync();
         }
 
         // GET: api/Reviews/5
@@ -41,7 +41,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<Review>> GetReviews(int id)
         {
-            var messageCl = await _context.Reviews.FindAsync(id);
+            var messageCl = await _context.Review.FindAsync(id);
 
             if (messageCl == null)
             {
@@ -58,7 +58,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Review>>> GetBrandReviews(int id, int _page)
         {
-            var messages = _context.Reviews.Where(e => e.BrandId == id && !string.IsNullOrEmpty(e.Text));
+            var messages = _context.Review.Where(e => e.BrandId == id && !string.IsNullOrEmpty(e.Text));
 
             messages = Functions.GetPageRange(messages, _page, PAGE_SIZE);
 
@@ -87,7 +87,7 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            var order = _context.Orders.Find(_review.OrderId);
+            var order = _context.Order.Find(_review.OrderId);
 
             if (order == null) 
             {
@@ -106,19 +106,19 @@ namespace ApiClick.Controllers
             _review.SenderId = user.UserId;
 
             //Проверяем существование отзыва с таким же orderId
-            if (_context.Reviews.Any(e => e.OrderId == _review.OrderId))
+            if (_context.Review.Any(e => e.OrderId == _review.OrderId))
             {
                 return Forbid();
             }
 
-            var oldReviewCount = _context.Reviews.Where(e => e.BrandId == _review.BrandId).Count();
+            var oldReviewCount = _context.Review.Where(e => e.BrandId == _review.BrandId).Count();
             _review.CreatedDate = DateTime.UtcNow;
-            _context.Reviews.Add(_review); //Выдаст 500 если обязательные поля не заполнены
+            _context.Review.Add(_review); //Выдаст 500 если обязательные поля не заполнены
 
             _context.SaveChanges();
 
             //Изменяем рейтинг бренда
-            var brand = _context.Brands.Find(_review.BrandId);
+            var brand = _context.Brand.Find(_review.BrandId);
             //formula https://stackoverflow.com/a/32631668, в разы лучше чем суммировать итерацией IMO
             brand.Rating = (((brand.Rating ?? 0f) * oldReviewCount) + (float)_review.Rating) / (float)(oldReviewCount + 1);
             brand.ReviewCount++;
@@ -134,7 +134,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult<(int, int)> GetReviewCount(int id)
         {
-            var allReviews = _context.Reviews.Where(e => e.BrandId == id);
+            var allReviews = _context.Review.Where(e => e.BrandId == id);
             return (allReviews.Count(), allReviews.Where(e => !string.IsNullOrEmpty(e.Text)).Count());
         }
 
@@ -150,7 +150,7 @@ namespace ApiClick.Controllers
                     _review.Rating > 5 ||
                     _review.Rating < 0 ||
                     _review.OrderId <= 0 ||
-                    !DoesOrderIdExist(_review.OrderId))
+                    !DoesOrderIdExist(_review.OrderId ?? default))
                 {
                     return false;
                 }
@@ -166,7 +166,7 @@ namespace ApiClick.Controllers
 
         private bool DoesOrderIdExist(int _orderId)
         {
-            if (_context.Orders.Find(_orderId) == null) 
+            if (_context.Order.Find(_orderId) == null) 
             {
                 return false;
             }

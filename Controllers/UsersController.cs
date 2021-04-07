@@ -42,7 +42,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.User.ToListAsync();
         }
 
         // GET: api/Users
@@ -117,7 +117,7 @@ namespace ApiClick.Controllers
             }
 
             //Такой номер уже занят
-            if (_context.Users.FirstOrDefault(e => e.Phone == newPhoneNum) != null) 
+            if (_context.User.FirstOrDefault(e => e.Phone == newPhoneNum) != null) 
             {
                 return Forbid();
             }
@@ -169,7 +169,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public ActionResult PhoneCheck(string phone)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Phone == phone);
+            var user = _context.User.FirstOrDefault(u => u.Phone == phone);
 
             if (user == null)
             {
@@ -199,7 +199,7 @@ namespace ApiClick.Controllers
         // Регистрация пользователей
         // POST: api/Users
         [HttpPost]
-        public ActionResult<User> PostUsers(User _user, string code)
+        public ActionResult PostUsers(User _user, string code)
         {
             if (!IsPostModelValid(_user))
             {
@@ -234,7 +234,7 @@ namespace ApiClick.Controllers
                 }
             }
 
-            if (_context.Users.Any(x => x.Phone == _user.Phone))
+            if (_context.User.Any(x => x.Phone == _user.Phone))
             {
                 return BadRequest(new { errorText = "Такой номер уже зарегистрирован" });
             }
@@ -243,8 +243,10 @@ namespace ApiClick.Controllers
                 _user.CreatedDate = DateTime.UtcNow;
                 _user.UserRole = UserRole.User;
                 _user.Points = 0;
+                _user.NotificationsEnabled = false;
+                _user.UserInfo = new UserInfo();
 
-                _context.Users.Add(_user);
+                _context.User.Add(_user);
                 try
                 {
                     _context.SaveChanges();
@@ -253,13 +255,13 @@ namespace ApiClick.Controllers
                 {
                     return Forbid();
                 }
-                return _user; //без очистки, чтобы заполнить поля в приложении
+                return Ok(); //без очистки, чтобы заполнить поля в приложении
             }
         }
 
         private bool UsersExists(int id)
         {
-            return _context.Users.Any(e => e.UserId == id);
+            return _context.User.Any(e => e.UserId == id);
         }
 
         /// <summary>

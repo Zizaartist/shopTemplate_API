@@ -37,8 +37,8 @@ namespace ApiClick.Controllers.ScheduledTasks.Jobs
                     //Проверка пропущенных отчетов
                     //Проверка производится только на предыдущий день, большее количество проверок уже достигает абсурда
 
-                    var brandsWithNoReportsYesterday = _context.Brands.Where(brand => 
-                        _context.Reports.Any(report => 
+                    var brandsWithNoReportsYesterday = _context.Brand.Where(brand => 
+                        _context.Report.Any(report => 
                             report.BrandId == brand.BrandId &&
                             report.CreatedDate.Date == yesterday));
 
@@ -49,7 +49,7 @@ namespace ApiClick.Controllers.ScheduledTasks.Jobs
                     }
 
                     //Отправка отчетов производится после полуночи по UTC
-                    foreach (var brand in _context.Brands)
+                    foreach (var brand in _context.Brand)
                     {
                         AddingReports(brand, _context, today);
                     }
@@ -66,8 +66,8 @@ namespace ApiClick.Controllers.ScheduledTasks.Jobs
 
         private void AddingReports(Brand _brand, ClickContext _context, DateTime _day)
         {
-            var ordersFromDay = _context.Orders.Where(order =>
-                order.BrandOwnerId == _brand.UserId &&
+            var ordersFromDay = _context.Order.Where(order =>
+                order.BrandId == _brand.BrandId &&
                 order.CreatedDate.Date == _day).ToList();
 
             var totatSum = ordersFromDay.Sum(order => PointsController.CalculateSum(order));
@@ -96,7 +96,7 @@ namespace ApiClick.Controllers.ScheduledTasks.Jobs
                 result.ProductOfDaySum = productOfDay.Count * productsByGroup.First(e => e.Key == productOfDay.ProductId).First().Price; //пока без проверок безопасности
             }
 
-            _context.Reports.Add(result);
+            _context.Report.Add(result);
         }
     }
 }

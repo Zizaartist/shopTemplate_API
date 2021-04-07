@@ -28,7 +28,7 @@ namespace ApiClick.Controllers.ScheduledTasks.Jobs
                 try
                 {
                     var _context = scope.ServiceProvider.GetRequiredService<ClickContext>();
-                    Debug.WriteLine($"Success! Result: {(await _context.Images.FindAsync(2)).Path} - {context.JobDetail.Key.Name}");
+                    Debug.WriteLine($"Success! Result: {context.JobDetail.Key.Name}");
                 }
                 catch (Exception _ex)
                 {

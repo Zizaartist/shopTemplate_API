@@ -27,7 +27,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult<List<Hashtag>> GetHashtagsByKind(Kind category)
         {
-            return _context.Hashtags.Where(e => e.Kind == category).ToList();
+            return _context.Hashtag.Where(e => e.Kind == category).ToList();
         }
 
         //// GET: api/HashtagsTooltip

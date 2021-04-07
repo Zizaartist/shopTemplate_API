@@ -34,7 +34,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Product>> GetProducts()
         {
-            var products = _context.Products.ToList();
+            var products = _context.Product.ToList();
 
             return products;
         }
@@ -46,7 +46,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProductsByMenu(int id, int _page)
         {
-            var products = _context.Products.Where(p => p.CategoryId == id); 
+            var products = _context.Product.Where(p => p.CategoryId == id); 
             
             products = Functions.GetPageRange(products, _page, PAGE_SIZE);
 
@@ -67,7 +67,7 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult<Product> GetProducts(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _context.Product.Find(id);
 
             if (product == null)
             {
@@ -92,7 +92,7 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            var product = _context.Products.Find(_productData.ProductId);
+            var product = _context.Product.Find(_productData.ProductId);
 
             product.Description = _productData.Description;
             if (!string.IsNullOrEmpty(_productData.Image)) product.Image = _productData.Image;
@@ -122,7 +122,7 @@ namespace ApiClick.Controllers
 
             _product.CreatedDate = DateTime.UtcNow;
 
-            _context.Products.Add(_product);
+            _context.Product.Add(_product);
             _context.SaveChanges();
 
             return Ok();
@@ -134,7 +134,7 @@ namespace ApiClick.Controllers
         [HttpDelete]
         public ActionResult<Product> DeleteProducts(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _context.Product.Find(id);
 
             if (product == null) 
             {
@@ -146,7 +146,7 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            _context.Products.Remove(product);
+            _context.Product.Remove(product);
             _context.SaveChanges();
 
             return Ok();
@@ -155,14 +155,14 @@ namespace ApiClick.Controllers
         private bool IsOwner(Product _product)
         {
             var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
-            var category = _context.Categories.Find(_product.CategoryId);
+            var category = _context.Category.Find(_product.CategoryId);
 
             if (category == null) 
             {
                 return false;
             }
 
-            var brand = _context.Brands.Find(category.BrandId);
+            var brand = _context.Brand.Find(category.BrandId);
 
             if (brand == null || brand.ExecutorId != mySelf.ExecutorId)
             {
@@ -186,7 +186,7 @@ namespace ApiClick.Controllers
                 {
                     return false;
                 }
-                var product = _context.Products.Find(_product.ProductId);
+                var product = _context.Product.Find(_product.ProductId);
                 if (product == null)
                 {
                     return false;

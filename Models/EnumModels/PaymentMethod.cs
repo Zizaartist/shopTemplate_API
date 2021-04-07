@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using ApiClick.Models.ArrayModels;
 using ApiClick.StaticValues;
 
 namespace ApiClick.Models.EnumModels

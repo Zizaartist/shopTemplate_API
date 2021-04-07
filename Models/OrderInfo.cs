@@ -19,7 +19,7 @@ namespace ApiClick.Models
         public int? Floor { get; set; }
         public int? Apartment { get; set; }
         public string Commentary { get; set; }
-        public int? OrderId { get; set; }
+        public int OrderId { get; set; }
 
         [JsonIgnore]
         public Order Order { get; set; }

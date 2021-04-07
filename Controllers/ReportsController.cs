@@ -37,9 +37,9 @@ namespace ApiClick.Controllers
             //Вычитаем период для получения дня отчета. Получаем результаты от startingDay по текущий
             var startingDay = DateTime.UtcNow.Date.AddDays((int)datePeriod * -1); 
 
-            var myBrand = _context.Brands.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
+            var myBrand = _context.Brand.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
 
-            var reports = _context.Reports.Where(rep => rep.BrandId == myBrand.BrandId && (rep.CreatedDate >= startingDay));
+            var reports = _context.Report.Where(rep => rep.BrandId == myBrand.BrandId && (rep.CreatedDate >= startingDay));
 
             if (!reports.Any()) 
             {
@@ -60,9 +60,9 @@ namespace ApiClick.Controllers
         {
             var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
 
-            var myBrand = _context.Brands.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
+            var myBrand = _context.Brand.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
 
-            var reports = _context.Reports.Where(report => report.BrandId == myBrand.BrandId);
+            var reports = _context.Report.Where(report => report.BrandId == myBrand.BrandId);
 
             if (!reports.Any()) 
             {

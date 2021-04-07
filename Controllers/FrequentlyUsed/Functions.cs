@@ -54,7 +54,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <returns>Пользователь, найденный в контексте</returns>
         public static User identityToUser(IIdentity identity, ClickContext _context)
         {
-            return _context.Users.AsNoTracking().FirstOrDefault(u => u.Phone == identity.Name);
+            return _context.User.AsNoTracking().FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
 
         public static bool phoneIsRegistered(string correctPhone, ClickContext _context)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Phone == correctPhone);
+            var user = _context.User.FirstOrDefault(u => u.Phone == correctPhone);
             return user != null;
         }
     }

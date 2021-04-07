@@ -9,6 +9,11 @@ namespace ApiClick.Models
 {
     public partial class WaterBrand
     {
+        public WaterBrand()
+        {
+            WaterRequest = new HashSet<WaterRequest>();
+        }
+
         public int WaterBrandId { get; set; }
         public int BrandId { get; set; }
         public decimal WaterPrice { get; set; }
@@ -16,5 +21,6 @@ namespace ApiClick.Models
         public string Certificate { get; set; }
 
         public Brand Brand { get; set; }
+        public virtual ICollection<WaterRequest> WaterRequest { get; set; }
     }
 }

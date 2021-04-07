@@ -30,6 +30,17 @@ namespace ApiClick.Controllers
             this._context = _context;
         }
 
+        [Route("UnitTest")]
+        [HttpGet]
+        public ActionResult<string> UnitTest(string phone)
+        {
+            if (phone == "88005553535")
+            {
+                return "Everything ok!";
+            }
+            return "Something's wrong...";
+        }
+
         [Route("UserToken")]
         [HttpPost]
         public IActionResult UserToken(string phone)
@@ -157,7 +168,7 @@ namespace ApiClick.Controllers
         //identity with user rights
         private ClaimsIdentity GetIdentity(string phone)
         {
-            User user = _context.Users.FirstOrDefault(x => x.Phone == phone);
+            User user = _context.User.FirstOrDefault(x => x.Phone == phone);
 
             if (user != null)
             {
@@ -179,7 +190,7 @@ namespace ApiClick.Controllers
         //identity with admin rights
         private ClaimsIdentity GetIdentity(string login, string password)
         {
-            var executor = _context.Users.FirstOrDefault(exe => (exe.Executor.Login == login) && (exe.Executor.Password == password));
+            var executor = _context.User.FirstOrDefault(exe => (exe.Executor.Login == login) && (exe.Executor.Password == password));
 
             //if user wasn't found or his role is user = ignore
             if (executor != null && executor.UserRole != UserRole.User)

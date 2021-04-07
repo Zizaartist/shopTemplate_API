@@ -20,38 +20,29 @@ namespace ApiClick
         {
         }
 
-        public virtual DbSet<AdBanner> AdBanners { get; set; }
-        public virtual DbSet<Brand> Brands { get; set; }
-        public virtual DbSet<BrandDoc> BrandDocs { get; set; }
-        public virtual DbSet<BrandHashtag> BrandHashtags { get; set; }
+        public virtual DbSet<AdBanner> AdBanner { get; set; }
+        public virtual DbSet<Brand> Brand { get; set; }
+        public virtual DbSet<BrandDoc> BrandDoc { get; set; }
+        public virtual DbSet<BrandHashtag> BrandHashtag { get; set; }
         public virtual DbSet<BrandInfo> BrandInfo { get; set; }
-        public virtual DbSet<BrandPaymentMethod> BrandPaymentMethods { get; set; }
-        public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<ErrorReport> ErrorReports { get; set; }
-        public virtual DbSet<Executor> Executors { get; set; }
-        public virtual DbSet<Hashtag> Hashtags { get; set; }
-        public virtual DbSet<Order> Orders { get; set; }
-        public virtual DbSet<OrderDetail> OrderDetails { get; set; }
+        public virtual DbSet<BrandPaymentMethod> BrandPaymentMethod { get; set; }
+        public virtual DbSet<Category> Category { get; set; }
+        public virtual DbSet<ErrorReport> ErrorReport { get; set; }
+        public virtual DbSet<Executor> Executor { get; set; }
+        public virtual DbSet<Hashtag> Hashtag { get; set; }
+        public virtual DbSet<Order> Order { get; set; }
+        public virtual DbSet<OrderDetail> OrderDetail { get; set; }
         public virtual DbSet<OrderInfo> OrderInfo { get; set; }
-        public virtual DbSet<PointRegister> PointRegisters { get; set; }
-        public virtual DbSet<Product> Products { get; set; }
-        public virtual DbSet<Report> Reports { get; set; }
-        public virtual DbSet<Review> Reviews { get; set; }
-        public virtual DbSet<ScheduleListElement> ScheduleListElements { get; set; }
-        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<PointRegister> PointRegister { get; set; }
+        public virtual DbSet<Product> Product { get; set; }
+        public virtual DbSet<Report> Report { get; set; }
+        public virtual DbSet<Review> Review { get; set; }
+        public virtual DbSet<ScheduleListElement> ScheduleListElement { get; set; }
+        public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserInfo> UserInfo { get; set; }
-        public virtual DbSet<WaterBrand> WaterBrands { get; set; }
-        public virtual DbSet<WaterOrder> WaterOrders { get; set; }
-        public virtual DbSet<WaterRequest> WaterRequests { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=localhost;Database=Redesign_Click_DB;Trusted_Connection=True");
-            }
-        }
+        public virtual DbSet<WaterBrand> WaterBrand { get; set; }
+        public virtual DbSet<WaterOrder> WaterOrder { get; set; }
+        public virtual DbSet<WaterRequest> WaterRequest { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,12 +60,12 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.AdBanners)
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_AdBanner_Brand");
+                    .HasConstraintName("FK_AdBanners_Brand");
             });
 
             modelBuilder.Entity<Brand>(entity =>
             {
-                entity.HasIndex(e => e.UserId)
+                entity.HasIndex(e => e.ExecutorId)
                     .HasName("IX_Brands_UserId");
 
                 entity.Property(e => e.Available)
@@ -92,6 +83,11 @@ namespace ApiClick
                 entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.MinimalPrice).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Executor)
+                    .WithOne(p => p.Brand)
+                    .HasForeignKey<Brand>(d => d.ExecutorId)
+                    .HasConstraintName("FK_Brand_Executor");
             });
 
             modelBuilder.Entity<BrandDoc>(entity =>
@@ -144,8 +140,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.BrandHashtags)
                     .HasForeignKey(d => d.BrandId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("FK_HashtagsListElements_Brands_BrandId");
+                    .HasConstraintName("FK_BrandHashtags_Brand");
 
                 entity.HasOne(d => d.Hashtag)
                     .WithMany(p => p.BrandHashtags)
@@ -187,16 +182,16 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.BrandPaymentMethods)
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_PaymentMethodsListElement_Brands_BrandId");
+                    .HasConstraintName("FK_BrandPaymentMethods_Brand");
             });
 
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasIndex(e => e.BrandId)
-                    .HasName("IX_Categories_BrandId");
+                    .HasName("IX_BrandMenus_BrandId");
 
                 entity.HasIndex(e => e.Image)
-                    .HasName("IX_Categories_ImgId");
+                    .HasName("IX_BrandMenus_ImgId");
 
                 entity.Property(e => e.CategoryName)
                     .IsRequired()
@@ -211,8 +206,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Categories)
                     .HasForeignKey(d => d.BrandId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Categories_BrandId");
+                    .HasConstraintName("FK_Categories_Brand");
             });
 
             modelBuilder.Entity<ErrorReport>(entity =>
@@ -233,10 +227,6 @@ namespace ApiClick
 
             modelBuilder.Entity<Executor>(entity =>
             {
-                entity.HasIndex(e => e.BrandId)
-                    .HasName("IX_Executor_Brand")
-                    .IsUnique();
-
                 entity.HasIndex(e => e.Login)
                     .IsUnique();
 
@@ -251,12 +241,6 @@ namespace ApiClick
                 entity.Property(e => e.Password)
                     .IsRequired()
                     .HasMaxLength(50);
-
-                entity.HasOne(d => d.Brand)
-                    .WithOne(p => p.Executor)
-                    .HasForeignKey<Executor>(d => d.BrandId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Executor_Brand");
 
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.Executor)
@@ -279,21 +263,31 @@ namespace ApiClick
                 entity.HasIndex(e => e.OrdererId)
                     .HasName("IX_Orders_UserId");
 
+                entity.HasIndex(e => e.PointRegisterId)
+                    .HasName("IX_Order_1")
+                    .IsUnique();
+
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
+                entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
+
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.BrandId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Order_Brand");
+                    .HasConstraintName("FK_Orders_Brand");
 
                 entity.HasOne(d => d.Orderer)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.OrdererId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_OrderCl_UserId");
+
+                entity.HasOne(d => d.PointRegister)
+                    .WithOne(p => p.Order)
+                    .HasForeignKey<Order>(d => d.PointRegisterId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Order_PointRegister");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
@@ -314,7 +308,6 @@ namespace ApiClick
                 entity.HasOne(d => d.Product)
                     .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_OrderDetail_Product");
             });
 
@@ -326,26 +319,19 @@ namespace ApiClick
 
                 entity.Property(e => e.Commentary).HasMaxLength(250);
 
-                entity.Property(e => e.House)
-                    .IsRequired()
-                    .HasMaxLength(30);
+                entity.Property(e => e.House).HasMaxLength(30);
 
-                entity.Property(e => e.OrdererName)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                entity.Property(e => e.OrdererName).HasMaxLength(50);
 
                 entity.Property(e => e.Phone)
                     .IsRequired()
                     .HasMaxLength(30);
 
-                entity.Property(e => e.Street)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                entity.Property(e => e.Street).HasMaxLength(50);
 
                 entity.HasOne(d => d.Order)
                     .WithOne(p => p.OrderInfo)
                     .HasForeignKey<OrderInfo>(d => d.OrderId)
-                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_OrderInfo_Order");
             });
 
@@ -362,8 +348,8 @@ namespace ApiClick
 
                 entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
 
-                entity.HasOne(d => d.Order)
-                    .WithMany(p => p.PointRegisters)
+                entity.HasOne(d => d.OrderNavigation)
+                    .WithMany(p => p.PointRegisterNavigations)
                     .HasForeignKey(d => d.OrderId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_PointRegister_Order");
@@ -371,6 +357,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Receiver)
                     .WithMany(p => p.PointRegisterReceivers)
                     .HasForeignKey(d => d.ReceiverId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PointRegisters_Users_ReceiverId");
 
                 entity.HasOne(d => d.Sender)
@@ -382,7 +369,7 @@ namespace ApiClick
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasIndex(e => e.CategoryId)
-                    .HasName("IX_Products_CategoryId");
+                    .HasName("IX_Products_BrandMenuId");
 
                 entity.HasIndex(e => e.Image)
                     .HasName("IX_Products_ImgId");
@@ -422,12 +409,11 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Reports)
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_Report_Brand");
+                    .HasConstraintName("FK_Reports_Brand");
 
                 entity.HasOne(d => d.ProductOfDay)
                     .WithMany(p => p.Reports)
                     .HasForeignKey(d => d.ProductOfDayId)
-                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_Reports_Products_ProductOfDayId");
             });
 
@@ -454,7 +440,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Reviews)
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_Messages_BrandId");
+                    .HasConstraintName("FK_Messages_Brand");
 
                 entity.HasOne(d => d.Order)
                     .WithOne(p => p.Review)
@@ -464,7 +450,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Sender)
                     .WithMany(p => p.Reviews)
                     .HasForeignKey(d => d.SenderId)
-                    .HasConstraintName("FK_Messages_UserId");
+                    .HasConstraintName("FK_Reviews_UserId");
             });
 
             modelBuilder.Entity<ScheduleListElement>(entity =>
@@ -474,7 +460,7 @@ namespace ApiClick
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.ScheduleListElements)
                     .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_ScheduleListElement_Brands_BrandId");
+                    .HasConstraintName("FK_ScheduleListElements_Brand");
             });
 
             modelBuilder.Entity<User>(entity =>
@@ -558,16 +544,17 @@ namespace ApiClick
 
             modelBuilder.Entity<WaterRequest>(entity =>
             {
-                entity.HasIndex(e => e.BrandId)
+                entity.HasIndex(e => e.WaterBrandId)
                     .HasName("IX_WaterRequests_BrandId");
 
                 entity.HasIndex(e => e.WaterOrderId)
                     .HasName("IX_WaterRequests_OrderId");
 
-                entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.WaterRequests)
-                    .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_WaterRequests_Brands_BrandId");
+                entity.HasOne(d => d.WaterBrand)
+                    .WithMany(p => p.WaterRequest)
+                    .HasForeignKey(d => d.WaterBrandId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_WaterRequest_WaterBrand");
 
                 entity.HasOne(d => d.WaterOrder)
                     .WithMany(p => p.WaterRequests)

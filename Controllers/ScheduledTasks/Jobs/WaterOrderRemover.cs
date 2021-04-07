@@ -28,8 +28,8 @@ namespace ApiClick.Controllers.ScheduledTasks
                 try
                 {
                     var _context = scope.ServiceProvider.GetRequiredService<ClickContext>();
-                    var order = _context.Orders.Find(int.Parse(context.JobDetail.Key.Name)); //В ключе содержится id
-                    _context.Orders.Remove(order);
+                    var order = _context.Order.Find(int.Parse(context.JobDetail.Key.Name)); //В ключе содержится id
+                    _context.Order.Remove(order);
                     await _context.SaveChangesAsync();
                 }
                 catch (Exception _ex)

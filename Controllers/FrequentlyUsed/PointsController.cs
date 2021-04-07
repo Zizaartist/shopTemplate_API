@@ -46,7 +46,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
 
             try
             {
-                receiver = _context.Users.Find(_receiverId); //Просто подтверждаем факт наличия
+                receiver = _context.User.Find(_receiverId); //Просто подтверждаем факт наличия
             }
             catch 
             {
@@ -96,7 +96,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             User receiver;
             try
             {
-                receiver = _context.Users.Find(_pointRegister.ReceiverId);
+                receiver = _context.User.Find(_pointRegister.ReceiverId);
             }
             catch
             {
@@ -124,7 +124,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             User sender;
             try
             {
-                sender = _context.Users.Find(_pointRegister.SenderId);
+                sender = _context.User.Find(_pointRegister.SenderId);
             }
             catch
             {
@@ -135,7 +135,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             try
             {
                 sender.Points += _pointRegister.Points;
-                _context.PointRegisters.Remove(_pointRegister);
+                _context.PointRegister.Remove(_pointRegister);
             }
             catch
             {
@@ -161,7 +161,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             var sum = CalculateSum(_order);
             try
             {
-                var points = _order.PointRegisterId != null ? _context.PointRegisters.Find(_order.PointRegisterId).Points : 0;
+                var points = _order.PointRegisterId != null ? _context.PointRegister.Find(_order.PointRegisterId).Points : 0;
                 return sum - points;
             }
             catch (Exception _ex) 

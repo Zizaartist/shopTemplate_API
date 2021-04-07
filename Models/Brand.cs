@@ -19,7 +19,6 @@ namespace ApiClick.Models
             Reports = new HashSet<Report>();
             Reviews = new HashSet<Review>();
             ScheduleListElements = new HashSet<ScheduleListElement>();
-            WaterRequests = new HashSet<WaterRequest>();
         }
 
         public int BrandId { get; set; }
@@ -37,8 +36,8 @@ namespace ApiClick.Models
 
         public virtual BrandInfo BrandInfo { get; set; }
         public virtual WaterBrand WaterBrand { get; set; }
-        public BrandDoc BrandDoc { get; set; }
         public Executor Executor { get; set; }
+        public BrandDoc BrandDoc { get; set; }
         public virtual ICollection<BrandHashtag> BrandHashtags { get; set; }
         public virtual ICollection<BrandPaymentMethod> BrandPaymentMethods { get; set; }
         public virtual ICollection<ScheduleListElement> ScheduleListElements { get; set; }
@@ -47,6 +46,5 @@ namespace ApiClick.Models
         public ICollection<Order> Orders { get; set; }
         public ICollection<Report> Reports { get; set; }
         public ICollection<Review> Reviews { get; set; }
-        public ICollection<WaterRequest> WaterRequests { get; set; }
     }
 }
