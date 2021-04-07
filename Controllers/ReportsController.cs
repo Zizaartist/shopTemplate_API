@@ -10,6 +10,7 @@ using ApiClick.Models;
 using Microsoft.AspNetCore.Authorization;
 using ApiClick.Models.EnumModels;
 using ApiClick.Controllers.FrequentlyUsed;
+using Microsoft.Extensions.Logging;
 
 namespace ApiClick.Controllers
 {
@@ -17,44 +18,35 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class ReportsController : ControllerBase
     {
-        private Functions funcs;
         private readonly ClickContext _context;
+        private readonly ILogger<ReportsController> _logger;
 
-        public ReportsController(ClickContext context)
+        public ReportsController(ClickContext _context, ILogger<ReportsController> _logger)
         {
-            funcs = new Functions();
-            _context = context;
+            this._context = _context;
+            this._logger = _logger;
         }
 
         // GET: api/ReportsController/30/
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("{datePeriod}")]
-        public async Task<ActionResult<List<Report>>> Get(DatePeriod datePeriod)
+        public ActionResult<IEnumerable<Report>> Get(DatePeriod datePeriod)
         {
-            var user = funcs.identityToUser(User.Identity, _context);
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
 
-            var brand = _context.Brands.First(e => e.UserId == user.UserId);
+            //Вычитаем период для получения дня отчета. Получаем результаты от startingDay по текущий
+            var startingDay = DateTime.UtcNow.Date.AddDays((int)datePeriod * -1); 
 
-            var reports = _context.Reports.Where(e => e.BrandId == brand.BrandId).Take((int)datePeriod);
+            var myBrand = _context.Brands.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
+
+            var reports = _context.Reports.Where(rep => rep.BrandId == myBrand.BrandId && (rep.CreatedDate >= startingDay));
 
             if (!reports.Any()) 
             {
                 return NotFound();
             }
 
-            var result = await reports.ToListAsync();
-
-            foreach (var report in result) 
-            {
-                if (report.ProductOfDayId != null) 
-                {
-                    report.ProductOfDay = funcs.getCleanModel(_context.Products.Find(report.ProductOfDayId));
-                    if (report.ProductOfDay.ImgId != null) 
-                    {
-                        report.ProductOfDay.Image = funcs.getCleanModel(_context.Images.Find(report.ProductOfDay.ImgId));
-                    }
-                }
-            }
+            var result = reports.ToList();
 
             return result;
         }
@@ -64,20 +56,20 @@ namespace ApiClick.Controllers
         [Route("AllTimeStats")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
-        public async Task<ActionResult<(int, decimal)>> GetAllTimeStats()
+        public ActionResult<(int, decimal)> GetAllTimeStats()
         {
-            var user = funcs.identityToUser(User.Identity, _context);
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
 
-            var brand = _context.Brands.First(e => e.UserId == user.UserId);
+            var myBrand = _context.Brands.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
 
-            var reports = _context.Reports.Where(e => e.BrandId == brand.BrandId);
+            var reports = _context.Reports.Where(report => report.BrandId == myBrand.BrandId);
 
             if (!reports.Any()) 
             {
                 return (0, 0m);
             }
 
-            return (reports.Count(), reports.Sum(e => e.Sum));
+            return (reports.Count(), reports.Sum(report => report.Sum));
         }
     }
 }

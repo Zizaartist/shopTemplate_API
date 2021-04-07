@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -17,8 +18,11 @@ namespace ApiClick.Models
         public bool TransactionCompleted { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public virtual Order Order { get; set; }
-        public virtual User Receiver { get; set; }
-        public virtual User Sender { get; set; }
+        [JsonIgnore]
+        public Order Order { get; set; }
+        [JsonIgnore]
+        public User Receiver { get; set; }
+        [JsonIgnore]
+        public User Sender { get; set; }
     }
 }

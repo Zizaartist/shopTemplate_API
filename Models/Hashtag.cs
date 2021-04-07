@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -11,13 +12,14 @@ namespace ApiClick.Models
     {
         public Hashtag()
         {
-            BrandHashtag = new HashSet<BrandHashtag>();
+            BrandHashtags = new HashSet<BrandHashtag>();
         }
 
         public int HashTagId { get; set; }
         public string HashTagName { get; set; }
-        public int Category { get; set; }
+        public Kind Kind { get; set; }
 
-        public virtual ICollection<BrandHashtag> BrandHashtag { get; set; }
+        [JsonIgnore]
+        public ICollection<BrandHashtag> BrandHashtags { get; set; }
     }
 }

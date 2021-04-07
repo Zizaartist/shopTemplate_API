@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ApiClick.Models.EnumModels;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -11,30 +13,31 @@ namespace ApiClick.Models
     {
         public User()
         {
-            Brand = new HashSet<Brand>();
-            ErrorReport = new HashSet<ErrorReport>();
-            Order = new HashSet<Order>();
-            PointRegisterReceiver = new HashSet<PointRegister>();
-            PointRegisterSender = new HashSet<PointRegister>();
-            Review = new HashSet<Review>();
+            ErrorReports = new HashSet<ErrorReport>();
+            Orders = new HashSet<Order>();
+            PointRegisterReceivers = new HashSet<PointRegister>();
+            PointRegisterSenders = new HashSet<PointRegister>();
+            Reviews = new HashSet<Review>();
         }
 
         public int UserId { get; set; }
         public string Phone { get; set; }
-        public int UserRole { get; set; }
+        public UserRole UserRole { get; set; }
         public decimal Points { get; set; }
-        public bool? NotificationsEnabled { get; set; }
+        public bool NotificationsEnabled { get; set; }
         public string NotificationRegistration { get; set; }
         public string DeviceType { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public virtual Executor Executor { get; set; }
         public virtual UserInfo UserInfo { get; set; }
-        public virtual ICollection<Brand> Brand { get; set; }
-        public virtual ICollection<ErrorReport> ErrorReport { get; set; }
-        public virtual ICollection<Order> Order { get; set; }
-        public virtual ICollection<PointRegister> PointRegisterReceiver { get; set; }
-        public virtual ICollection<PointRegister> PointRegisterSender { get; set; }
-        public virtual ICollection<Review> Review { get; set; }
+        public Executor Executor { get; set; }
+        public ICollection<ErrorReport> ErrorReports { get; set; }
+        public ICollection<Order> Orders { get; set; }
+        [JsonIgnore]
+        public ICollection<PointRegister> PointRegisterReceivers { get; set; }
+        [JsonIgnore]
+        public ICollection<PointRegister> PointRegisterSenders { get; set; }
+        [JsonIgnore]
+        public ICollection<Review> Reviews { get; set; }
     }
 }

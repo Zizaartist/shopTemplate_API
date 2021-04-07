@@ -30,7 +30,7 @@ namespace ApiClick.Controllers.ScheduledTasks
             #region water orders removal tasks
 
             //Создаем список задач
-            var orders = _context.Orders.Where(e => e.Category == Models.Category.bottledWater || e.Category == Models.Category.water) //Водные заказы
+            var orders = _context.Orders.Where(e => e.Kind == Models.Kind.bottledWater || e.Kind == Models.Kind.water) //Водные заказы
                                         .Where(e => e.BrandOwnerId == null) //Не оккупированные
                                         .Select(e => new { TriggerTime = e.CreatedDate, OrderId = e.OrderId });
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -20,6 +21,7 @@ namespace ApiClick.Models
         public string Commentary { get; set; }
         public int? OrderId { get; set; }
 
-        public virtual Order Order { get; set; }
+        [JsonIgnore]
+        public Order Order { get; set; }
     }
 }

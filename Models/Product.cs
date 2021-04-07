@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -11,8 +12,8 @@ namespace ApiClick.Models
     {
         public Product()
         {
-            OrderDetail = new HashSet<OrderDetail>();
-            Report = new HashSet<Report>();
+            OrderDetails = new HashSet<OrderDetail>();
+            Reports = new HashSet<Report>();
         }
 
         public int ProductId { get; set; }
@@ -24,8 +25,10 @@ namespace ApiClick.Models
         public string Description { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public virtual Category Category { get; set; }
-        public virtual ICollection<OrderDetail> OrderDetail { get; set; }
-        public virtual ICollection<Report> Report { get; set; }
+        [JsonIgnore]
+        public Category Category { get; set; }
+        public ICollection<Report> Reports { get; set; }
+        [JsonIgnore]
+        public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

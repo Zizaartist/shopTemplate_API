@@ -11,18 +11,18 @@ namespace ApiClick.Models
     {
         public WaterOrder()
         {
-            WaterRequest = new HashSet<WaterRequest>();
+            WaterRequests = new HashSet<WaterRequest>();
         }
 
         public int WaterOrderId { get; set; }
         public int OrderId { get; set; }
         public int Amount { get; set; }
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
         public bool? Container { get; set; }
         public string DeliveryDate { get; set; }
         public bool Express { get; set; }
 
-        public virtual Order Order { get; set; }
-        public virtual ICollection<WaterRequest> WaterRequest { get; set; }
+        public Order Order { get; set; }
+        public ICollection<WaterRequest> WaterRequests { get; set; }
     }
 }

@@ -11,10 +11,10 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using Microsoft.EntityFrameworkCore.Internal;
 using ApiClick.Models.EnumModels;
-using ApiClick.Models.RegisterModels;
 using ApiClick.StaticValues;
 using System.ComponentModel;
 using ApiClick.Controllers.FrequentlyUsed;
+using Microsoft.Extensions.Logging;
 
 namespace ApiClick.Controllers
 {
@@ -22,45 +22,30 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class PointRegistersController : ControllerBase
     {
-        ClickContext _context;
-        Functions funcs = new Functions();
+        private readonly ClickContext _context;
+        private readonly ILogger<PointRegistersController> _logger;
 
-        public PointRegistersController(ClickContext _context)
+        public PointRegistersController(ClickContext _context, ILogger<PointRegistersController> _logger)
         {
             this._context = _context;
+            this._logger = _logger;
         }
 
         // GET: api/PointRegisters
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PointRegister>>> GetPointRegisters()
+        public ActionResult<IEnumerable<PointRegister>> GetPointRegisters()
         {
-            var user = funcs.identityToUser(User.Identity, _context);
-            if (user == null) 
-            {
-                return NotFound();
-            }
+            var mySelf = Functions.identityToUser(User.Identity, _context);
             
-            var result = _context.PointRegisters.Where(e => e.ReceiverId == user.UserId || e.SenderId == user.UserId);
+            var result = _context.PointRegisters.Where(e => e.ReceiverId == mySelf.UserId || e.SenderId == mySelf.UserId);
+
             if (!result.Any()) 
             {
                 return NotFound();
             }
 
-            var resultList = await result.ToListAsync();
-
-            foreach (var register in resultList) 
-            {
-                //Если пользователь - получатель
-                if (register.ReceiverId == user.UserId)
-                {
-                    register.SenderId = default;
-                }
-                else 
-                {
-                    register.ReceiverId = default;
-                }
-            }
+            var resultList = result.ToList();
 
             return resultList;
         }

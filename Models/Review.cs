@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
 // If you have enabled NRTs for your project, then un-comment the following line:
@@ -9,6 +11,11 @@ namespace ApiClick.Models
 {
     public partial class Review
     {
+        public Review() 
+        {
+            Products = new HashSet<string>();
+        }
+
         public int ReviewId { get; set; }
         public int SenderId { get; set; }
         public int BrandId { get; set; }
@@ -17,8 +24,13 @@ namespace ApiClick.Models
         public string Text { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public virtual Brand Brand { get; set; }
-        public virtual Order Order { get; set; }
         public virtual User Sender { get; set; }
+        [JsonIgnore]
+        public virtual Order Order { get; set; }
+        [JsonIgnore]
+        public Brand Brand { get; set; }
+
+        [NotMapped]
+        public ICollection<string> Products { get; set; }
     }
 }

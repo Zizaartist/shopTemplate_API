@@ -6,7 +6,7 @@ using ApiClick.StaticValues;
 namespace ApiClick.Models
 {
     /// <summary>
-    /// Enum модель, отвечающая за хранение категорий
+    /// Вид товара
     /// </summary>
     public enum Kind
     {

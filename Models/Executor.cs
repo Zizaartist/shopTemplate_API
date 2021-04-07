@@ -13,9 +13,8 @@ namespace ApiClick.Models
         public int UserId { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
-        public int? BrandId { get; set; }
 
         public virtual Brand Brand { get; set; }
-        public virtual User User { get; set; }
+        public User User { get; set; }
     }
 }

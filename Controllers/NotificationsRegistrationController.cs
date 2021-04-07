@@ -19,8 +19,7 @@ namespace ApiClick.Controllers
     public class NotificationsRegistrationController : ControllerBase
     {
         private NotificationHubClient hub;
-        ClickContext _context;
-        Functions funcs = new Functions();
+        private readonly ClickContext _context;
 
         public NotificationsRegistrationController(ClickContext _context)
         {
@@ -93,7 +92,7 @@ namespace ApiClick.Controllers
             // add check if user is allowed to add these tags
             registration.Tags = new HashSet<string>(deviceUpdate.Tags);
             registration.Tags.Add("username:" + id);
-            var userCl = funcs.identityToUser(User.Identity, _context);
+            var userCl = Functions.identityToUser(User.Identity, _context);
             userCl.DeviceType = deviceUpdate.Platform;
             userCl.NotificationRegistration = "username:" + id;
             await _context.SaveChangesAsync();
@@ -127,7 +126,7 @@ namespace ApiClick.Controllers
         [HttpPost]
         public async Task<ActionResult> ToggleNotifications(bool state)
         {
-            var user = funcs.identityToUser(User.Identity, _context);
+            var user = Functions.identityToUser(User.Identity, _context);
             user.NotificationsEnabled = state;
             await _context.SaveChangesAsync();
             return Ok();

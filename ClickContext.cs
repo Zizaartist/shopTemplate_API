@@ -67,7 +67,7 @@ namespace ApiClick
                 entity.Property(e => e.Text).HasMaxLength(50);
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.AdBanner)
+                    .WithMany(p => p.AdBanners)
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_AdBanner_Brand");
             });
@@ -92,12 +92,6 @@ namespace ApiClick
                 entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.MinimalPrice).HasColumnType("decimal(18, 2)");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Brand)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Brand_UserId");
             });
 
             modelBuilder.Entity<BrandDoc>(entity =>
@@ -148,13 +142,13 @@ namespace ApiClick
                     .HasName("IX_HashtagsListElements_HashtagId");
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.BrandHashtag)
+                    .WithMany(p => p.BrandHashtags)
                     .HasForeignKey(d => d.BrandId)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_HashtagsListElements_Brands_BrandId");
 
                 entity.HasOne(d => d.Hashtag)
-                    .WithMany(p => p.BrandHashtag)
+                    .WithMany(p => p.BrandHashtags)
                     .HasForeignKey(d => d.HashtagId)
                     .HasConstraintName("FK_HashtagsListElements_Hashtags_HashtagId");
             });
@@ -175,9 +169,7 @@ namespace ApiClick
 
                 entity.Property(e => e.DeliveryTime).HasMaxLength(30);
 
-                entity.Property(e => e.Description)
-                    .IsRequired()
-                    .HasMaxLength(30);
+                entity.Property(e => e.Description).HasMaxLength(30);
 
                 entity.Property(e => e.Logo).HasMaxLength(10);
 
@@ -193,7 +185,7 @@ namespace ApiClick
                     .HasName("IX_PaymentMethodsListElement_BrandId");
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.BrandPaymentMethod)
+                    .WithMany(p => p.BrandPaymentMethods)
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_PaymentMethodsListElement_Brands_BrandId");
             });
@@ -201,10 +193,10 @@ namespace ApiClick
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasIndex(e => e.BrandId)
-                    .HasName("IX_BrandMenus_BrandId");
+                    .HasName("IX_Categories_BrandId");
 
                 entity.HasIndex(e => e.Image)
-                    .HasName("IX_BrandMenus_ImgId");
+                    .HasName("IX_Categories_ImgId");
 
                 entity.Property(e => e.CategoryName)
                     .IsRequired()
@@ -217,10 +209,10 @@ namespace ApiClick
                 entity.Property(e => e.Image).HasMaxLength(10);
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.Category)
+                    .WithMany(p => p.Categories)
                     .HasForeignKey(d => d.BrandId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_BrandMenus_BrandId");
+                    .HasConstraintName("FK_Categories_BrandId");
             });
 
             modelBuilder.Entity<ErrorReport>(entity =>
@@ -233,7 +225,7 @@ namespace ApiClick
                     .HasMaxLength(250);
 
                 entity.HasOne(d => d.User)
-                    .WithMany(p => p.ErrorReport)
+                    .WithMany(p => p.ErrorReports)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_ErrorReports_Users_UserId");
@@ -292,13 +284,13 @@ namespace ApiClick
                     .HasDefaultValueSql("(getdate())");
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.Order)
+                    .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.BrandId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_Order_Brand");
 
                 entity.HasOne(d => d.Orderer)
-                    .WithMany(p => p.Order)
+                    .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.OrdererId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_OrderCl_UserId");
@@ -315,12 +307,12 @@ namespace ApiClick
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
                 entity.HasOne(d => d.Order)
-                    .WithMany(p => p.OrderDetail)
+                    .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.OrderId)
                     .HasConstraintName("FK_OrderDetails_OrderId");
 
                 entity.HasOne(d => d.Product)
-                    .WithMany(p => p.OrderDetail)
+                    .WithMany(p => p.OrderDetails)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_OrderDetail_Product");
@@ -371,18 +363,18 @@ namespace ApiClick
                 entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
 
                 entity.HasOne(d => d.Order)
-                    .WithMany(p => p.PointRegister)
+                    .WithMany(p => p.PointRegisters)
                     .HasForeignKey(d => d.OrderId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_PointRegister_Order");
 
                 entity.HasOne(d => d.Receiver)
-                    .WithMany(p => p.PointRegisterReceiver)
+                    .WithMany(p => p.PointRegisterReceivers)
                     .HasForeignKey(d => d.ReceiverId)
                     .HasConstraintName("FK_PointRegisters_Users_ReceiverId");
 
                 entity.HasOne(d => d.Sender)
-                    .WithMany(p => p.PointRegisterSender)
+                    .WithMany(p => p.PointRegisterSenders)
                     .HasForeignKey(d => d.SenderId)
                     .HasConstraintName("FK_PointRegisters_Users_SenderId");
             });
@@ -390,7 +382,7 @@ namespace ApiClick
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasIndex(e => e.CategoryId)
-                    .HasName("IX_Products_BrandMenuId");
+                    .HasName("IX_Products_CategoryId");
 
                 entity.HasIndex(e => e.Image)
                     .HasName("IX_Products_ImgId");
@@ -410,7 +402,7 @@ namespace ApiClick
                     .HasMaxLength(30);
 
                 entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Product)
+                    .WithMany(p => p.Products)
                     .HasForeignKey(d => d.CategoryId)
                     .HasConstraintName("FK_Products_CategoryId");
             });
@@ -428,12 +420,12 @@ namespace ApiClick
                 entity.Property(e => e.Sum).HasColumnType("decimal(18, 2)");
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.Report)
+                    .WithMany(p => p.Reports)
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_Report_Brand");
 
                 entity.HasOne(d => d.ProductOfDay)
-                    .WithMany(p => p.Report)
+                    .WithMany(p => p.Reports)
                     .HasForeignKey(d => d.ProductOfDayId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_Reports_Products_ProductOfDayId");
@@ -460,7 +452,7 @@ namespace ApiClick
                     .HasMaxLength(250);
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.Review)
+                    .WithMany(p => p.Reviews)
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_Messages_BrandId");
 
@@ -470,7 +462,7 @@ namespace ApiClick
                     .HasConstraintName("FK_Messages_OrderId");
 
                 entity.HasOne(d => d.Sender)
-                    .WithMany(p => p.Review)
+                    .WithMany(p => p.Reviews)
                     .HasForeignKey(d => d.SenderId)
                     .HasConstraintName("FK_Messages_UserId");
             });
@@ -480,7 +472,7 @@ namespace ApiClick
                 entity.HasIndex(e => e.BrandId);
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.ScheduleListElement)
+                    .WithMany(p => p.ScheduleListElements)
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_ScheduleListElement_Brands_BrandId");
             });
@@ -573,12 +565,12 @@ namespace ApiClick
                     .HasName("IX_WaterRequests_OrderId");
 
                 entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.WaterRequest)
+                    .WithMany(p => p.WaterRequests)
                     .HasForeignKey(d => d.BrandId)
                     .HasConstraintName("FK_WaterRequests_Brands_BrandId");
 
                 entity.HasOne(d => d.WaterOrder)
-                    .WithMany(p => p.WaterRequest)
+                    .WithMany(p => p.WaterRequests)
                     .HasForeignKey(d => d.WaterOrderId)
                     .HasConstraintName("FK_WaterRequest_WaterOrder");
             });

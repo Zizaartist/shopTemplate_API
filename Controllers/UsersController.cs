@@ -17,121 +17,101 @@ using ApiClick.Controllers.ScheduledTasks;
 using Quartz;
 using ApiClick.Controllers.ScheduledTasks.Jobs;
 using ApiClick.Controllers.FrequentlyUsed;
+using Microsoft.Extensions.Logging;
 
 namespace ApiClick.Controllers
 {
     [ApiController]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        ClickContext _context;
-        Functions funcs = new Functions();
-        IMemoryCache _cache;
+        private readonly ClickContext _context;
+        private readonly ILogger<UsersController> _logger;
+        private readonly IMemoryCache _cache;
         private object scheduler;
 
-        public UsersController(IMemoryCache memoryCache, ClickContext _context)
+        public UsersController(IMemoryCache memoryCache, ClickContext _context, ILogger<UsersController> _logger)
         {
             _cache = memoryCache;
             this._context = _context;
+            this._logger = _logger;
         }
 
         // GET: api/Users
-        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            await TestJob.AddNewJob(TimeSpan.FromSeconds(5));
-            await TestJob.RemoveJob(1);
-            await TestJob.RemoveJob(2);
             return await _context.Users.ToListAsync();
         }
 
         // GET: api/Users
-        [Route("api/GetMyPoints")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Route("GetMyPoints")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<decimal>> GetMyPoints()
+        public ActionResult<decimal> GetMyPoints()
         {
-            var user = funcs.identityToUser(User.Identity, _context);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            else 
-            {
-                return user.Points;
-            }
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+            return mySelf.Points;
         }
 
         // GET: api/Users/5PhoneAuth
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [Route("api/GetMyData")]
+        [Authorize]
+        [Route("GetMyData")]
         [HttpGet]
-        public async Task<ActionResult<User>> GetMyData()
+        public ActionResult<User> GetMyData()
         {
-            var userCl = funcs.getCleanModel(funcs.identityToUser(User.Identity, _context));
+            var mySelf = Functions.identityToUser(User.Identity, _context);
 
-            if (userCl == null)
-            {
-                return NotFound();
-            }
-            userCl.Login = null;
-            userCl.Password = null;
-            userCl.UserRole = Models.EnumModels.UserRole.User;
+            mySelf.Executor = null;
 
-            return userCl;
+            return mySelf;
         }
 
         // PUT: api/Users/5
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [Route("api/[controller]/{id}")]
+        //Успешный ответ должен заставить фронт получить новый токен с нового номера
+        [Authorize]
         [HttpPut]
-        public async Task<IActionResult> PutUsers(int id, User userCl)
+        public ActionResult PutUsers(User _userData)
         {
-            if (id != userCl.UserId)
+            if (!IsPutModelValid(_userData)) 
             {
                 return BadRequest();
             }
 
-            _context.Entry(userCl).State = EntityState.Modified;
+            var user = Functions.identityToUser(User.Identity, _context);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UsersExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            //Вторичные данные
+            user.UserInfo.Name = _userData.UserInfo.Name;
+            user.UserInfo.Street = _userData.UserInfo.Street;
+            user.UserInfo.House = _userData.UserInfo.House;
+            user.UserInfo.Entrance = _userData.UserInfo.Entrance;
+            user.UserInfo.Floor = _userData.UserInfo.Floor;
+            user.UserInfo.Apartment = _userData.UserInfo.Apartment;
 
-            return NoContent();
+            _context.SaveChanges();
+
+            return Ok();
         }
 
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [Route("api/ChangeNumber")]
+        [Authorize]
+        [Route("ChangeNumber")]
         [HttpPut]
-        public async Task<ActionResult<string>> ChangeUserNumber(string newPhoneNumber, string code)
+        public ActionResult<string> ChangeUserNumber(string newPhoneNumber, string code)
         {
             if (newPhoneNumber == null || code == null)
             {
                 return BadRequest();
             }
 
-            var userCl = funcs.identityToUser(User.Identity, _context);
-            var newPhoneNum = funcs.convertNormalPhoneNumber(newPhoneNumber);
-            if (!funcs.IsPhoneNumber(newPhoneNum))
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+            var newPhoneNum = Functions.convertNormalPhoneNumber(newPhoneNumber);
+            if (!Functions.IsPhoneNumber(newPhoneNum))
             {
                 return BadRequest();
             }
 
-            if (userCl == null || userCl.Phone == newPhoneNum)
+            if (mySelf == null || mySelf.Phone == newPhoneNum)
             {
                 return BadRequest();
             }
@@ -155,22 +135,22 @@ namespace ApiClick.Controllers
 
             if (localCode == code)
             {
-                userCl.Phone = newPhoneNum;
+                mySelf.Phone = newPhoneNum;
             }
             else
             {
                 return BadRequest();
             }
 
-            _context.Entry(userCl).State = EntityState.Modified;
+            _context.Entry(mySelf).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                _context.SaveChanges();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UsersExists(userCl.UserId))
+                if (!UsersExists(mySelf.UserId))
                 {
                     return NotFound();
                 }
@@ -185,9 +165,9 @@ namespace ApiClick.Controllers
 
         // POST:
         // Авторизация с помощью номера телефона
-        [Route("api/PhoneCheck")]
+        [Route("PhoneCheck")]
         [HttpPost]
-        public async Task<ActionResult<User>> PhoneCheck(string phone)
+        public ActionResult PhoneCheck(string phone)
         {
             var user = _context.Users.FirstOrDefault(u => u.Phone == phone);
 
@@ -204,47 +184,30 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
-        [Route("api/PhoneIsRegistered")]
+        [Route("PhoneIsRegistered")]
         [HttpPost]
-        public async Task<ActionResult<string>> PhoneIsRegistered(string phone)
+        public ActionResult<string> PhoneIsRegistered(string phone)
         {
-            string correctPhone = funcs.convertNormalPhoneNumber(phone);
-            if (!funcs.phoneIsRegistered(correctPhone, _context)) 
+            string correctPhone = Functions.convertNormalPhoneNumber(phone);
+            if (!Functions.phoneIsRegistered(correctPhone, _context)) 
             {
                 return NotFound();
             }
             return correctPhone;
         }
 
-        [Route("api/Ping")]
-        [HttpGet]
-        public async Task<ActionResult> Ping()
-        {
-            return Ok();
-        }
-
-        //returns ok if admin token is still valid
-        [Authorize(Roles = "SuperAdmin, Admin")]
-        [Route("api/AdminCheck")]
-        [HttpPost]
-        public async Task<ActionResult<User>> AdminCheck()
-        {
-            return Ok();
-        }
-
         // Регистрация пользователей
         // POST: api/Users
-        [Route("api/[controller]")]
         [HttpPost]
-        public async Task<ActionResult<User>> PostUsers(User userCl, string code)
+        public ActionResult<User> PostUsers(User _user, string code)
         {
-            if (!Models.User.ModelIsValid(userCl))
+            if (!IsPostModelValid(_user))
             {
                 return BadRequest();
             }
 
-            userCl.Phone = funcs.convertNormalPhoneNumber(userCl.Phone);
-            if (!funcs.IsPhoneNumber(userCl.Phone))
+            _user.Phone = Functions.convertNormalPhoneNumber(_user.Phone);
+            if (!Functions.IsPhoneNumber(_user.Phone))
             {
                 return BadRequest(new { errorText = "Не является номером телефона." });
             }
@@ -252,7 +215,7 @@ namespace ApiClick.Controllers
             string localCode;
             try
             {
-                localCode = _cache.Get<string>(userCl.Phone);
+                localCode = _cache.Get<string>(_user.Phone);
             }
             catch (Exception) 
             {
@@ -271,52 +234,76 @@ namespace ApiClick.Controllers
                 }
             }
 
-            if (_context.Users.Any(x => x.Phone == userCl.Phone))
+            if (_context.Users.Any(x => x.Phone == _user.Phone))
             {
                 return BadRequest(new { errorText = "Такой номер уже зарегистрирован" });
             }
             else
             {
-                userCl.CreatedDate = DateTime.UtcNow;
-                userCl.UserRole = Models.EnumModels.UserRole.User;
-                userCl.Points = 0;
+                _user.CreatedDate = DateTime.UtcNow;
+                _user.UserRole = UserRole.User;
+                _user.Points = 0;
 
-                _context.Users.Add(userCl);
+                _context.Users.Add(_user);
                 try
                 {
-                    await _context.SaveChangesAsync();
+                    _context.SaveChanges();
                 }
                 catch (Exception) 
                 {
                     return Forbid();
                 }
-                return userCl; //без очистки, чтобы заполнить поля в приложении
-            }
-        }
-
-        //ДОБАВЛЕНИЕ СУПЕРЮЗЕРА. УДАЛИТЬ ПО ВО ВРЕМЯ РЕЛИЗА
-        [Route("api/AddSuperAdminTemp")]
-        [HttpPost]
-        public async Task<ActionResult<User>> AddSuperAdminTemp(User userCl) 
-        {
-            if (userCl == null)
-            {
-                return BadRequest();
-            }
-            else
-            {
-                userCl.CreatedDate = DateTime.UtcNow;
-                userCl.UserRole = UserRole.User;
-
-                _context.Users.Add(userCl);
-                await _context.SaveChangesAsync();
-                return Ok();
+                return _user; //без очистки, чтобы заполнить поля в приложении
             }
         }
 
         private bool UsersExists(int id)
         {
             return _context.Users.Any(e => e.UserId == id);
+        }
+
+        /// <summary>
+        /// Валидация получаемых данных
+        /// </summary>
+        /// <returns>Полученные данные являются допустимыми</returns>
+        private bool IsPutModelValid(User _user)
+        {
+            try
+            {
+                if(_user == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception _ex)
+            {
+                _logger.LogWarning($"Ошибка при валидации User модели PUT метода - {_ex}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Валидация получаемых данных
+        /// </summary>
+        /// <returns>Полученные данные являются допустимыми</returns>
+        private bool IsPostModelValid(User _user)
+        {
+            try
+            {
+                if(_user == null ||
+                    string.IsNullOrEmpty(_user.Phone) ||
+                    !Functions.IsPhoneNumber(_user.Phone))
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception _ex)
+            {
+                _logger.LogWarning($"Ошибка при валидации User модели POST метода - {_ex}");
+                return false;
+            }
         }
     }
 }

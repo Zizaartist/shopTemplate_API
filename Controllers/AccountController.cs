@@ -4,6 +4,7 @@ using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -16,11 +17,12 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AccountController : Controller
     {
-        private ClickContext _context;
-        private IMemoryCache _cache;
-        Functions funcs = new Functions();
+        private readonly ClickContext _context;
+        private readonly IMemoryCache _cache;
 
         public AccountController(IMemoryCache memoryCache, ClickContext _context)
         {
@@ -28,7 +30,7 @@ namespace ApiClick.Controllers
             this._context = _context;
         }
 
-        [Route("api/UserToken")]
+        [Route("UserToken")]
         [HttpPost]
         public IActionResult UserToken(string phone)
         {
@@ -59,7 +61,7 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
-        [Route("api/AdminToken")]
+        [Route("AdminToken")]
         [HttpPost]
         public IActionResult AdminToken(string login, string password)
         {
@@ -89,16 +91,16 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
-        [Route("api/SmsCheck")]
+        [Route("SmsCheck")]
         [HttpPost]
         public async Task<IActionResult> SmsCheck(string phone)
         {
-            string PhoneLoc = funcs.convertNormalPhoneNumber(phone);
+            string PhoneLoc = Functions.convertNormalPhoneNumber(phone);
             Random rand = new Random();
             string generatedCode = rand.Next(1000, 9999).ToString();
             if (phone != null)
             {
-                if (funcs.IsPhoneNumber(PhoneLoc))
+                if (Functions.IsPhoneNumber(PhoneLoc))
                 {
                     //Позволяет получать ip отправителя, можно добавить к запросу sms api для фильтрации спаммеров
                     var senderIp = Request.HttpContext.Connection.RemoteIpAddress;
@@ -109,7 +111,7 @@ namespace ApiClick.Controllers
                     if (response.IsSuccessStatusCode)
                     {
                         //Добавляем код в кэш на 5 минут
-                        _cache.Set(funcs.convertNormalPhoneNumber(phone), generatedCode, new MemoryCacheEntryOptions
+                        _cache.Set(Functions.convertNormalPhoneNumber(phone), generatedCode, new MemoryCacheEntryOptions
                         {
                             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
                         });
@@ -124,11 +126,11 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
-        [Route("api/CodeCheck")]
+        [Route("CodeCheck")]
         [HttpPost]
         public IActionResult CodeCheck(string code, string phone)
         {
-            if (code == _cache.Get(funcs.convertNormalPhoneNumber(phone)).ToString())
+            if (code == _cache.Get(Functions.convertNormalPhoneNumber(phone)).ToString())
             {
                 return Ok();
             }
@@ -137,13 +139,13 @@ namespace ApiClick.Controllers
         }
 
         [Authorize(Roles = "SuperAdmin")]
-        [Route("api/CacheCheck")]
+        [Route("CacheCheck")]
         [HttpPost]
-        public async Task<ActionResult<string>> CacheCheck(string phone)
+        public ActionResult<string> CacheCheck(string phone)
         {
             try
             {
-                string value = _cache.Get<string>(funcs.convertNormalPhoneNumber(phone));
+                string value = _cache.Get<string>(Functions.convertNormalPhoneNumber(phone));
                 return value;
             }
             catch (Exception) 
@@ -177,15 +179,15 @@ namespace ApiClick.Controllers
         //identity with admin rights
         private ClaimsIdentity GetIdentity(string login, string password)
         {
-            User user = _context.Users.Where(e => e.Login == login).FirstOrDefault(e => e.Password == password);
+            var executor = _context.Users.FirstOrDefault(exe => (exe.Executor.Login == login) && (exe.Executor.Password == password));
 
             //if user wasn't found or his role is user = ignore
-            if (user != null && user.UserRole != Models.EnumModels.UserRole.User)
+            if (executor != null && executor.UserRole != UserRole.User)
             {
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, UserRoleDictionaries.GetStringFromUserRole[user.UserRole]) //probably not safe but eh works fine by me
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, executor.Phone),
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, UserRoleDictionaries.GetStringFromUserRole[executor.UserRole]) //probably not safe but eh works fine by me
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,

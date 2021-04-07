@@ -11,47 +11,44 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using ApiClick.StaticValues;
 using ApiClick.Controllers.FrequentlyUsed;
+using Microsoft.Extensions.Logging;
 
 namespace ApiClick.Controllers
 {
     [ApiController]
+    [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        ClickContext _context;
-        Functions funcs = new Functions();
+        private readonly ClickContext _context;
+        private readonly ILogger<ProductsController> _logger;
         public static int PAGE_SIZE = 5;
 
-        public ProductsController(ClickContext _context)
+        public ProductsController(ClickContext _context, ILogger<ProductsController> _logger)
         {
             this._context = _context;
+            this._logger = _logger;
         }
 
         // GET: api/Products
-        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public ActionResult<IEnumerable<Product>> GetProducts()
         {
-            var products = await _context.Products.ToListAsync();
-
-            foreach (Product product in products)
-            {
-                product.Image = await _context.Images.FindAsync(product.ImgId);
-            }
+            var products = _context.Products.ToList();
 
             return products;
         }
 
         // GET: api/GetProductsByMenu/5/1
         //Возвращает список продуктов принадлежащих меню с указаным id
-        [Route("api/GetProductsByMenu/{id}/{_page}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Route("GetProductsByMenu/{id}/{_page}")]
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProductsByMenu(int id, int _page)
         {
-            var products = _context.Products.Where(p => p.BrandMenuId == id); 
+            var products = _context.Products.Where(p => p.CategoryId == id); 
             
-            products = funcs.GetPageRange(products, _page, PAGE_SIZE);
+            products = Functions.GetPageRange(products, _page, PAGE_SIZE);
 
             if (!products.Any())
             {
@@ -60,165 +57,172 @@ namespace ApiClick.Controllers
 
             var result = await products.ToListAsync();
 
-            foreach (Product product in result) 
-            {
-                product.Image = await _context.Images.FindAsync(product.ImgId);
-            }
-
-            return result;
-        }
-
-        // GET: api/GetProductsByMenu/5
-        //Возвращает список продуктов принадлежащих меню с указаным id
-        [Route("api/GetVodaProductsByCategory/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetVodaProductsByCategory(int id)
-        {
-            var result = new List<Product>();
-            switch (id) 
-            {
-                case 2:
-                    result.Add(funcs.getCleanModel(await _context.Products.FindAsync(Constants.PRODUCT_ID_BOTTLED_WATER)));
-                    result.Add(funcs.getCleanModel(await _context.Products.FindAsync(Constants.PRODUCT_ID_CONTAINER)));
-                    break;
-                case 3:
-                    result.Add(funcs.getCleanModel(await _context.Products.FindAsync(Constants.PRODUCT_ID_WATER)));
-                    break;
-                default: return BadRequest();
-            }
-
-            foreach (Product product in result)
-            {
-                product.Image = funcs.getCleanModel(await _context.Images.FindAsync(product.ImgId));
-            }
-
             return result;
         }
 
         // GET: api/Products/5
         //Возвращает продукт по id
-        [Route("api/[controller]/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Route("{id}")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<Product>> GetProducts(int id)
+        public ActionResult<Product> GetProducts(int id)
         {
-            var productCl = await _context.Products.FindAsync(id);
+            var product = _context.Products.Find(id);
 
-            if (productCl == null)
+            if (product == null)
             {
                 return NotFound();
             }
 
-            productCl.Image = await _context.Images.FindAsync(productCl.ImgId);
-
-            return productCl;
+            return product;
         }
 
         // PUT: api/Products/5
-        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutProducts(Product productCl)
+        public ActionResult PutProducts(Product _productData)
         {
-            if (!Product.ModelIsValid(productCl))
+            if (!IsPutModelValid(_productData))
             {
                 return BadRequest();
             }
 
-            if (IsItMyProduct(funcs.identityToUser(User.Identity, _context), productCl))
+            if (!IsOwner(_productData)) 
             {
-                var existingProduct = await _context.Products.FindAsync(productCl.ProductId);
-
-                existingProduct.Description = productCl.Description;
-                existingProduct.ImgId = productCl.ImgId;
-                existingProduct.Price = productCl.Price;
-                existingProduct.PriceDiscount = productCl.PriceDiscount;
-                existingProduct.ProductName = productCl.ProductName;
-
-                _context.SaveChanges();
+                return Forbid();
             }
-            else 
-            {
-                return NotFound();
-            }
+
+            var product = _context.Products.Find(_productData.ProductId);
+
+            product.Description = _productData.Description;
+            if (!string.IsNullOrEmpty(_productData.Image)) product.Image = _productData.Image;
+            product.Price = _productData.Price;
+            product.PriceDiscount = _productData.PriceDiscount;
+            product.ProductName = _productData.ProductName;
+
+            _context.SaveChanges();
 
             return Ok();
         }
 
         // POST: api/Products
-        [Route("api/[controller]")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProducts(Product productCl)
+        public ActionResult<Product> PostProducts(Product _product)
         {
-            if (!Product.ModelIsValid(productCl)) 
+            if (!IsPostModelValid(_product)) 
             {
                 return BadRequest();
             }
 
-            productCl.CreatedDate = DateTime.UtcNow;
+            if (!IsOwner(_product)) 
+            {
+                return Forbid();
+            }
 
-            _context.Products.Add(productCl);
-            await _context.SaveChangesAsync();
+            _product.CreatedDate = DateTime.UtcNow;
+
+            _context.Products.Add(_product);
+            _context.SaveChanges();
 
             return Ok();
         }
 
         // DELETE: api/Products/5
-        [Route("api/[controller]/{id}")]
+        [Route("{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete]
-        public async Task<ActionResult<Product>> DeleteProducts(int id)
+        public ActionResult<Product> DeleteProducts(int id)
         {
-            var productCl = await _context.Products.FindAsync(id);
+            var product = _context.Products.Find(id);
 
-            if (!IsItMyProduct(funcs.identityToUser(User.Identity, _context), productCl)) 
+            if (product == null) 
             {
                 return BadRequest();
             }
 
-            _context.Products.Remove(productCl);
-            await _context.SaveChangesAsync();
+            if (!IsOwner(product)) 
+            {
+                return Forbid();
+            }
+
+            _context.Products.Remove(product);
+            _context.SaveChanges();
 
             return Ok();
         }
 
-        /// <summary>
-        /// Проверяет является ли продукт собственностью этого пользователя
-        /// </summary>
-        private bool IsItMyProduct(User user, Product product)
+        private bool IsOwner(Product _product)
         {
-            var productBuffer = _context.Products.Find(product.ProductId);
-            if (productBuffer == null)
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
+            var category = _context.Categories.Find(_product.CategoryId);
+
+            if (category == null) 
             {
                 return false;
             }
 
-            var menuBuffer = _context.BrandMenus.Find(productBuffer.BrandMenuId);
-            if (menuBuffer == null) 
-            {
-                return false;
-            }
+            var brand = _context.Brands.Find(category.BrandId);
 
-            var brandBuffer = _context.Brands.Find(menuBuffer.BrandId);
-            if ((brandBuffer == null) || (brandBuffer.UserId != funcs.identityToUser(User.Identity, _context).UserId))
+            if (brand == null || brand.ExecutorId != mySelf.ExecutorId)
             {
                 return false;
             }
-            else 
+            return true;
+        }
+
+        /// <summary>
+        /// Валидация получаемых данных
+        /// </summary>
+        /// <returns>Полученные данные являются допустимыми</returns>
+        private bool IsPutModelValid(Product _product)
+        {
+            try
             {
+                if (_product == null ||
+                    _product.Price <= 0 ||
+                    string.IsNullOrEmpty(_product.ProductName) ||
+                    (_product.PriceDiscount != null && _product.PriceDiscount <= 0))
+                {
+                    return false;
+                }
+                var product = _context.Products.Find(_product.ProductId);
+                if (product == null)
+                {
+                    return false;
+                }
                 return true;
+            }
+            catch (Exception _ex)
+            {
+                _logger.LogWarning($"Ошибка при валидации Product модели PUT метода - {_ex}");
+                return false;
             }
         }
 
         /// <summary>
-        /// Находит продукт с таким же title
+        /// Валидация получаемых данных
         /// </summary>
-        private bool SameNameProduct(Product product)
+        /// <returns>Полученные данные являются допустимыми</returns>
+        private bool IsPostModelValid(Product _product)
         {
-            return _context.Products.Where(m => m.BrandMenuId == product.BrandMenuId)
-                                     .Any(m => m.ProductName == product.ProductName);
+            try
+            {
+                if (_product == null ||
+                    _product.Price <= 0 ||
+                    string.IsNullOrEmpty(_product.ProductName) ||
+                    (_product.PriceDiscount != null && _product.PriceDiscount <= 0))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception _ex)
+            {
+                _logger.LogWarning($"Ошибка при валидации Product модели PUT метода - {_ex}");
+                return false;
+            }
         }
     }
 }

@@ -15,6 +15,6 @@ namespace ApiClick.Models
         public decimal? ContainerPrice { get; set; }
         public string Certificate { get; set; }
 
-        public virtual Brand Brand { get; set; }
+        public Brand Brand { get; set; }
     }
 }

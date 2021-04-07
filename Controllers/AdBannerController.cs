@@ -14,81 +14,80 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class AdBannerController : ControllerBase
     {
-        ClickContext _context;
-        Functions funcs = new Functions();
+        private readonly ClickContext _context;
 
         public AdBannerController(ClickContext _context)
         {
             this._context = _context;
         }
 
-        // GET: api/AdBanners
-        //Получение рекламных баннеров, пока крайне неэффективная функция
-        [Route("{category}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<int>>> GetAdBanners(Category category) //IEnumerable<AdBanner>
-        {
-            //Удаляем просроченные баннеры
-            var expiredBanners = _context.AdBanners.Where(e => e.ViewCount <= 0);
-            _context.RemoveRange(expiredBanners);
-            await _context.SaveChangesAsync();
+        //// GET: api/AdBanners
+        ////Получение рекламных баннеров, пока крайне неэффективная функция
+        //[Route("{category}")]
+        //[Authorize(Roles = "SuperAdmin, Admin, User")]
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<int>>> GetAdBanners(Kind category) //IEnumerable<AdBanner>
+        //{
+        //    //Удаляем просроченные баннеры
+        //    var expiredBanners = _context.AdBanners.Where(e => e.ViewCount <= 0);
+        //    _context.RemoveRange(expiredBanners);
+        //    await _context.SaveChangesAsync();
 
-            //Получаем баннеры по нужной категории
-            var allBanners = _context.AdBanners.Where(e => e.Category == category).ToList();
+        //    //Получаем баннеры по нужной категории
+        //    var allBanners = _context.AdBanners.Where(e => e.Kind == category).ToList();
             
-            //Низкоуровневый код 😱
-            //От initialCount зависят шансы на отображение, чем больше просмотров должно было быть у баннера - тем чаще от будет попадать в результирующий список
-            List<AdBanner> resultBanners = new List<AdBanner>();
-            for (int adsAmount = 3; adsAmount > 0; adsAmount--)
-            {
-                int sum = allBanners.Sum(e => e.InitialCount); //Суммарное количество "потенциальных просмотров"
-                int rNumber = new Random().Next(sum); //Получаем случайное число в диапазоне 0-sum
-                int currentNumber = 0;
-                foreach (var banner in allBanners)
-                {
-                    var nextNumber = currentNumber + banner.InitialCount;
-                    if (rNumber >= currentNumber && rNumber < nextNumber) //Если случайное число указывает на баннер - добавить его в результат и завершиить цикл
-                    {
-                        resultBanners.Add(banner);
-                        break;
-                    }
-                    currentNumber += nextNumber;
-                }
-                allBanners.Remove(resultBanners.Last());
-            }
+        //    //Низкоуровневый код 😱
+        //    //От initialCount зависят шансы на отображение, чем больше просмотров должно было быть у баннера - тем чаще от будет попадать в результирующий список
+        //    List<AdBanner> resultBanners = new List<AdBanner>();
+        //    for (int adsAmount = 3; adsAmount > 0; adsAmount--)
+        //    {
+        //        int sum = allBanners.Sum(e => e.InitialCount); //Суммарное количество "потенциальных просмотров"
+        //        int rNumber = new Random().Next(sum); //Получаем случайное число в диапазоне 0-sum
+        //        int currentNumber = 0;
+        //        foreach (var banner in allBanners)
+        //        {
+        //            var nextNumber = currentNumber + banner.InitialCount;
+        //            if (rNumber >= currentNumber && rNumber < nextNumber) //Если случайное число указывает на баннер - добавить его в результат и завершиить цикл
+        //            {
+        //                resultBanners.Add(banner);
+        //                break;
+        //            }
+        //            currentNumber += nextNumber;
+        //        }
+        //        allBanners.Remove(resultBanners.Last());
+        //    }
             
-            //Успех! Измени значения текущих просмотров для элементов списка
-            foreach (var banner in resultBanners)
-            {
-                (await _context.AdBanners.FindAsync(banner.AdBannerId)).ViewCount--;
-            }
-            await _context.SaveChangesAsync();
+        //    //Успех! Измени значения текущих просмотров для элементов списка
+        //    foreach (var banner in resultBanners)
+        //    {
+        //        (await _context.AdBanners.FindAsync(banner.AdBannerId)).ViewCount--;
+        //    }
+        //    await _context.SaveChangesAsync();
             
-            foreach (var banner in resultBanners)
-            {
-                banner.Image = funcs.getCleanModel(await _context.Images.FindAsync(banner.ImgId));
-            }
+        //    foreach (var banner in resultBanners)
+        //    {
+        //        banner.Image = Functions.getCleanModel(await _context.Images.FindAsync(banner.ImgId));
+        //    }
 
-            return resultBanners.Select(e => e.InitialCount).ToList();
-        }
+        //    return resultBanners.Select(e => e.InitialCount).ToList();
+        //}
         
-        // POST: api/AdBanners
-        //Установка баннера, предположительно суперадмином
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpPost]
-        public async Task<ActionResult> PostAdBanner(AdBanner adBanner)
-        {
-            if (adBanner == null)
-            {
-                return BadRequest();
-            }
+        //// POST: api/AdBanners
+        ////Установка баннера, предположительно суперадмином
+        //[Authorize(Roles = "SuperAdmin")]
+        //[HttpPost]
+        //public async Task<ActionResult> PostAdBanner(AdBanner adBanner)
+        //{
+        //    if (adBanner == null)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            adBanner.ViewCount = adBanner.InitialCount;
+        //    adBanner.ViewCount = adBanner.InitialCount;
 
-            _context.AdBanners.Add(adBanner);
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
+        //    _context.AdBanners.Add(adBanner);
+        //    await _context.SaveChangesAsync();
+        //    return Ok();
+        //}
     }
 }

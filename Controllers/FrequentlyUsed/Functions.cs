@@ -1,6 +1,7 @@
 ﻿using ApiClick.Models;
 using ApiClick.Models.EnumModels;
 using ApiClick.StaticValues;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +13,11 @@ namespace ApiClick.Controllers.FrequentlyUsed
 {
     public class Functions
     {
-        private List<Type> allowedTypes = new List<Type>() { typeof(int?), 
+        private static List<Type> allowedTypes = new List<Type>() { typeof(int?), 
                                                             typeof(string), 
                                                             typeof(decimal),
                                                             typeof(DateTime),
-                                                            typeof(Banknote),
-                                                            typeof(Category),
+                                                            typeof(Kind),
                                                             typeof(OrderStatus),
                                                             typeof(PaymentMethod),
                                                             typeof(UserRole)};
@@ -25,7 +25,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <summary>
         /// Создает новый экземпляр модели и заполняет его только примитивными типами, без навигационных свойств
         /// </summary>
-        public T getCleanModel<T>(T input) 
+        public static T getCleanModel<T>(T input) 
         {
             T obj = (T)Activator.CreateInstance(typeof(T));
             //Получаем список свойств примитивного типа
@@ -39,24 +39,11 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <summary>
         /// Возвращает список объектов без навигационных свойств
         /// </summary>
-        public List<T> getCleanListOfModels<T>(List<T> input) 
+        public static List<T> getCleanListOfModels<T>(List<T> input) 
         {
             List<T> result = new List<T>();
             input.ForEach(e => result.Add(getCleanModel(e)));
             return result;
-        }
-
-        /// <summary>
-        /// Возвращает чистую модель пользователя без личных данных
-        /// </summary>
-        public User getCleanUser(User input) 
-        {
-            var cleanObj = new User()
-            {
-                Name = input.Name,
-                Phone = input.Phone
-            };
-            return cleanObj;
         }
 
         /// <summary>
@@ -65,9 +52,9 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <param name="identity">Данные личности, взятые из токена</param>
         /// <param name="_context">Контекст, в котором производится поиск</param>
         /// <returns>Пользователь, найденный в контексте</returns>
-        public User identityToUser(IIdentity identity, ClickContext _context)
+        public static User identityToUser(IIdentity identity, ClickContext _context)
         {
-            return _context.Users.FirstOrDefault(u => u.Phone == identity.Name);
+            return _context.Users.AsNoTracking().FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         /// <summary>
@@ -76,14 +63,14 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <param name="_initialQuery">Изначальный набор</param>
         /// <param name="_startingPage">Начальный индекс выборки</param>
         /// <param name="_pageSize">Количество элементов на странице</param>
-        public IQueryable<T> GetPageRange<T>(IQueryable<T> _initialQuery, int _startingPage, int _pageSize) 
+        public static IQueryable<T> GetPageRange<T>(IQueryable<T> _initialQuery, int _startingPage, int _pageSize) 
         {
             //страница 0, 20 элементов = 0-19 элементы
             //страница 5, 10 элементов = 50-59 элементы
             return _initialQuery.Skip(_startingPage * _pageSize).Take(_pageSize);
         }
 
-        public bool IsPhoneNumber(string number)
+        public static bool IsPhoneNumber(string number)
         {
             return Regex.Match(number, @"^((8|\+7|7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$").Success;
         }
@@ -91,7 +78,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <summary>
         /// Конвертирует телефон в единый формат
         /// </summary>
-        public string convertNormalPhoneNumber(string originalNumber) 
+        public static string convertNormalPhoneNumber(string originalNumber) 
         {
             if (originalNumber == null) 
             {
@@ -110,7 +97,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
                                         processedNumber.Substring(1) : processedNumber);
         }
 
-        public bool phoneIsRegistered(string correctPhone, ClickContext _context)
+        public static bool phoneIsRegistered(string correctPhone, ClickContext _context)
         {
             var user = _context.Users.FirstOrDefault(u => u.Phone == correctPhone);
             return user != null;
