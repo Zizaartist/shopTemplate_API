@@ -10,7 +10,9 @@ namespace ApiClick.Models
 {
     public partial class OrderDetail
     {
+        [JsonIgnore]
         public int OrderDetailId { get; set; }
+        [JsonIgnore]
         public int OrderId { get; set; }
         public int Count { get; set; }
         public int? ProductId { get; set; }

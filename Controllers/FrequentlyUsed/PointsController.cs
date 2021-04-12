@@ -12,17 +12,16 @@ namespace ApiClick.Controllers.FrequentlyUsed
     {
         ClickContext _context;
         const decimal pointsCoef = 0.05m;
-        const decimal pointsMax = 0.3m; //30%
 
         public PointsController(ClickContext _context)
         {
             this._context = _context;
         }
 
-        public decimal GetMaxPayment(decimal _userPoints, Order _order) 
+        public decimal GetMaxPayment(decimal _userPoints, Order _order, int _percentage) 
         {
             var sumCost = _order.OrderDetails.Sum(e => e.Price * e.Count);
-            var costInPoints = sumCost * pointsMax; //Пока статичные 30%
+            var costInPoints = sumCost * _percentage; //Пока статичные 30%
             if (_userPoints > costInPoints)
             {
                 return costInPoints;
@@ -74,15 +73,16 @@ namespace ApiClick.Controllers.FrequentlyUsed
             try
             {
                 //Документируем
-                _order.PointRegister = new PointRegister()
+                var newPR = new PointRegister()
                 {
                     TransactionCompleted = false,
                     SenderId = _sender?.UserId,
                     ReceiverId = _receiverId,
-                    OrderId = _order.OrderId,
                     Points = _points,
                     CreatedDate = DateTime.UtcNow
                 };
+                register = newPR;
+                _order.PointRegisters.Add(newPR);
             }
             catch 
             {
@@ -161,7 +161,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             var sum = CalculateSum(_order);
             try
             {
-                var points = _order.PointRegisterId != null ? _context.PointRegister.Find(_order.PointRegisterId).Points : 0;
+                var points = _order.PointRegister != null ? _context.PointRegister.Find(_order.PointRegister.PointRegisterId).Points : 0;
                 return sum - points;
             }
             catch (Exception _ex) 

@@ -31,6 +31,9 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
+        /// <summary>
+        /// Возвращает записи баллов, хоть как-то связанные с пользователем
+        /// </summary>
         // GET: api/PointRegisters
         [Authorize]
         [HttpGet]
@@ -38,16 +41,16 @@ namespace ApiClick.Controllers
         {
             var mySelf = Functions.identityToUser(User.Identity, _context);
             
-            var result = _context.PointRegister.Where(e => e.ReceiverId == mySelf.UserId || e.SenderId == mySelf.UserId);
+            var pointRegisters = _context.PointRegister.Where(e => e.ReceiverId == mySelf.UserId || e.SenderId == mySelf.UserId);
 
-            if (!result.Any()) 
+            if (!pointRegisters.Any()) 
             {
                 return NotFound();
             }
 
-            var resultList = result.ToList();
+            var result = pointRegisters.ToList();
 
-            return resultList;
+            return result;
         }
     }
 }

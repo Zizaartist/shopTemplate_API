@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Principal;
 using ApiClick.Controllers.FrequentlyUsed;
 using Microsoft.Extensions.Logging;
+using ApiClick.Models.EnumModels;
 
 namespace ApiClick.Controllers
 {
@@ -28,37 +29,24 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        [Authorize(Roles = "SupeAdmin")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
-        {
-            return await _context.Review.ToListAsync();
-        }
-
-        // GET: api/Reviews/5
-        [Route("{id}")]
-        [Authorize]
-        [HttpGet]
-        public async Task<ActionResult<Review>> GetReviews(int id)
-        {
-            var messageCl = await _context.Review.FindAsync(id);
-
-            if (messageCl == null)
-            {
-                return NotFound();
-            }
-
-            return messageCl;
-        }
-
-
+        /// <summary>
+        /// Возвращает отзывы пользователей связанные с указанным брендом
+        /// </summary>
+        /// <param name="id">Id бренда</param>
+        /// <param name="_page">Страница</param>
+        /// <returns>Отзывы</returns>
         // GET: api/BrandReviews/5
         [Route("BrandReviews/{id}/{_page}")]
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Review>>> GetBrandReviews(int id, int _page)
+        public ActionResult<IEnumerable<Review>> GetBrandReviews(int id, int _page)
         {
-            var messages = _context.Review.Where(e => e.BrandId == id && !string.IsNullOrEmpty(e.Text));
+            var messages = _context.Review.Include(review => review.Order)
+                                                .ThenInclude(order => order.OrderDetails)
+                                                    .ThenInclude(detail => detail.Product)
+                                            .Include(review => review.Sender)
+                                                .ThenInclude(user => user.UserInfo)
+                                            .Where(review => review.BrandId == id && !string.IsNullOrEmpty(review.Text));
 
             messages = Functions.GetPageRange(messages, _page, PAGE_SIZE);
 
@@ -67,7 +55,8 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var result = await messages.ToListAsync();
+            var result = messages.ToList();
+
             foreach (var message in result) 
             {
                 //Только первые 3 в каждом review 
@@ -77,6 +66,10 @@ namespace ApiClick.Controllers
             return result;
         }
 
+        /// <summary>
+        /// Создает отзыв к заказу
+        /// </summary>
+        /// <param name="_review">Данные отзыва</param>
         // POST: api/Reviews
         [Authorize]
         [HttpPost]
@@ -92,6 +85,11 @@ namespace ApiClick.Controllers
             if (order == null) 
             {
                 return BadRequest("Ошибка при получении данных о заказе");
+            }
+
+            if (order.OrderStatus < OrderStatus.completed) 
+            {
+                return Forbid();
             }
 
             if (order.BrandId == null) 
@@ -114,8 +112,6 @@ namespace ApiClick.Controllers
             var oldReviewCount = _context.Review.Where(e => e.BrandId == _review.BrandId).Count();
             _review.CreatedDate = DateTime.UtcNow;
             _context.Review.Add(_review); //Выдаст 500 если обязательные поля не заполнены
-
-            _context.SaveChanges();
 
             //Изменяем рейтинг бренда
             var brand = _context.Brand.Find(_review.BrandId);

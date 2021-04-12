@@ -23,10 +23,12 @@ namespace ApiClick.Models
         public int? PriceDiscount { get; set; }
         public string Image { get; set; }
         public string Description { get; set; }
+        [JsonIgnore]
         public DateTime CreatedDate { get; set; }
 
         [JsonIgnore]
         public Category Category { get; set; }
+        [JsonIgnore]
         public ICollection<Report> Reports { get; set; }
         [JsonIgnore]
         public ICollection<OrderDetail> OrderDetails { get; set; }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -22,7 +23,9 @@ namespace ApiClick.Models
         }
 
         public int BrandId { get; set; }
+        [JsonIgnore]
         public Kind Kind { get; set; }
+        [JsonIgnore]
         public int ExecutorId { get; set; }
         public string BrandName { get; set; }
         public bool Available { get; set; }
@@ -30,21 +33,28 @@ namespace ApiClick.Models
         public int PointsPercentage { get; set; }
         public decimal DeliveryPrice { get; set; }
         public decimal MinimalPrice { get; set; }
-        public DateTime CreatedDate { get; set; }
         public float? Rating { get; set; }
         public int ReviewCount { get; set; }
+        [JsonIgnore]
+        public DateTime CreatedDate { get; set; }
 
         public virtual BrandInfo BrandInfo { get; set; }
         public virtual WaterBrand WaterBrand { get; set; }
+        [JsonIgnore]
         public Executor Executor { get; set; }
         public BrandDoc BrandDoc { get; set; }
         public virtual ICollection<BrandHashtag> BrandHashtags { get; set; }
         public virtual ICollection<BrandPaymentMethod> BrandPaymentMethods { get; set; }
         public virtual ICollection<ScheduleListElement> ScheduleListElements { get; set; }
+        [JsonIgnore]
         public ICollection<AdBanner> AdBanners { get; set; }
+        [JsonIgnore]
         public ICollection<Category> Categories { get; set; }
+        [JsonIgnore]
         public ICollection<Order> Orders { get; set; }
+        [JsonIgnore]
         public ICollection<Report> Reports { get; set; }
+        [JsonIgnore]
         public ICollection<Review> Reviews { get; set; }
     }
 }

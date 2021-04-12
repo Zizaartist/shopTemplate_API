@@ -21,11 +21,11 @@ namespace ApiClick.Controllers
             this._context = _context;
         }
 
-        // GET: api/GetHashtagsByKind/0
-        [Route("GetHashtagsByKind/{category}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        // GET: api/Hashtags/0
+        [Route("{category}")]
+        [Authorize]
         [HttpGet]
-        public ActionResult<List<Hashtag>> GetHashtagsByKind(Kind category)
+        public ActionResult<IEnumerable<Hashtag>> GetHashtagsByKind(Kind category)
         {
             return _context.Hashtag.Where(e => e.Kind == category).ToList();
         }

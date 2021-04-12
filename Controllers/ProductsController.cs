@@ -29,22 +29,17 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        // GET: api/Products
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet]
-        public ActionResult<IEnumerable<Product>> GetProducts()
-        {
-            var products = _context.Product.ToList();
-
-            return products;
-        }
-
-        // GET: api/GetProductsByMenu/5/1
-        //Возвращает список продуктов принадлежащих меню с указаным id
-        [Route("GetProductsByMenu/{id}/{_page}")]
+        /// <summary>
+        /// Возвращает продукцию из указанной категории
+        /// </summary>
+        /// <param name="id">Id категории</param>
+        /// <param name="_page">Страница</param>
+        /// <returns></returns>
+        // GET: api/Products/ByMenu/5/1
+        [Route("ByMenu/{id}/{_page}")]
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByMenu(int id, int _page)
+        public ActionResult<IEnumerable<Product>> GetProductsByMenu(int id, int _page)
         {
             var products = _context.Product.Where(p => p.CategoryId == id); 
             
@@ -55,29 +50,16 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var result = await products.ToListAsync();
+            var result = products.ToList();
 
             return result;
         }
 
-        // GET: api/Products/5
-        //Возвращает продукт по id
-        [Route("{id}")]
-        [Authorize]
-        [HttpGet]
-        public ActionResult<Product> GetProducts(int id)
-        {
-            var product = _context.Product.Find(id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return product;
-        }
-
-        // PUT: api/Products/5
+        /// <summary>
+        /// Изменение данных продукции
+        /// </summary>
+        /// <param name="_productData">Новые данные продукции</param>
+        // PUT: api/Products
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
         public ActionResult PutProducts(Product _productData)
@@ -87,12 +69,17 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            if (!IsOwner(_productData)) 
+            var product = _context.Product.Find(_productData.ProductId);
+
+            if (product == null) 
+            {
+                return NotFound();
+            }
+
+            if (!IsOwner(product)) 
             {
                 return Forbid();
             }
-
-            var product = _context.Product.Find(_productData.ProductId);
 
             product.Description = _productData.Description;
             if (!string.IsNullOrEmpty(_productData.Image)) product.Image = _productData.Image;
@@ -105,10 +92,14 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Создает новую продукцию
+        /// </summary>
+        /// <param name="_product">Данные новой продукции</param>
         // POST: api/Products
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
-        public ActionResult<Product> PostProducts(Product _product)
+        public ActionResult PostProducts(Product _product)
         {
             if (!IsPostModelValid(_product)) 
             {
@@ -122,12 +113,20 @@ namespace ApiClick.Controllers
 
             _product.CreatedDate = DateTime.UtcNow;
 
+            //preventing exploitations
+            _product.Category = null;
+            _product.Reports = null;
+            _product.OrderDetails = null;
+
             _context.Product.Add(_product);
             _context.SaveChanges();
 
             return Ok();
         }
 
+        /// <summary>
+        /// Удаляет выбранную продукцию
+        /// </summary>
         // DELETE: api/Products/5
         [Route("{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]

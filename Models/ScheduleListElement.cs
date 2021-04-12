@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ApiClick.Controllers.FrequentlyUsed;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -10,11 +11,15 @@ namespace ApiClick.Models
 {
     public partial class ScheduleListElement
     {
+        [JsonIgnore]
         public int ScheduleListElementId { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
-        public TimeSpan OpenTime { get; set; }
-        public TimeSpan CloseTime { get; set; }
+        [JsonIgnore]
         public int BrandId { get; set; }
+        public DayOfWeek DayOfWeek { get; set; }
+        [System.Text.Json.Serialization.JsonConverterAttribute(typeof(TimeSpanConverter))]
+        public TimeSpan OpenTime { get; set; }
+        [System.Text.Json.Serialization.JsonConverterAttribute(typeof(TimeSpanConverter))]
+        public TimeSpan CloseTime { get; set; }
 
         [JsonIgnore]
         public Brand Brand { get; set; }

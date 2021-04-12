@@ -1,7 +1,9 @@
 ﻿using ApiClick.Controllers.FrequentlyUsed;
 using ApiClick.Models;
+using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +12,89 @@ using System.Threading.Tasks;
 namespace ApiClick.Controllers
 {
     [ApiController]
+    [Route("api/[controller]")]
     public class AdminShitController : ControllerBase
     {
         private ClickContext _context;
+        private string SUPER_SECRET_PASSWORD = "Cheese macaroni";
 
         public AdminShitController(ClickContext _context)
         {
             this._context = _context;
+        }
+
+        [Route("CreateSuperUser")]
+        [HttpPost]
+        public ActionResult CreateSuperUser(string super, string phone, string login, string password)
+        {
+            if (super != SUPER_SECRET_PASSWORD) return Forbid();
+
+            var newSuperUser = new User()
+            {
+                Phone = phone,
+                UserRole = UserRole.SuperAdmin,
+                UserInfo = new UserInfo(),
+                Executor = new Executor()
+                {
+                    Login = login,
+                    Password = Functions.GetHashFromString(password)
+                }
+            };
+
+            _context.User.Add(newSuperUser);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [Route("PromoteUser/{id}")]
+        [HttpPost]
+        public ActionResult PromoteUser(int id, Executor credentials) 
+        {
+            var user = _context.User.Find(id);
+
+            if (user == null || 
+                credentials == null ||
+                string.IsNullOrEmpty(credentials.Login) ||
+                string.IsNullOrEmpty(credentials.Password)) 
+            {
+                return NotFound();
+            }
+
+            if (_context.Executor.Any(exe => exe.Login == credentials.Login)) 
+            {
+                return Forbid();
+            }
+
+            user.UserRole = UserRole.Admin;
+            user.Executor = new Executor() 
+            {
+                Login = credentials.Login,
+                Password = Functions.GetHashFromString(credentials.Password)
+            };
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [Route("DemoteUser/{id}")]
+        [HttpDelete]
+        public ActionResult DemoteUser(int id)
+        {
+            var user = _context.User.Include(user => user.Executor).FirstOrDefault(user => user.UserId == id);
+
+            if (user == null) 
+            {
+                return NotFound();
+            }
+
+            _context.Executor.Remove(user.Executor);
+            _context.SaveChanges();
+
+            return Ok();
         }
 
         //[Route("api/DeleteAllOrders")]
@@ -93,7 +171,7 @@ namespace ApiClick.Controllers
         //    {
         //        await new NotificationsController().ToSendNotificationAsync(user.DeviceType, text, user.NotificationRegistration);
         //    }
-            
+
         //    return Ok();
         //}
     }

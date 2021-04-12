@@ -19,6 +19,7 @@ namespace ApiClick.Models
         public int BrandId { get; set; }
         public string CategoryName { get; set; }
         public string Image { get; set; }
+        [JsonIgnore]
         public DateTime CreatedDate { get; set; }
 
         [JsonIgnore]

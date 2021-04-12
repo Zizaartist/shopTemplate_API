@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class ImagesController : ControllerBase
     {
         private readonly IWebHostEnvironment _appEnvironment;
@@ -23,9 +25,8 @@ namespace ApiClick.Controllers
             _appEnvironment = appEnvironment;
         }
 
-        // POST: api/Users
-        [Route("api/PostImage")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        // POST: api/Images
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<IEnumerable<string>>> PostImage(IFormFileCollection uploadedFiles)
         {
@@ -52,7 +53,7 @@ namespace ApiClick.Controllers
             foreach (IFormFile uploadedFile in uploadedFiles)
             {
                 // путь к папке Files, ЗАМЕНИТЬ Path.GetTempFileName на более надежный генератор
-                string path = Path.GetFileNameWithoutExtension(Path.GetTempFileName()) + Path.GetExtension(uploadedFile.FileName);
+                string path = Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + Path.GetExtension(uploadedFile.FileName);
                 filePaths.Add(path);
 
                 // сохраняем файл в папку Files в каталоге wwwroot

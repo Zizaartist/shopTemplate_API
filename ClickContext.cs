@@ -263,10 +263,6 @@ namespace ApiClick
                 entity.HasIndex(e => e.OrdererId)
                     .HasName("IX_Orders_UserId");
 
-                entity.HasIndex(e => e.PointRegisterId)
-                    .HasName("IX_Order_1")
-                    .IsUnique();
-
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
@@ -282,12 +278,6 @@ namespace ApiClick
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.OrdererId)
                     .HasConstraintName("FK_OrderCl_UserId");
-
-                entity.HasOne(d => d.PointRegister)
-                    .WithOne(p => p.Order)
-                    .HasForeignKey<Order>(d => d.PointRegisterId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Order_PointRegister");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
@@ -348,8 +338,8 @@ namespace ApiClick
 
                 entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
 
-                entity.HasOne(d => d.OrderNavigation)
-                    .WithMany(p => p.PointRegisterNavigations)
+                entity.HasOne(d => d.Order)
+                    .WithMany(p => p.PointRegisters)
                     .HasForeignKey(d => d.OrderId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_PointRegister_Order");
@@ -551,7 +541,7 @@ namespace ApiClick
                     .HasName("IX_WaterRequests_OrderId");
 
                 entity.HasOne(d => d.WaterBrand)
-                    .WithMany(p => p.WaterRequest)
+                    .WithMany(p => p.WaterRequests)
                     .HasForeignKey(d => d.WaterBrandId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_WaterRequest_WaterBrand");

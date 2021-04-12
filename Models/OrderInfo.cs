@@ -10,7 +10,10 @@ namespace ApiClick.Models
 {
     public partial class OrderInfo
     {
+        [JsonIgnore]
         public int OrderInfoId { get; set; }
+        [JsonIgnore]
+        public int OrderId { get; set; }
         public string Phone { get; set; }
         public string Street { get; set; }
         public string OrdererName { get; set; }
@@ -19,7 +22,6 @@ namespace ApiClick.Models
         public int? Floor { get; set; }
         public int? Apartment { get; set; }
         public string Commentary { get; set; }
-        public int OrderId { get; set; }
 
         [JsonIgnore]
         public Order Order { get; set; }

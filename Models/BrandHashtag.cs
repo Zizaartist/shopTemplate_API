@@ -10,9 +10,11 @@ namespace ApiClick.Models
 {
     public partial class BrandHashtag
     {
+        [JsonIgnore]
         public int BrandHashtagsId { get; set; }
-        public int HashtagId { get; set; }
+        [JsonIgnore]
         public int BrandId { get; set; }
+        public int HashtagId { get; set; }
 
         public virtual Hashtag Hashtag { get; set; }
         [JsonIgnore]

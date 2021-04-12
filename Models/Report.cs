@@ -10,10 +10,12 @@ namespace ApiClick.Models
 {
     public partial class Report
     {
+        [JsonIgnore]
         public int ReportId { get; set; }
+        [JsonIgnore]
+        public int BrandId { get; set; }
         public int OrderCount { get; set; }
         public decimal Sum { get; set; }
-        public int BrandId { get; set; }
         public DateTime CreatedDate { get; set; }
         public int? ProductOfDayId { get; set; }
         public int? ProductOfDayCount { get; set; }

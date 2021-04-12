@@ -10,7 +10,9 @@ namespace ApiClick.Models
 {
     public partial class PointRegister
     {
+        [JsonIgnore]
         public int PointRegisterId { get; set; }
+        [JsonIgnore]
         public int? OrderId { get; set; }
         public int? SenderId { get; set; }
         public int ReceiverId { get; set; }
@@ -18,8 +20,6 @@ namespace ApiClick.Models
         public bool TransactionCompleted { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        [JsonIgnore]
-        public virtual Order OrderNavigation { get; set; }
         [JsonIgnore]
         public virtual User Receiver { get; set; }
         [JsonIgnore]

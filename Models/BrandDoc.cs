@@ -10,7 +10,9 @@ namespace ApiClick.Models
 {
     public partial class BrandDoc
     {
+        [JsonIgnore]
         public int BrandDocsId { get; set; }
+        [JsonIgnore]
         public int BrandId { get; set; }
         public string OfficialName { get; set; }
         public string Ogrn { get; set; }

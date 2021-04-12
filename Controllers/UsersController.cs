@@ -37,15 +37,10 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        // GET: api/Users
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-            return await _context.User.ToListAsync();
-        }
-
-        // GET: api/Users
+        /// <summary>
+        /// Получаем количество баллов отправителя запроса
+        /// </summary>
+        // GET: api/Users/GetMyPoints
         [Route("GetMyPoints")]
         [Authorize]
         [HttpGet]
@@ -55,21 +50,26 @@ namespace ApiClick.Controllers
             return mySelf.Points;
         }
 
-        // GET: api/Users/5PhoneAuth
+        /// <summary>
+        /// Получаем пользовательскую информацию отправителя
+        /// </summary>
+        // GET: api/Users/GetMyData
         [Authorize]
         [Route("GetMyData")]
         [HttpGet]
         public ActionResult<User> GetMyData()
         {
-            var mySelf = Functions.identityToUser(User.Identity, _context);
-
-            mySelf.Executor = null;
+            var mySelf = _context.User.Include(user => user.UserInfo)
+                                        .FirstOrDefault(user => user.Phone == User.Identity.Name);
 
             return mySelf;
         }
 
-        // PUT: api/Users/5
-        //Успешный ответ должен заставить фронт получить новый токен с нового номера
+        /// <summary>
+        /// Обновляет незначительные пользовательские данные
+        /// </summary>
+        /// <param name="_userData">Новые пользовательские данные</param>
+        // PUT: api/Users
         [Authorize]
         [HttpPut]
         public ActionResult PutUsers(User _userData)
@@ -79,41 +79,49 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            var user = Functions.identityToUser(User.Identity, _context);
+            var mySelf = _context.User.Include(user => user.UserInfo)
+                                        .FirstOrDefault(user => user.Phone == User.Identity.Name);
 
             //Вторичные данные
-            user.UserInfo.Name = _userData.UserInfo.Name;
-            user.UserInfo.Street = _userData.UserInfo.Street;
-            user.UserInfo.House = _userData.UserInfo.House;
-            user.UserInfo.Entrance = _userData.UserInfo.Entrance;
-            user.UserInfo.Floor = _userData.UserInfo.Floor;
-            user.UserInfo.Apartment = _userData.UserInfo.Apartment;
+            mySelf.UserInfo.Name = _userData.UserInfo.Name;
+            mySelf.UserInfo.Street = _userData.UserInfo.Street;
+            mySelf.UserInfo.House = _userData.UserInfo.House;
+            mySelf.UserInfo.Entrance = _userData.UserInfo.Entrance;
+            mySelf.UserInfo.Floor = _userData.UserInfo.Floor;
+            mySelf.UserInfo.Apartment = _userData.UserInfo.Apartment;
 
             _context.SaveChanges();
 
             return Ok();
         }
 
+        /// <summary>
+        /// Изменяет текущий номер телефона
+        /// </summary>
+        /// <param name="newPhoneNumber">Новый номер</param>
+        /// <param name="code">СМС код</param>
+        /// <returns>Новый номер, отформатированный</returns>
+        // PUT: api/Users/ChangeNumber/?newPhoneNumber=88005553535&code=3344
         [Authorize]
         [Route("ChangeNumber")]
         [HttpPut]
-        public ActionResult<string> ChangeUserNumber(string newPhoneNumber, string code)
+        public ActionResult<string> ChangeNumber(string newPhoneNumber, string code)
         {
             if (newPhoneNumber == null || code == null)
             {
                 return BadRequest();
             }
 
-            var mySelf = Functions.identityToUser(User.Identity, _context);
+            var mySelf = _context.User.FirstOrDefault(user => user.Phone == User.Identity.Name);
             var newPhoneNum = Functions.convertNormalPhoneNumber(newPhoneNumber);
             if (!Functions.IsPhoneNumber(newPhoneNum))
             {
-                return BadRequest();
+                return BadRequest("Указан неправильный номер.");
             }
 
-            if (mySelf == null || mySelf.Phone == newPhoneNum)
+            if (mySelf.Phone == newPhoneNum)
             {
-                return BadRequest();
+                return BadRequest("Указан текущий номер.");
             }
 
             //Такой номер уже занят
@@ -130,7 +138,7 @@ namespace ApiClick.Controllers
             }
             catch 
             {
-                return BadRequest();
+                return BadRequest("Код устарел.");
             } 
 
             if (localCode == code)
@@ -163,41 +171,12 @@ namespace ApiClick.Controllers
             return newPhoneNum;
         }
 
-        // POST:
-        // Авторизация с помощью номера телефона
-        [Route("PhoneCheck")]
-        [HttpPost]
-        public ActionResult PhoneCheck(string phone)
-        {
-            var user = _context.User.FirstOrDefault(u => u.Phone == phone);
-
-            if (user == null)
-            {
-                return NotFound(); //"you should register"
-            }
-
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized(); //"go grab token first"
-            }
-
-            return Ok();
-        }
-
-        [Route("PhoneIsRegistered")]
-        [HttpPost]
-        public ActionResult<string> PhoneIsRegistered(string phone)
-        {
-            string correctPhone = Functions.convertNormalPhoneNumber(phone);
-            if (!Functions.phoneIsRegistered(correctPhone, _context)) 
-            {
-                return NotFound();
-            }
-            return correctPhone;
-        }
-
-        // Регистрация пользователей
-        // POST: api/Users
+        /// <summary>
+        /// Регистрация пользователя
+        /// </summary>
+        /// <param name="_user">Данные предоставленные клиентом</param>
+        /// <param name="code">СМС код</param>
+        // POST: api/Users/?code=3366
         [HttpPost]
         public ActionResult PostUsers(User _user, string code)
         {

@@ -41,21 +41,20 @@ namespace ApiClick.Controllers.ScheduledTasks
 
         public async static void Add(DateTime _triggerTime, int _orderId) 
         {
+            var actualTriggerTime = new DateTimeOffset(_triggerTime.AddTicks(ORDER_LIFETIME.Ticks), TimeSpan.Zero);
+            var debtTime = new DateTimeOffset(DateTime.UtcNow.AddMinutes(1), TimeSpan.Zero);
+
             IJobDetail waterJob = JobBuilder.Create<WaterOrderRemover>()
                 .WithIdentity(_orderId.ToString(), WATER_GROUP_NAME)
                 .Build();
 
+            //Если работа выполнена до старта scheduler - выполнить через минуту
+
             ITrigger waterTrigger = TriggerBuilder.Create()
-                .StartAt(new DateTimeOffset(_triggerTime, TimeSpan.Zero).AddTicks(ORDER_LIFETIME.Ticks))
+                .StartAt(actualTriggerTime < DateTime.UtcNow ? debtTime : actualTriggerTime)
                 .Build();
 
             await Scheduler.scheduler.ScheduleJob(waterJob, waterTrigger);
-
-            //Если работа выполнена до старта scheduler - выполнить вручную
-            if (DateTime.UtcNow >= _triggerTime)
-            {
-                await Scheduler.scheduler.TriggerJob(new JobKey(_orderId.ToString()));
-            }
         }
 
         public async static void Remove(int _orderId)

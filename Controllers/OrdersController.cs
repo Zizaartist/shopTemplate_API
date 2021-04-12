@@ -32,48 +32,24 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        // GET: api/Orders
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
-        {
-            return await _context.Order.ToListAsync();
-        }
-
-        // GET: api/Orders/5
-        [Route("{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpGet]
-        public ActionResult<Order> GetOrders(int id)
-        {
-            var order = _context.Order.Include(order => order.Brand)
-                                        .FirstOrDefault(order => order.OrderId == id);
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            var brand = _context.Brand.Include(brand => brand.Executor)
-                                        .FirstOrDefault(brand => brand.BrandId == order.BrandId);
-
-            //Является ли отправитель исполнителем?
-            if (brand == null || order.Brand.ExecutorId != Functions.identityToUser(User.Identity, _context).Executor.ExecutorId)
-            {
-                return Forbid();
-            }
-
-            return order;
-        }
-
+        /// <summary>
+        /// Возвращает заказы клиента
+        /// </summary>
         // GET: api/GetMyOrders
         [Route("GetMyOrders")]
         [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<Order>> GetMyOrders()
         {
-            //Находит заказы принадлежащие пользователю и отсеивает заказы со статусом "Завершенный"
-            var ordersFound = _context.Order.Where(e => e.OrdererId == Functions.identityToUser(User.Identity, _context).UserId);
+            var ordersFound = _context.Order.Include(order => order.OrderInfo)
+                                            .Include(order => order.Brand)
+                                                .ThenInclude(brand => brand.BrandInfo)
+                                            .Include(order => order.Brand)
+                                                .ThenInclude(brand => brand.ScheduleListElements)
+                                            .Include(order => order.WaterOrder)
+                                            .Include(order => order.PointRegisters)
+                                            .Include(order => order.OrderDetails)
+                                            .Where(e => e.OrdererId == Functions.identityToUser(User.Identity, _context, false).UserId);
 
             if (!ordersFound.Any())
             {
@@ -82,23 +58,53 @@ namespace ApiClick.Controllers
 
             var result = ordersFound.ToList();
 
+            var dayOfWeek = DateTime.UtcNow.Add(Constants.YAKUTSK_OFFSET).DayOfWeek;
+            foreach (var order in result) 
+            {
+                switch (order.Kind)
+                {
+                    case Kind.food:
+                    case Kind.flowers:
+                        order.Brand.ScheduleListElements = null;
+                        order.Sum = order.OrderDetails.Sum(detail => detail.Count * detail.Price) +
+                                    (order.DeliveryPrice ?? 0) -
+                                    (order.PointRegister?.Points ?? 0);
+                        break;
+                    case Kind.bottledWater:
+                    case Kind.water:
+                        order.Brand.ScheduleListElements = new List<ScheduleListElement>() { order.Brand.ScheduleListElements.First(sle => sle.DayOfWeek == dayOfWeek) };
+                        order.Sum = order.WaterOrder.Amount * (order.WaterOrder.Price ?? 0);
+                        order.WaterOrder = null;
+                        break;
+                }
+                order.OrderDetails = null;
+            }
+
             return result;
         }
 
-        // GET: api/GetMyTasks
-        [Route("GetMyTasks")]
+        /// <summary>
+        /// Возвращает незавершенные обычные заказы исполнителя
+        /// </summary>
+        // GET: api/GetMyRegularTasks
+        [Route("GetMyRegularTasks")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
-        public ActionResult<IEnumerable<Order>> GetMyTasks()
+        public ActionResult<IEnumerable<Order>> GetMyRegularTasks()
         {
-            var myBrand = Functions.identityToUser(User.Identity, _context).Executor.Brand;
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
+
+            var myBrand = _context.Brand.AsNoTracking().FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
 
             if (myBrand == null)
             {
                 return NotFound();
             }
 
-            var ordersFound = _context.Order.Where(order => order.BrandId == myBrand.BrandId &&
+            var ordersFound = _context.Order.Include(order => order.OrderInfo)
+                                            .Include(order => order.PointRegisters)
+                                            .Include(order => order.OrderDetails)
+                                            .Where(order => order.BrandId == myBrand.BrandId &&
                                                             order.OrderStatus < OrderStatus.delivered);
 
             if (!ordersFound.Any())
@@ -108,23 +114,89 @@ namespace ApiClick.Controllers
 
             var result = ordersFound.ToList();
 
+            foreach (var order in result)
+            {
+                order.Sum = order.OrderDetails.Sum(detail => detail.Count * detail.Price) +
+                            (order.DeliveryPrice ?? 0) -
+                            (order.PointRegister?.Points ?? 0);
+                order.OrderDetails = null;
+            }
+
             return result;
         }
 
-        // GET: api/GetMyHistory
-        [Route("GetMyHistory")]
+        /// <summary>
+        /// Возвращает незавершенные обычные заказы исполнителя
+        /// </summary>
+        // GET: api/GetMyWaterTasks
+        [Route("GetMyWaterTasks")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
-        public ActionResult<IEnumerable<Order>> GetMyHistory()
+        public ActionResult<IEnumerable<Order>> GetMyWaterTasks()
         {
-            var myBrand = Functions.identityToUser(User.Identity, _context).Executor.Brand;
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
+
+            var myBrand = _context.Brand.AsNoTracking()
+                                        .Include(brand => brand.WaterBrand)
+                                        .FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
 
             if (myBrand == null)
             {
                 return NotFound();
             }
 
-            var ordersFound = _context.Order.Where(order => order.BrandId == myBrand.BrandId &&
+            var ordersFound = _context.Order.Include(order => order.OrderInfo)
+                                            .Include(order => order.WaterOrder)
+                                            .Include(order => order.PointRegisters)
+                                            //Статус - обязательный критерий
+                                            .Where(order => (order.OrderStatus < OrderStatus.delivered) 
+                                                            && 
+                                                                //Либо принадлежность бренду...
+                                                                ((order.BrandId == myBrand.BrandId) 
+                                                                || 
+                                                                //... либо такого же типа, экспресс и незанятые
+                                                                (order.Kind == myBrand.Kind &&
+                                                                order.WaterOrder.Express &&
+                                                                order.BrandId == null &&
+                                                                !order.WaterOrder.WaterRequests.Any(wr => wr.WaterBrandId == myBrand.WaterBrand.WaterBrandId)))); //Не получать те, что мы уже реквестировали на исполнение
+
+            if (!ordersFound.Any())
+            {
+                return NotFound();
+            }
+
+            var result = ordersFound.ToList();
+
+            foreach (var order in result)
+            {
+                order.Sum = order.WaterOrder.Amount * (order.WaterOrder.Price ?? 0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает выполненные заказы исполнителя
+        /// </summary>
+        // GET: api/GetMyHistory
+        [Route("GetMyHistory")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public ActionResult<IEnumerable<Order>> GetMyHistory()
+        {
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
+
+            var myBrand = _context.Brand.AsNoTracking().FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
+
+            if (myBrand == null)
+            {
+                return NotFound();
+            }
+
+            var ordersFound = _context.Order.Include(order => order.OrderInfo)  
+                                            .Include(order => order.PointRegisters)
+                                            .Include(order => order.WaterOrder)
+                                            .Where(order => order.BrandId == myBrand.BrandId &&
                                                             order.OrderStatus >= OrderStatus.delivered);
 
             if (!ordersFound.Any())
@@ -134,63 +206,87 @@ namespace ApiClick.Controllers
 
             var result = ordersFound.ToList();
 
+            foreach (var order in result)
+            {
+                switch (myBrand.Kind)
+                {
+                    case Kind.food:
+                    case Kind.flowers:
+                        order.Sum = order.OrderDetails.Sum(detail => detail.Count * detail.Price) +
+                                    (order.DeliveryPrice ?? 0) -
+                                    (order.PointRegister?.Points ?? 0);
+                        break;
+                    case Kind.bottledWater:
+                    case Kind.water:
+                        order.Sum = order.WaterOrder.Amount * (order.WaterOrder.Price ?? 0);
+                        order.WaterOrder = null;
+                        break;
+                }
+            }
+
             return result;
         }
 
+        /// <summary>
+        /// Изменяет статус заказа
+        /// </summary>
+        /// <param name="id">Id заказа</param>
+        /// <param name="_status">Опциональный статус, при отсутствии выбирается следующий по очереди</param>
         // PUT: api/Orders
         [Route("ChangeStatus/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize]
         [HttpPut]
-        public async Task<ActionResult> PutOrders(int id, OrderStatus? _status = null)
+        public ActionResult PutOrders(int id, OrderStatus? _status = null)
         {
             //Сперва проверяем на физическую возможность смены статуса
-            var order = await _context.Order.FindAsync(id);
+            var order = _context.Order.Include(order => order.PointRegisters)
+                                        .FirstOrDefault(order => order.OrderId == id);
 
             if (order == null)
             {
                 return NotFound();
             }
 
-            var initialStatus = order.OrderStatus;
-
-            if (order.OrderStatus == OrderStatus.completed) return Forbid();
-
-            //Только пользователь и владелец бренда имеют доступ к смене статуса
-            var mySelf = Functions.identityToUser(User.Identity, _context);
-            var isUser = order.OrdererId == mySelf.UserId;
-            var isBrandOwner = mySelf.Executor != null && order.BrandId == mySelf.Executor.Brand.BrandId;
-            if (!(isUser || isBrandOwner))
+            if (order.OrderStatus == OrderStatus.completed)
             {
                 return Forbid();
             }
 
-            if (isBrandOwner && order.OrderStatus == OrderStatus.delivered) return Forbid();
+            var initialStatus = order.OrderStatus;
+            OrderStatus futureStatus = _status != null ? (_status ?? default) : (OrderStatus)((int)initialStatus + 1);
 
-            //Затем проверяем права на смену статуса
-            UserRole? userRole = null;
-            if (isUser) userRole = UserRole.User;
-            else if (isBrandOwner) userRole = UserRole.Admin;
+            var mySelf = Functions.identityToUser(User.Identity, _context);
 
-            OrderStatus futureStatus;
-            if (_status != null)
+            Brand myBrand = null;
+            if (mySelf.Executor != null) 
             {
-                futureStatus = _status ?? default;
-            }
-            else
-            {
-                futureStatus = order.OrderStatus + 1;
+                myBrand = _context.Brand.FirstOrDefault(brand => brand.ExecutorId == mySelf.Executor.ExecutorId);
             }
 
-            //Изменить статус могут лишь указанная роль или суперАдмин
-            if (userRole == OrderStatusDictionaries.GetMasterRoleFromOrderStatus[futureStatus] ||
-                userRole == UserRole.SuperAdmin)
+            //is orderer
+            if (order.OrdererId == mySelf.UserId)
             {
-                order.OrderStatus = futureStatus;
+                if (order.OrderStatus != OrderStatus.delivered ||
+                    OrderStatusDictionaries.GetMasterRoleFromOrderStatus[futureStatus] != mySelf.UserRole)
+                {
+                    return Forbid();
+                }
             }
-            else
+            //is executor
+            else if (myBrand != null && order.BrandId == myBrand.BrandId)
             {
-                return Unauthorized();
+                if (order.OrderStatus >= OrderStatus.delivered ||
+                    OrderStatusDictionaries.GetMasterRoleFromOrderStatus[futureStatus] != mySelf.UserRole) 
+                {
+                    return Forbid();
+                }
             }
+            else 
+            {
+                return BadRequest("Непонятная хрень");
+            }
+
+            order.OrderStatus = futureStatus;
 
             if (order.OrderStatus == OrderStatus.completed)
             {
@@ -214,15 +310,20 @@ namespace ApiClick.Controllers
                     return BadRequest("Не удалось произвести кэшбэк");
                 }
             }
-            await _context.SaveChangesAsync();
+
+            _context.SaveChanges();
 
             return Ok();
         }
 
+        /// <summary>
+        /// Добавляет новый обычный заказ
+        /// </summary>
+        /// <param name="_order">Данные нового заказа</param>
         // POST: api/Orders
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<Order>>> PostOrders(Order _order)
+        public ActionResult PostNormalOrder(Order _order)
         {
             if (!IsNormalOrderValid(_order))
             {
@@ -232,7 +333,7 @@ namespace ApiClick.Controllers
             var brand = _context.Brand.Include(brand => brand.Executor)
                                             .ThenInclude(exe => exe.User)
                                         .First(brand => brand.BrandId == _order.BrandId);
-            var mySelf = Functions.identityToUser(User.Identity, _context);
+            var mySelf = Functions.identityToUser(User.Identity, _context, true);
 
             try
             {
@@ -254,7 +355,6 @@ namespace ApiClick.Controllers
             _order.CreatedDate = DateTime.UtcNow;
             _order.OrderStatus = OrderStatus.received;
             _order.OrdererId = mySelf.UserId;
-
             _order.OrderInfo.Phone = mySelf.Phone;
 
             var orderSum = _order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
@@ -269,23 +369,223 @@ namespace ApiClick.Controllers
                 }
             }
 
+            if (mySelf.Points <= 0) 
+            {
+                _order.PointsUsed = false;
+            }
+
             if (_order.PointsUsed ?? false)
             {
                 PointsController pointsController = new PointsController(_context);
                 PointRegister register;
-                if (!pointsController.StartTransaction(pointsController.GetMaxPayment(mySelf.Points, _order), _order.OrdererId, _order, out register, mySelf))
+                if (!pointsController.StartTransaction(pointsController.GetMaxPayment(mySelf.Points, _order, brand.PointsPercentage), brand.Executor.UserId, _order, out register, mySelf))
                 {
                     return BadRequest();
                 }
             }
 
             _context.Order.Add(_order);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             if (mySelf.NotificationsEnabled)
             {
-                await new NotificationsController().ToSendNotificationAsync(brand.Executor.User.DeviceType, "У вас новый заказ!", brand.Executor.User.NotificationRegistration);
+                Task.Run(() => new NotificationsController().ToSendNotificationAsync(brand.Executor.User.DeviceType, "У вас новый заказ!", brand.Executor.User.NotificationRegistration));
             }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Добавляет новый водный заказ
+        /// </summary>
+        /// <param name="_order">Данные заказа</param>
+        [Route("PostWaterOrder")]
+        [Authorize]
+        [HttpPost]
+        public ActionResult PostWaterOrder(Order _order)
+        {
+            if (!IsWaterOrderValid(_order))
+            {
+                return BadRequest();
+            }
+
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+
+            //filling blanks and sending to DB
+            _order.CreatedDate = DateTime.UtcNow;
+            _order.OrderStatus = OrderStatus.sent;
+            _order.OrdererId = mySelf.UserId;
+            _order.OrderInfo.Phone = mySelf.Phone;
+
+            if (!_order.WaterOrder.Express)
+            {
+                var brand = _context.WaterBrand.FirstOrDefault(brand => brand.BrandId == _order.BrandId);
+                _order.WaterOrder.Price = brand.WaterPrice;
+            }
+
+            _context.Order.Add(_order);
+            _context.SaveChanges();
+
+            if (_order.WaterOrder.Express)
+            {
+                WaterOrderRemover.Add(_order.CreatedDate, _order.OrderId); //Удалит заказ через 2 часа если job не будет удален до триггера
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Удаляет выбранный заказ
+        /// </summary>
+        // DELETE: api/Orders/5
+        [Route("{id}")]
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpDelete]
+        public ActionResult<Order> DeleteOrders(int id)
+        {
+            var order = _context.Order.Find(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            _context.Order.Remove(order);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Получение списка запросов на выбранный заказ
+        /// </summary>
+        /// <param name="id">Id заказа</param>
+        /// <returns>Список запросов</returns>
+        [Route("GetRequestsByOrder/{id}")]
+        [Authorize]
+        [HttpGet]
+        public ActionResult<IEnumerable<WaterRequest>> GetRequestsByOrder(int id)
+        {
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+            var order = _context.WaterOrder.AsNoTracking()
+                                            .Include(wo => wo.Order)
+                                            .FirstOrDefault(wo => wo.WaterOrderId == id);
+
+            if (order == null || order.Order.OrdererId != mySelf.UserId)
+            {
+                return BadRequest();
+            }
+
+            var requests = _context.WaterRequest.Include(wr => wr.WaterBrand)
+                                                    .ThenInclude(wb => wb.Brand)
+                                                        .ThenInclude(brand => brand.BrandInfo)
+                                                .Where(request => request.WaterOrderId == order.WaterOrderId);
+
+            if (!requests.Any())
+            {
+                return NotFound();
+            }
+
+            var result = requests.ToList();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Выбирает запрос и назначает бренд 
+        /// </summary>
+        /// <param name="id">Id запроса на прием заказа</param>
+        /// <param name="pointsUsed">Были ли использованы баллы для оплаты</param>
+        [Route("SelectWaterBrand/{id}")]
+        [Authorize]
+        [HttpPut]
+        public ActionResult SelectWaterBrand(int id)
+        {
+            var request = _context.WaterRequest.Include(wr => wr.WaterBrand)
+                                                .FirstOrDefault(wr => wr.WaterRequestId == id);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+            var order = _context.WaterOrder.Include(wo => wo.Order)
+                                            .FirstOrDefault(wo => wo.WaterOrderId == request.WaterOrderId);
+
+            //Если клиент не является владельцем заказа - посылать подальше
+            if (order.Order.OrdererId != mySelf.UserId)
+            {
+                return Forbid();
+            }
+
+            order.Order.BrandId = request.WaterBrand.BrandId;
+            order.Order.OrderStatus = OrderStatus.received;
+
+            //Находим и удаляем запросы связанные с заказом
+            var allRelatedRequests = _context.WaterRequest.Where(wr => wr.WaterOrderId == order.WaterOrderId);
+            _context.RemoveRange(allRelatedRequests);
+
+            _context.SaveChanges();
+
+            WaterOrderRemover.Remove(order.OrderId);
+
+            var executor = _context.Brand.Include(brand => brand.Executor)
+                                                .ThenInclude(exe => exe.User)
+                                            .FirstOrDefault(brand => brand.BrandId == order.Order.BrandId)
+                                            .Executor;
+
+            if (executor.User.NotificationsEnabled)
+            {
+                Task.Run(() => new NotificationsController().ToSendNotificationAsync(executor.User.DeviceType, "Ваш запрос на доставку был принят!", executor.User.NotificationRegistration));
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Создает запрос на исполнение заказа
+        /// </summary>
+        /// <param name="waterRequest">Неполная модель с указанием предлагаемой цены</param>
+        /// <param name="id">Id заказа, на который претендует отправитель</param>
+        [Route("PostWaterRequest")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpPost]
+        public ActionResult PostWaterRequest(WaterRequest _waterRequestData)
+        {
+            if (!IsWaterRequestValid(_waterRequestData))
+            {
+                return BadRequest();
+            }
+
+            var order = _context.WaterOrder.Include(wo => wo.Order)
+                                            .First(wo => wo.WaterOrderId == _waterRequestData.WaterOrderId);
+
+            //Если заказ занят - запретить
+            if (order.Order.BrandId != null)
+            {
+                return Forbid();
+            }
+
+            //получаем первый бренд отправителя
+            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
+            var myBrand = _context.Brand.Include(brand => brand.WaterBrand)
+                                        .FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
+
+            //... и проверяем наличие хотя бы одной записи с id этого бренда, подавляем попытку создать дубликат
+            if (_context.WaterRequest.Where(wr => wr.WaterOrderId == order.WaterOrderId)
+                                        .Any(e => e.WaterBrandId == myBrand.WaterBrand.WaterBrandId))
+            {
+                return Forbid();
+            }
+
+            var request = new WaterRequest()
+            {
+                WaterBrandId = myBrand.WaterBrand.WaterBrandId,
+                WaterOrderId = order.WaterOrderId
+            };
+
+            _context.WaterRequest.Add(request);
+            _context.SaveChanges();
 
             return Ok();
         }
@@ -309,246 +609,6 @@ namespace ApiClick.Controllers
             return product.Price * (decimal)_count;
         }
 
-        // DELETE: api/Orders/5
-        [Route("{id}")]
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpDelete]
-        public async Task<ActionResult<Order>> DeleteOrders(int id)
-        {
-            var order = await _context.Order.FindAsync(id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            _context.Order.Remove(order);
-            await _context.SaveChangesAsync();
-
-            return Ok();
-        }
-
-        /// <summary>
-        /// Получение списка запросов на выбранный заказ
-        /// </summary>
-        /// <param name="id">Id заказа</param>
-        /// <returns>Список запросов</returns>
-        [Route("GetRequestsByOrder/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet]
-        public ActionResult<IEnumerable<WaterRequest>> GetRequestsByOrder(int id)
-        {
-            var mySelf = Functions.identityToUser(User.Identity, _context);
-            var order = _context.Order.Find(id);
-
-            if (order == null || order.OrdererId != mySelf.UserId)
-            {
-                return BadRequest();
-            }
-
-            var requests = _context.WaterRequest.Where(request => request.WaterOrderId == order.WaterOrder.WaterOrderId);
-
-            if (!requests.Any())
-            {
-                return NotFound();
-            }
-
-            var result = requests.ToList();
-
-            return result;
-        }
-
-        /// <summary>
-        /// Выбирает запрос и назначает бренд 
-        /// </summary>
-        /// <param name="id">Id запроса на прием заказа</param>
-        /// <param name="pointsUsed">Были ли использованы баллы для оплаты</param>
-        [Route("SelectVodaBrand/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpPut]
-        public ActionResult SelectVodaBrand(int id)
-        {
-            var request = _context.WaterRequest.Find(id);
-
-            if (request == null)
-            {
-                return NotFound();
-            }
-
-            var mySelf = Functions.identityToUser(User.Identity, _context);
-            var order = _context.WaterOrder.Include(wo => wo.Order)
-                                            .FirstOrDefault(wo => wo.WaterOrderId == request.WaterOrderId);
-            var brand = _context.Brand.Include(brand => brand.Executor)
-                                        .FirstOrDefault(brand => brand.WaterBrand.WaterBrandId == request.WaterBrandId);
-
-            //Если клиент не является владельцем заказа - посылать подальше
-            if (order.Order.OrdererId != brand.Executor.UserId)
-            {
-                return Forbid();
-            }
-
-            order.Order.BrandId = brand.BrandId;
-            order.Order.OrderStatus = OrderStatus.received;
-
-            _context.SaveChanges();
-
-            WaterOrderRemover.Remove(order.OrderId);
-
-            if (order.Order.Orderer.NotificationsEnabled)
-            {
-                Task.Run(() => new NotificationsController().ToSendNotificationAsync(order.Order.Orderer.DeviceType, "Ваш запрос на доставку был принят!", order.Order.Orderer.NotificationRegistration));
-            }
-
-            return Ok();
-        }
-
-        /// <summary>
-        /// Получение свободных "мокрых" заказов
-        /// </summary>
-        /// <param name="id">Id категории</param>
-        /// <returns>Список заказов</returns>
-        [Route("GetOpenVodaOrders/{category}")]
-        [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpGet]
-        public ActionResult<IEnumerable<WaterOrder>> GetOpenVodaOrders(Kind category) //category id
-        {
-            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
-            var myBrand = _context.Brand.First(brand => brand.ExecutorId == mySelf.ExecutorId);
-            var myRequests = _context.WaterRequest.Where(wr => wr.WaterBrandId == myBrand.WaterBrand.WaterBrandId);
-
-            //Категория совпадает с указанной
-            //Владелец бренда еще не привязан
-            //В "мокрых" запросах нет записи с id заказа текущей итерации
-            var allOrdersFound = _context.WaterOrder.Include(wr => wr.Order)
-                                                        .Where(wr => wr.Order.Kind == category &&
-                                                                    wr.Order.BrandId == null);
-            //найти все те заказы, в которых отсутствует связь с "моими запросами"
-            var ordersFound = allOrdersFound.Where(order => !myRequests.Any(request => order.WaterOrderId == request.WaterOrderId));
-
-            if (!ordersFound.Any())
-            {
-                return NotFound();
-            }
-
-            var result = ordersFound.ToList();
-
-            return result;
-        }
-
-        //[Route("GetOrdersByKind/{category}")]
-        //[Authorize(Roles = "SuperAdmin, Admin")]
-        //[HttpGet]
-        //public async Task<ActionResult<List<Order>>> GetOrdersByKind(Kind category)
-        //{
-        //    var mySelf = Functions.identityToUser(User.Identity, _context);
-        //    //Возвращать только те заказы, где ты являешься исполнителем, и статус не является завершенным
-        //    var ordersFound = await _context.Orders.Where(p => p.Kind == category &&
-        //                                                    p.BrandOwnerId == identity.UserId &&
-        //                                                    p.OrderStatus < OrderStatus.completed).ToListAsync();
-
-        //    if (ordersFound == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var orders = Functions.getCleanListOfModels(ordersFound);
-
-        //    foreach (Order order in orders)
-        //    {
-        //        order.OrderDetails = Functions.getCleanListOfModels(_context.OrderDetails.Where(d => d.OrderId == order.OrderId).ToList());
-        //        foreach (OrderDetail detail in order.OrderDetails)
-        //        {
-        //            if (detail.ProductId != null) //Если продукта больше не существует
-        //            {
-        //                detail.Product = Functions.getCleanModel(await _context.Products.FindAsync(detail.ProductId));
-        //                detail.Product.Image = Functions.getCleanModel(await _context.Images.FindAsync(detail.Product.ImgId));
-        //            }
-        //        }
-        //        order.User = Functions.getCleanUser(await _context.Users.FindAsync(order.UserId));
-        //        var ownerBuffer = await _context.Users.FindAsync(order.BrandOwnerId);
-        //        if (order.PointsUsed && order.PointRegisterId != null)
-        //        {
-        //            order.PointRegister = Functions.getCleanModel(await _context.PointRegisters.FindAsync(order.PointRegisterId));
-        //        }
-        //        if (order.BrandOwnerId != null)
-        //        {
-        //            order.BrandOwner = Functions.getCleanUser(identity); //Не равен null если заказ взят отправившим запрос
-        //        }
-        //    }
-
-        //    return orders;
-        //}
-
-        /// <summary>
-        /// Создает запрос на исполнение заказа
-        /// </summary>
-        /// <param name="waterRequest">Неполная модель с указанием предлагаемой цены</param>
-        /// <param name="id">Id заказа, на который претендует отправитель</param>
-        [Route("PostVodaRequest")]
-        [Authorize(Roles = "SuperAdmin, Admin")]
-        [HttpPost]
-        public async Task<ActionResult> PostVodaRequest(WaterRequest _waterRequestData)
-        {
-            if (!IsWaterRequestValid(_waterRequestData))
-            {
-                return BadRequest();
-            }
-
-            var order = _context.WaterOrder.Include(wo => wo.Order)
-                                            .First(wo => wo.WaterOrderId == _waterRequestData.WaterOrderId);
-
-            //Если заказ занят - запретить
-            if (order.Order.BrandId != null)
-            {
-                return Forbid();
-            }
-
-            //получаем первый бренд отправителя
-            var mySelf = Functions.identityToUser(User.Identity, _context).Executor;
-            var myBrand = _context.Brand.FirstOrDefault(brand => brand.ExecutorId == mySelf.ExecutorId);
-
-            //... и проверяем наличие хотя бы одной записи с id этого бренда, подавляем попытку создать дубликат
-            if (_context.WaterRequest.Where(wr => wr.WaterOrderId == order.WaterOrderId)
-                                        .Any(e => e.WaterBrandId == myBrand.WaterBrand.WaterBrandId))
-            {
-                return Forbid();
-            }
-
-            var request = new WaterRequest()
-            {
-                WaterBrandId = myBrand.WaterBrand.WaterBrandId,
-                WaterOrderId = order.WaterOrderId
-            };
-            _context.WaterRequest.Add(request);
-            await _context.SaveChangesAsync();
-
-            return Ok();
-        }
-
-        [Route("PostVodaOrders")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpPost]
-        public ActionResult PostVodaOrders(Order _order)
-        {
-            if (!IsWaterOrderValid(_order))
-            {
-                return BadRequest();
-            }
-
-            var mySelf = Functions.identityToUser(User.Identity, _context);
-
-            //filling blanks and sending to DB
-            _order.CreatedDate = DateTime.UtcNow;
-            _order.OrderStatus = OrderStatus.sent;
-            _order.OrdererId = mySelf.UserId;
-
-            _context.Order.Add(_order);
-            _context.SaveChanges();
-
-            WaterOrderRemover.Add(_order.CreatedDate, _order.OrderId); //Удалит заказ через 2 часа если job не будет удален до триггера
-
-            return Ok();
-        }
-
         /// <summary>
         /// Валидация получаемых данных метода POST
         /// </summary>
@@ -558,7 +618,7 @@ namespace ApiClick.Controllers
             try
             {
                 if (_order == null ||
-                    (_order.Kind != Kind.food || _order.Kind != Kind.flowers) ||
+                    (_order.Kind != Kind.food && _order.Kind != Kind.flowers) ||
                     _order.OrderInfo == null ||
                     _order.BrandId == null ||
                     _order.PointsUsed == null ||
@@ -577,7 +637,8 @@ namespace ApiClick.Controllers
                         return false;
                     }
                 }
-                var brand = _context.Brand.Find(_order.BrandId);
+                var brand = _context.Brand.Include(brand => brand.BrandPaymentMethods)
+                                            .FirstOrDefault(brand => brand.BrandId == _order.BrandId);
                 if (!brand.BrandPaymentMethods.Any(pm => pm.PaymentMethod == _order.PaymentMethod) ||
                     brand.Kind != _order.Kind)
                 {
@@ -601,7 +662,7 @@ namespace ApiClick.Controllers
             try
             {
                 if (_order == null ||
-                    (_order.Kind != Kind.bottledWater || _order.Kind != Kind.water) ||
+                    (_order.Kind != Kind.bottledWater && _order.Kind != Kind.water) ||
                     _order.OrderInfo == null ||
                     string.IsNullOrEmpty(_order.OrderInfo.Street) ||
                     string.IsNullOrEmpty(_order.OrderInfo.House) ||
@@ -617,7 +678,8 @@ namespace ApiClick.Controllers
                     {
                         return false;
                     }
-                    var brand = _context.Brand.Find(_order.BrandId);
+                    var brand = _context.Brand.Include(brand => brand.BrandPaymentMethods)
+                                                .FirstOrDefault(brand => brand.BrandId == _order.BrandId);
                     if (!brand.BrandPaymentMethods.Any(pm => pm.PaymentMethod == _order.PaymentMethod) ||
                         brand.Kind != _order.Kind)
                     {

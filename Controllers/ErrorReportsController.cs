@@ -23,11 +23,14 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        //Пока без серьезных ограничений, но может быть слабым местом для спама
+        /// <summary>
+        /// Добавляет отчет об ошибке
+        /// </summary>
+        /// <param name="_errorReport">Данные отчета</param>
         // POST: api/ErrorReport
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Post(ErrorReport _errorReport)
+        public ActionResult Post(ErrorReport _errorReport)
         {
             if (!IsPostModelValid(_errorReport)) 
             {
@@ -37,7 +40,7 @@ namespace ApiClick.Controllers
             _errorReport.UserId = Functions.identityToUser(User.Identity, _context).UserId;
 
             _context.ErrorReport.Add(_errorReport);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return Ok();
         }

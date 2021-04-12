@@ -30,17 +30,11 @@ namespace ApiClick.Controllers
             this._context = _context;
         }
 
-        [Route("UnitTest")]
-        [HttpGet]
-        public ActionResult<string> UnitTest(string phone)
-        {
-            if (phone == "88005553535")
-            {
-                return "Everything ok!";
-            }
-            return "Something's wrong...";
-        }
-
+        /// <summary>
+        /// Получение пользовательского access токена
+        /// </summary>
+        /// <returns>Сериализированный токен</returns>
+        // POST: api/Account/UserToken/?phone=79991745473
         [Route("UserToken")]
         [HttpPost]
         public IActionResult UserToken(string phone)
@@ -72,11 +66,16 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
+        /// <summary>
+        /// Получение access токена с правами исполнителя
+        /// </summary>
+        /// <returns>Сериализированный токен</returns>
+        // POST: api/Account/AdminToken/?login=Zizi&password=zaza
         [Route("AdminToken")]
         [HttpPost]
         public IActionResult AdminToken(string login, string password)
         {
-            var identity = GetIdentity(login, password);
+            var identity = GetIdentity(login, Functions.GetHashFromString(password));
             if (identity == null)
             {
                 return BadRequest(new { errorText = "Invalid credentials." });
@@ -102,6 +101,11 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
+        /// <summary>
+        /// Отправляет СМС код на указанный номер и создает временный кэш с кодом для проверки
+        /// </summary>
+        /// <param name="phone">Неотформатированный номер</param>
+        // POST: api/Account/SmsCheck/?phone=79991745473
         [Route("SmsCheck")]
         [HttpPost]
         public async Task<IActionResult> SmsCheck(string phone)
@@ -137,6 +141,12 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Проверяет активность (сущ.) кода
+        /// </summary>
+        /// <param name="code">СМС код</param>
+        /// <param name="phone">Номер получателя</param>
+        // POST: api/Account/CodeCheck/?code=3344&phone=79991745473
         [Route("CodeCheck")]
         [HttpPost]
         public IActionResult CodeCheck(string code, string phone)
@@ -149,6 +159,12 @@ namespace ApiClick.Controllers
             return BadRequest();
         }
 
+        /// <summary>
+        /// Возвращает СМС код напрямую
+        /// </summary>
+        /// <param name="phone">Номер получателя</param>
+        /// <returns>СМС код</returns>
+        // POST: api/Account/CacheCheck/?phone=79991745473
         [Authorize(Roles = "SuperAdmin")]
         [Route("CacheCheck")]
         [HttpPost]
@@ -163,6 +179,48 @@ namespace ApiClick.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        /// <summary>
+        /// Проверка на наличие регистрации и валидности токена
+        /// </summary>
+        /// <param name="phone">Отформатированный номер</param>
+        // POST: api/Account/PhoneCheck/?phone=79991745473
+        [Route("PhoneCheck")]
+        [HttpPost]
+        public ActionResult PhoneCheck(string phone)
+        {
+            var foundUser = _context.User.Any(user => user.Phone == phone);
+
+            if (!foundUser)
+            {
+                return NotFound(); //"Номер не зарегистрирован"
+            }
+
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized(); //"Токен недействителен или отсутствует"
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Проверяет наличие регистрации неотформатированного номера
+        /// </summary>
+        /// <param name="phone">Неотформатированный номер</param>
+        /// <returns>Отформатированный номер</returns>
+        // POST: api/Account/PhoneIsRegistered/?phone=79991745473
+        [Route("PhoneIsRegistered")]
+        [HttpPost]
+        public ActionResult<string> PhoneIsRegistered(string phone)
+        {
+            string correctPhone = Functions.convertNormalPhoneNumber(phone);
+            if (_context.User.Any(user => user.Phone == correctPhone))
+            {
+                return Forbid();
+            }
+            return correctPhone;
         }
 
         //identity with user rights

@@ -16,7 +16,9 @@ namespace ApiClick.Models
         public int? Floor { get; set; }
         public int? Apartment { get; set; }
         public string Name { get; set; }
+        [JsonIgnore]
         public int UserInfoId { get; set; }
+        [JsonIgnore]
         public int UserId { get; set; }
 
         [JsonIgnore]

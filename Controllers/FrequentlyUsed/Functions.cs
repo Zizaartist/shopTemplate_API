@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Principal;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -51,10 +53,17 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// </summary>
         /// <param name="identity">Данные личности, взятые из токена</param>
         /// <param name="_context">Контекст, в котором производится поиск</param>
+        /// <param name="_enableTracking">Включить отслеживание</param>
         /// <returns>Пользователь, найденный в контексте</returns>
-        public static User identityToUser(IIdentity identity, ClickContext _context)
+        public static User identityToUser(IIdentity identity, ClickContext _context, bool _enableTracking = false)
         {
-            return _context.User.AsNoTracking().FirstOrDefault(u => u.Phone == identity.Name);
+            IQueryable<User> result = _context.User;
+            if (!_enableTracking)
+            {
+                result = result.AsNoTracking();
+            }
+            return result.Include(u => u.Executor)
+                            .FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         /// <summary>
@@ -73,6 +82,14 @@ namespace ApiClick.Controllers.FrequentlyUsed
         public static bool IsPhoneNumber(string number)
         {
             return Regex.Match(number, @"^((8|\+7|7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$").Success;
+        }
+
+        public static string GetHashFromString(string input)
+        {
+            var md5 = MD5.Create();
+            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+            return Convert.ToBase64String(hash);
         }
 
         /// <summary>
@@ -95,12 +112,6 @@ namespace ApiClick.Controllers.FrequentlyUsed
             //Если в начале нет 7 или 8 - вставить код самому. Пока плевать на интернационализацию
             return "7" + ((processedNumber.StartsWith("7") || processedNumber.StartsWith("8")) ? 
                                         processedNumber.Substring(1) : processedNumber);
-        }
-
-        public static bool phoneIsRegistered(string correctPhone, ClickContext _context)
-        {
-            var user = _context.User.FirstOrDefault(u => u.Phone == correctPhone);
-            return user != null;
         }
     }
 }

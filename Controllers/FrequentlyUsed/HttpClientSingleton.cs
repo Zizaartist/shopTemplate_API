@@ -17,7 +17,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             {
                 lock (lockObj)
                 {
-                    if (HttpClient == null)
+                    if (httpClient == null)
                     {
                         httpClient = new HttpClient();
                     }

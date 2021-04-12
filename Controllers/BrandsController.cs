@@ -24,31 +24,31 @@ namespace ApiClick.Controllers
         private readonly ClickContext _context;
         private readonly ILogger<BrandsController> _logger;
         public static int PAGE_SIZE = 5;
-        
+
         public BrandsController(ClickContext _context, ILogger<BrandsController> _logger)
         {
             this._context = _context;
             this._logger = _logger;
         }
 
-        // GET: api/Brands
-        //Debug
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Brand>>> GetBrand()
-        {
-            var brands = await _context.Brand.ToListAsync();
-
-            return brands;
-        }
-
-        // POST: api/GetBrandsByFilter/0/3?name=blahbla&openNow=true
-        [Route("GetBrandsByFilter/{_category}/{_page}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        /// <summary>
+        /// Возвращает бренды соответствующие указанным критериям
+        /// </summary>
+        /// <param name="_kind">Вид товара</param>
+        /// <param name="_page">Страница</param>
+        /// <param name="HashTags">Хэштеги, которые должны быть в наличии у бренда</param>
+        /// <param name="openNow">Фильтровать ли бренды по доступности на текущий момент</param>
+        /// <returns>Бренды соответствующие критериям</returns>
+        // POST: api/Brands/GetByFilter/0/3?openNow=true
+        [Route("GetByFilter/{_kind}/{_page}")]
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByFilter(Kind _kind, int _page, [FromBody]List<int> HashTags = null, bool openNow = false)
+        public ActionResult<IEnumerable<Brand>> GetBrandsByFilter(Kind _kind, int _page, [FromBody]List<int> HashTags = null, bool openNow = false)
         {
-            var brands = _context.Brand.Where(p => p.Kind == _kind);
+            var brands = _context.Brand.Include(brand => brand.BrandInfo)
+                                        .Include(brand => brand.BrandHashtags)
+                                        .Include(brand => brand.BrandPaymentMethods)
+                                        .Where(brand => brand.Kind == _kind);
 
             //Урезаем выборку по критерию наличия хештега в списке
             if (HashTags != null)
@@ -74,20 +74,27 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var resultBrands = brands.ToList();
+            var result = brands.ToList();
 
-            //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
-            return resultBrands;
+            return result;
         }
 
-
-        // GET: api/GetBrandsByName/5?name=blahbla
-        [Route("GetBrandsByName/{category}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        /// <summary>
+        /// Возвращает бренды которые содержат указанную строку
+        /// </summary>
+        /// <param name="category">Вид товаров</param>
+        /// <param name="name">Критерий поиска</param>
+        /// <returns>Бренды содержащие указанную строку</returns>
+        // GET: api/Brands/GetBrandsByName/5?name=blahbla
+        [Route("GetByName/{category}")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByName(Kind category, string name = null)
+        public ActionResult<IEnumerable<Brand>> GetBrandsByName(Kind category, string name = null)
         {
-            var brands = _context.Brand.Where(p => p.Kind == category);
+            var brands = _context.Brand.Include(brand => brand.BrandInfo)
+                                        .Include(brand => brand.BrandHashtags)
+                                        .Include(brand => brand.BrandPaymentMethods)
+                                        .Where(p => p.Kind == category);
 
             //Урезаем выборку по критерию наличия строки в имени бренда
             if (name != null)
@@ -101,41 +108,103 @@ namespace ApiClick.Controllers
                 return NotFound();
             }
 
-            var resultBrands = brands.ToList();
+            var result = brands.ToList();
 
-            //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
-            return resultBrands;
+            return result;
         }
 
-
-        // GET: api/GetBrandsByKind/5
-        //Получить список брендов категории id
-        [Route("GetBrandsByKind/{category}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        /// <summary>
+        /// Возвращает водные бренды указанного типа
+        /// </summary>
+        /// <param name="category">Тип продукции (2 варианта)</param>
+        /// <returns>Бренды указанного типа</returns>
+        // GET: api/Brands/GetWaterBrands/5
+        [Route("GetWaterBrands/{category}")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<List<Brand>>> GetBrandsByKind(Kind category)
+        public ActionResult<IEnumerable<Brand>> GetWaterBrands(Kind category)
         {
-            var brands = _context.Brand.Where(p => p.Kind == category);
+            if (category == Kind.food || category == Kind.flowers) 
+            {
+                return BadRequest();
+            }
+
+            var brands = _context.Brand.Include(brand => brand.BrandInfo)
+                                        .Include(brand => brand.BrandPaymentMethods)
+                                        .Include(brand => brand.ScheduleListElements)
+                                        .Include(brand => brand.WaterBrand)
+                                        .Where(p => p.Kind == category);
 
             if (!brands.Any())
             {
                 return NotFound();
             }
 
-            var resultBrands = await brands.ToListAsync();
+            var result = brands.ToList();
 
-            //Чет десерилайзеру похуй на мои действия, он все равно присылает лишние данные
-            return resultBrands;
+            var dayOfWeek = DateTime.UtcNow.Add(Constants.YAKUTSK_OFFSET).DayOfWeek;
+            foreach (var brand in result) 
+            {
+                brand.ScheduleListElements = new List<ScheduleListElement>() { brand.ScheduleListElements.First(sle => sle.DayOfWeek == dayOfWeek) };
+            }
+
+            return result;
         }
 
+        /// <summary>
+        /// Получить данные определенного бренда
+        /// </summary>
+        /// <param name="id">Id бренда</param>
+        /// <returns>Публичные данные бренда</returns>
         // GET: api/Brands/5
-        //Получить бренд по id
         [Route("{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<Brand>> GetBrand(int id)
+        public ActionResult<Brand> GetBrandData(int id)
         {
-            var brand = await _context.Brand.FindAsync(id);
+            var brand = _context.Brand.Include(brand => brand.BrandInfo)
+                                        .Include(brand => brand.ScheduleListElements)
+                                        .FirstOrDefault(brand => brand.BrandId == id);
+
+            if (brand == null)
+            {
+                return NotFound();
+            }
+
+            switch (brand.Kind)
+            {
+                case Kind.food:
+                case Kind.flowers:
+                    _context.Entry(brand).Collection(brand => brand.BrandPaymentMethods).Load();
+                    break;
+                case Kind.bottledWater:
+                case Kind.water:
+                    _context.Entry(brand).Reference(brand => brand.WaterBrand).Load();
+                    break;
+            }
+
+            return brand;
+        }
+
+        /// <summary>
+        /// Возвращает подробную информацию о бренде владельцу
+        /// </summary>
+        /// <returns></returns>
+        // GET: api/Brands/GetMyBrand
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [Route("GetMyBrand")]
+        [HttpGet]
+        public ActionResult<Brand> GetMyBrand()
+        {
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+
+            var brand = _context.Brand.Include(brand => brand.BrandInfo)
+                                        .Include(brand => brand.WaterBrand)
+                                        .Include(brand => brand.BrandHashtags)
+                                        .Include(brand => brand.BrandPaymentMethods)
+                                        .Include(brand => brand.ScheduleListElements)
+                                        .Include(brand => brand.AdBanners)
+                                        .FirstOrDefault(brand => brand.ExecutorId == mySelf.Executor.ExecutorId);
 
             if (brand == null)
             {
@@ -145,83 +214,124 @@ namespace ApiClick.Controllers
             return brand;
         }
 
-        // GET: api/GetMyBrands
-        //Получить список своих брендов
+        /// <summary>
+        /// Изменяет документацию бренда
+        /// </summary>
+        // PUT: api/Brands/BrandDoc
+        [Route("BrandDoc")]
         [Authorize(Roles = "SuperAdmin, Admin")]
-        [Route("GetMyBrands")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Brand>>> GetMyBrands() //хз пока как маршрутизировать
+        [HttpPut]
+        public ActionResult PutBrandDocumentation(BrandDoc _brandDocData)
         {
             var mySelf = Functions.identityToUser(User.Identity, _context);
 
-            var brands = _context.Brand.Where(p => p.ExecutorId == mySelf.Executor.ExecutorId);
+            var myBrandDoc = _context.BrandDoc.FirstOrDefault(doc => doc.Brand.ExecutorId == mySelf.Executor.ExecutorId);
 
-            if (brands == null)
+            if (myBrandDoc == null)
             {
                 return NotFound();
             }
 
-            var resultBrands = await brands.ToListAsync();
+            myBrandDoc.OfficialName = _brandDocData.OfficialName;
+            myBrandDoc.Ogrn = _brandDocData.Ogrn;
+            myBrandDoc.Inn = _brandDocData.Inn;
+            myBrandDoc.LegalAddress = _brandDocData.LegalAddress;
+            myBrandDoc.Executor = _brandDocData.Executor;
 
-            return resultBrands;
+            _context.SaveChanges();
+
+            return Ok();
         }
 
-        // PUT: api/Brands/5
+        /// <summary>
+        /// Возвращает документацию бренда
+        /// </summary>
+        // GET: api/Brands/BrandDoc
+        [Route("BrandDoc")]
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpGet]
+        public ActionResult<BrandDoc> GetBrandDocumentation()
+        {
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+
+            var myBrandDoc = _context.BrandDoc.FirstOrDefault(doc => doc.Brand.ExecutorId == mySelf.Executor.ExecutorId);
+
+            if (myBrandDoc == null)
+            {
+                return NotFound();
+            }
+
+            return myBrandDoc;
+        }
+
+        /// <summary>
+        /// Изменяет данные бренда
+        /// </summary>
+        /// <param name="_brandData">Новые данные бренда</param>
+        // PUT: api/Brands
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutBrand(Brand _brandData)
+        public IActionResult PutBrand(Brand _brandData)
         {
-
-            if (!IsPutModelValid(_brandData)) //дублирующиеся дни
+            if (!IsPutModelValid(_brandData))
             {
                 return BadRequest();
             }
 
-            var brand = _context.Brand.Find(_brandData.BrandId);
+            var mySelf = Functions.identityToUser(User.Identity, _context);
 
-            if (brand == null) 
+            var brand = _context.Brand.Include(brand => brand.BrandInfo)
+                                        .Include(brand => brand.WaterBrand)
+                                        .Include(brand => brand.BrandHashtags)
+                                        .Include(brand => brand.BrandPaymentMethods)
+                                        .Include(brand => brand.ScheduleListElements)
+                                        .FirstOrDefault(brand => brand.ExecutorId == mySelf.Executor.ExecutorId);
+
+            if (brand == null)
             {
                 return NotFound();
             }
 
-            var mySelf = Functions.identityToUser(User.Identity, _context);
-
-            //отправитель - не владелец?
-            if (brand.ExecutorId != mySelf.Executor.ExecutorId) 
-            {
-                return Forbid();
-            }
+            //Не будем ебаться с проверками - тупо заменяем
 
             _context.BrandHashtag.RemoveRange(brand.BrandHashtags);
             brand.BrandHashtags = _brandData.BrandHashtags;
 
             _context.BrandPaymentMethod.RemoveRange(brand.BrandPaymentMethods);
             brand.BrandPaymentMethods = _brandData.BrandPaymentMethods;
-            
+
             _context.ScheduleListElement.RemoveRange(brand.ScheduleListElements);
             brand.ScheduleListElements = _brandData.ScheduleListElements;
 
             brand.BrandName = _brandData.BrandName;
+            brand.DeliveryPrice = _brandData.DeliveryPrice;
+            brand.MinimalPrice = _brandData.MinimalPrice;
             brand.BrandInfo.Address = _brandData.BrandInfo.Address;
             brand.BrandInfo.Contact = _brandData.BrandInfo.Contact;
             brand.BrandInfo.Description = _brandData.BrandInfo.Description;
+            //Для картинок проверки, т.к. высокий шанс того что там будет null
             if (_brandData.BrandInfo.Banner != null) brand.BrandInfo.Banner = _brandData.BrandInfo.Banner;
             if (_brandData.BrandInfo.Logo != null) brand.BrandInfo.Logo = _brandData.BrandInfo.Banner;
             brand.BrandInfo.DeliveryTime = _brandData.BrandInfo.DeliveryTime;
             brand.BrandInfo.Conditions = _brandData.BrandInfo.Conditions;
 
-            if (_brandData.WaterBrand != null) 
+            if (_brandData.WaterBrand != null)
             {
                 brand.WaterBrand.WaterPrice = _brandData.WaterBrand.WaterPrice;
                 brand.WaterBrand.ContainerPrice = _brandData.WaterBrand.ContainerPrice;
                 if (_brandData.WaterBrand.Certificate != null) brand.WaterBrand.Certificate = _brandData.WaterBrand.Certificate;
             }
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return Ok();
         }
 
+        /// <summary>
+        /// Создает новый бренд для исполнителя
+        /// </summary>
+        /// <param name="_brand">Данные нового бренда</param>
+        /// <param name="_executorId">Id владельца бренда</param>
         // POST: api/Brands
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
@@ -233,29 +343,39 @@ namespace ApiClick.Controllers
             }
 
             //Не позволять создавать бренды с уже имеющимся именем
-            if (_context.Brand.Any(a => a.BrandName == _brand.BrandName)) 
+            if (_context.Brand.Any(brand => brand.BrandName == _brand.BrandName)) 
             {
                 return Forbid();
             }
 
             //Заполняем пробелы
             _brand.CreatedDate = DateTime.UtcNow.Date;
-            if (_brand.BrandInfo == null) _brand.BrandInfo = new BrandInfo();
+            if (_brand.BrandInfo == null)
+            {
+                _brand.BrandInfo = new BrandInfo();
+            }
             if (_brand.Kind == Kind.bottledWater || _brand.Kind == Kind.water) 
             {
-                _brand.WaterBrand = new WaterBrand();
+                if (_brand.WaterBrand == null)
+                {
+                    _brand.WaterBrand = new WaterBrand();
+                }
             }
 
+            _context.Brand.Add(_brand);
             _context.SaveChanges();
 
             return Ok();
         }
 
+        /// <summary>
+        /// Удаляет бренд от лица супер-админа и все подчиненные сущности каскадом
+        /// </summary>
         // DELETE: api/Brands/5
         [Route("{id}")]
         [Authorize(Roles = "SuperAdmin")]
         [HttpDelete]
-        public ActionResult<Brand> DeleteBrand(int id)
+        public ActionResult DeleteBrand(int id)
         {
             var brand = _context.Brand.Find(id);
 
@@ -283,15 +403,21 @@ namespace ApiClick.Controllers
                     string.IsNullOrEmpty(_brand.BrandDoc.LegalAddress) ||
                     string.IsNullOrEmpty(_brand.BrandDoc.Executor) ||
                     !_brand.BrandPaymentMethods.Any() ||
-                    !_brand.ScheduleListElements.Any() ||
+                    (_brand.ScheduleListElements.Count < 7) ||
+                    !AreAllDaysDistinct(_brand.ScheduleListElements) ||
                     (_brand.BrandHashtags.Any() && !AreHashtagsValid(_brand.BrandHashtags.Select(tag => tag.HashtagId), _brand.Kind))
                     )
                 {
                     return false;
                 }
 
-                var owner = _context.User.Find(_brand.ExecutorId);
-                if (owner == null) return false;
+                var executor = _context.Executor.Include(exe => exe.Brand)
+                                                .FirstOrDefault(exe => exe.ExecutorId == _brand.ExecutorId);
+
+                if (executor == null || executor.Brand != null)
+                {
+                    return false;
+                }
 
                 return true;
             }
@@ -335,6 +461,19 @@ namespace ApiClick.Controllers
                 return true;
             }
             return false;
+        }
+
+        private bool AreAllDaysDistinct(IEnumerable<ScheduleListElement> _days) 
+        {
+            var accumulatedDays = new List<DayOfWeek>();
+            foreach (var day in _days) 
+            {
+                if (!accumulatedDays.Contains(day.DayOfWeek)) 
+                {
+                    accumulatedDays.Add(day.DayOfWeek);
+                }
+            }
+            return accumulatedDays.Count == 7;
         }
 
         private bool IsBrandNameTaken(string _suggestedName) 

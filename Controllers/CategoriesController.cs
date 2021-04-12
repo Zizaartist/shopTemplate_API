@@ -27,21 +27,13 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        // GET: api/BrandsMenu
-        //Debug
-        [Authorize(Roles = "SuperAdmin")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
-        {
-            var menus = await _context.Category.ToListAsync();
-
-            return menus;
-        }
-
-        // GET: api/GetMenusByBrand/5
-        //Возвращает список меню по id бренда
-        [Route("GetMenusByBrand/{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
+        /// <summary>
+        /// Возвращает список категорий принадлежащих бренду
+        /// </summary>
+        /// <param name="id">Id бренда</param>
+        // GET: api/Categories/ByBrand/5
+        [Route("ByBrand/{id}")]
+        [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<Category>> GetMenusByBrand(int id)
         {
@@ -57,27 +49,14 @@ namespace ApiClick.Controllers
             return result;
         }
 
-        // GET: api/BrandsMenu/5
-        //Возвращает меню по id
-        [Route("{id}")]
-        [Authorize(Roles = "SuperAdmin, Admin, User")]
-        [HttpGet]
-        public async Task<ActionResult<Category>> GetCategory(int id)
-        {
-            var category = await _context.Category.FindAsync(id);
-
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return category;
-        }
-
-        // PUT: api/BrandsMenu/5
+        /// <summary>
+        /// Изменяет данные категории
+        /// </summary>
+        /// <param name="_categoryData">Новые данные категории</param>
+        // PUT: api/Categories
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPut]
-        public async Task<IActionResult> PutCategories(Category _categoryData)
+        public IActionResult PutCategories(Category _categoryData)
         {
             if (!IsPutModelValid(_categoryData))
             {
@@ -99,12 +78,16 @@ namespace ApiClick.Controllers
             category.CategoryName = _categoryData.CategoryName;
             if (!string.IsNullOrEmpty(_categoryData.Image)) category.Image = _categoryData.Image;
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             return Ok();
         }
 
-        // POST: api/BrandsMenu
+        /// <summary>
+        /// Создает новую категорию в бренде отправителя
+        /// </summary>
+        /// <param name="_category">Данные новой категории</param>
+        // POST: api/Categories
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
         public ActionResult<Category> PostCategory(Category _category)
@@ -114,12 +97,21 @@ namespace ApiClick.Controllers
                 return BadRequest();
             }
 
-            if (!IsOwner(_category))
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+
+            var myBrand = _context.Brand.FirstOrDefault(brand => brand.ExecutorId == mySelf.Executor.ExecutorId);
+
+            if (myBrand == null) 
             {
                 return Forbid();
             }
 
+            _category.BrandId = myBrand.BrandId;
             _category.CreatedDate = DateTime.UtcNow.Date;
+
+            //Preventing exploitations
+            _category.Brand = null;
+            _category.Products = null;
 
             _context.Category.Add(_category);
             _context.SaveChanges();
@@ -127,8 +119,12 @@ namespace ApiClick.Controllers
             return Ok();
         }
 
-        // DELETE: api/BrandsMenu/5
-        [Route("api/[controller]/{id}")]
+        /// <summary>
+        /// Удаляет выбранную категорию
+        /// </summary>
+        /// <param name="id">Id удаляемой категории</param>
+        // DELETE: api/Categories/5
+        [Route("{id}")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpDelete]
         public ActionResult<Category> DeleteCategories(int id)
@@ -197,7 +193,6 @@ namespace ApiClick.Controllers
             try
             {
                 if (_category == null ||
-                    _category.BrandId <= 0 ||
                     string.IsNullOrEmpty(_category.CategoryName) ||
                     IsCategoryNameTaken(_category.CategoryName, _category.BrandId))
                 {

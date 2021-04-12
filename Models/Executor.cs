@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
+    //Никогда не должна попасть в руки юзера
     public partial class Executor
     {
         public int ExecutorId { get; set; }

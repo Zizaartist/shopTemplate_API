@@ -10,10 +10,12 @@ namespace ApiClick.Models
 {
     public partial class AdBanner
     {
+        [JsonIgnore]
         public int AdBannerId { get; set; }
         public string Image { get; set; }
         public int BrandId { get; set; }
         public string Text { get; set; }
+        [JsonIgnore]
         public DateTime RemoveDate { get; set; }
 
         [JsonIgnore]

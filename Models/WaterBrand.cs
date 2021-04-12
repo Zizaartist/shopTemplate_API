@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -11,16 +12,19 @@ namespace ApiClick.Models
     {
         public WaterBrand()
         {
-            WaterRequest = new HashSet<WaterRequest>();
+            WaterRequests = new HashSet<WaterRequest>();
         }
 
+        [JsonIgnore]
         public int WaterBrandId { get; set; }
+        [JsonIgnore]
         public int BrandId { get; set; }
         public decimal WaterPrice { get; set; }
         public decimal? ContainerPrice { get; set; }
         public string Certificate { get; set; }
 
         public Brand Brand { get; set; }
-        public virtual ICollection<WaterRequest> WaterRequest { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<WaterRequest> WaterRequests { get; set; }
     }
 }

@@ -11,9 +11,11 @@ namespace ApiClick.Models
 {
     public partial class BrandPaymentMethod
     {
+        [JsonIgnore]
         public int BrandPaymentMethodId { get; set; }
-        public PaymentMethod PaymentMethod { get; set; }
+        [JsonIgnore]
         public int BrandId { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
 
         [JsonIgnore]
         public Brand Brand { get; set; }

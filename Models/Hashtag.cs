@@ -17,6 +17,7 @@ namespace ApiClick.Models
 
         public int HashTagId { get; set; }
         public string HashTagName { get; set; }
+        [JsonIgnore]
         public Kind Kind { get; set; }
 
         [JsonIgnore]
