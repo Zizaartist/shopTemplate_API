@@ -35,7 +35,7 @@ namespace ApiClick.Controllers
 
         //    //Получаем баннеры по нужной категории
         //    var allBanners = _context.AdBanners.Where(e => e.Kind == category).ToList();
-            
+
         //    //Низкоуровневый код 😱
         //    //От initialCount зависят шансы на отображение, чем больше просмотров должно было быть у баннера - тем чаще от будет попадать в результирующий список
         //    List<AdBanner> resultBanners = new List<AdBanner>();
@@ -56,14 +56,14 @@ namespace ApiClick.Controllers
         //        }
         //        allBanners.Remove(resultBanners.Last());
         //    }
-            
+
         //    //Успех! Измени значения текущих просмотров для элементов списка
         //    foreach (var banner in resultBanners)
         //    {
         //        (await _context.AdBanners.FindAsync(banner.AdBannerId)).ViewCount--;
         //    }
         //    await _context.SaveChangesAsync();
-            
+
         //    foreach (var banner in resultBanners)
         //    {
         //        banner.Image = Functions.getCleanModel(await _context.Images.FindAsync(banner.ImgId));
@@ -71,7 +71,7 @@ namespace ApiClick.Controllers
 
         //    return resultBanners.Select(e => e.InitialCount).ToList();
         //}
-        
+
         //// POST: api/AdBanners
         ////Установка баннера, предположительно суперадмином
         //[Authorize(Roles = "SuperAdmin")]
@@ -88,6 +88,23 @@ namespace ApiClick.Controllers
         //    _context.AdBanners.Add(adBanner);
         //    await _context.SaveChangesAsync();
         //    return Ok();
+        //}
+
+        //// PUT: api/AdBanners
+        ////Установка баннера, предположительно суперадмином
+        //[Authorize(Roles = "SuperAdmin, Admin")]
+        //[HttpPut]
+        //public async Task<ActionResult> EditAdBanner(AdBanner adBanner)
+        //{
+        //}
+
+        //// DELETE: api/AdBanners
+        ////Установка баннера, предположительно суперадмином
+        //[Route("{id}")]
+        //[Authorize(Roles = "SuperAdmin, Admin")]
+        //[HttpDelete]
+        //public async Task<ActionResult> DeleteAdBanner(int id)
+        //{
         //}
     }
 }

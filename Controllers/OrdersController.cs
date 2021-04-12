@@ -35,7 +35,7 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает заказы клиента
         /// </summary>
-        // GET: api/GetMyOrders
+        // GET: api/Orders/GetMyOrders
         [Route("GetMyOrders")]
         [Authorize]
         [HttpGet]
@@ -86,7 +86,7 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает незавершенные обычные заказы исполнителя
         /// </summary>
-        // GET: api/GetMyRegularTasks
+        // GET: api/Orders/GetMyRegularTasks
         [Route("GetMyRegularTasks")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
@@ -128,7 +128,7 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает незавершенные обычные заказы исполнителя
         /// </summary>
-        // GET: api/GetMyWaterTasks
+        // GET: api/Orders/GetMyWaterTasks
         [Route("GetMyWaterTasks")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
@@ -178,7 +178,7 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает выполненные заказы исполнителя
         /// </summary>
-        // GET: api/GetMyHistory
+        // GET: api/Orders/GetMyHistory
         [Route("GetMyHistory")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]
@@ -232,7 +232,7 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="id">Id заказа</param>
         /// <param name="_status">Опциональный статус, при отсутствии выбирается следующий по очереди</param>
-        // PUT: api/Orders
+        // PUT: api/Orders/ChangeStatus/4
         [Route("ChangeStatus/{id}")]
         [Authorize]
         [HttpPut]
@@ -399,6 +399,7 @@ namespace ApiClick.Controllers
         /// Добавляет новый водный заказ
         /// </summary>
         /// <param name="_order">Данные заказа</param>
+        // POST: api/Orders/PostWaterOrder
         [Route("PostWaterOrder")]
         [Authorize]
         [HttpPost]
@@ -460,6 +461,7 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="id">Id заказа</param>
         /// <returns>Список запросов</returns>
+        // POST: api/Orders/GetRequestsByOrder/2
         [Route("GetRequestsByOrder/{id}")]
         [Authorize]
         [HttpGet]
@@ -495,6 +497,7 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="id">Id запроса на прием заказа</param>
         /// <param name="pointsUsed">Были ли использованы баллы для оплаты</param>
+        // POST: api/Orders/SelectWaterBrand/3
         [Route("SelectWaterBrand/{id}")]
         [Authorize]
         [HttpPut]
@@ -547,6 +550,7 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="waterRequest">Неполная модель с указанием предлагаемой цены</param>
         /// <param name="id">Id заказа, на который претендует отправитель</param>
+        // POST: api/Orders/PostWaterRequest
         [Route("PostWaterRequest")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]

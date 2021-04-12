@@ -25,9 +25,9 @@ namespace ApiClick.Controllers
         [Route("{category}")]
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<Hashtag>> GetHashtagsByKind(Kind category)
+        public ActionResult<IEnumerable<Hashtag>> GetHashtagsByKind(Kind _kind)
         {
-            return _context.Hashtag.Where(e => e.Kind == category).ToList();
+            return _context.Hashtag.Where(e => e.Kind == _kind).ToList();
         }
 
         //// GET: api/HashtagsTooltip

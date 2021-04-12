@@ -47,6 +47,7 @@ namespace ApiClick.Controllers
         {
             var brands = _context.Brand.Include(brand => brand.BrandInfo)
                                         .Include(brand => brand.BrandHashtags)
+                                            .ThenInclude(bh => bh.Hashtag)
                                         .Include(brand => brand.BrandPaymentMethods)
                                         .Where(brand => brand.Kind == _kind);
 
@@ -85,16 +86,17 @@ namespace ApiClick.Controllers
         /// <param name="category">Вид товаров</param>
         /// <param name="name">Критерий поиска</param>
         /// <returns>Бренды содержащие указанную строку</returns>
-        // GET: api/Brands/GetBrandsByName/5?name=blahbla
-        [Route("GetByName/{category}")]
+        // GET: api/Brands/GetByName/5?name=blahbla
+        [Route("GetByName/{_kind}")]
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<Brand>> GetBrandsByName(Kind category, string name = null)
+        public ActionResult<IEnumerable<Brand>> GetBrandsByName(Kind _kind, string name = null)
         {
             var brands = _context.Brand.Include(brand => brand.BrandInfo)
                                         .Include(brand => brand.BrandHashtags)
+                                            .ThenInclude(bh => bh.Hashtag)
                                         .Include(brand => brand.BrandPaymentMethods)
-                                        .Where(p => p.Kind == category);
+                                        .Where(p => p.Kind == _kind);
 
             //Урезаем выборку по критерию наличия строки в имени бренда
             if (name != null)
@@ -119,12 +121,12 @@ namespace ApiClick.Controllers
         /// <param name="category">Тип продукции (2 варианта)</param>
         /// <returns>Бренды указанного типа</returns>
         // GET: api/Brands/GetWaterBrands/5
-        [Route("GetWaterBrands/{category}")]
+        [Route("GetWaterBrands/{_kind}")]
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<Brand>> GetWaterBrands(Kind category)
+        public ActionResult<IEnumerable<Brand>> GetWaterBrands(Kind _kind)
         {
-            if (category == Kind.food || category == Kind.flowers) 
+            if (_kind == Kind.food || _kind == Kind.flowers) 
             {
                 return BadRequest();
             }
@@ -133,7 +135,7 @@ namespace ApiClick.Controllers
                                         .Include(brand => brand.BrandPaymentMethods)
                                         .Include(brand => brand.ScheduleListElements)
                                         .Include(brand => brand.WaterBrand)
-                                        .Where(p => p.Kind == category);
+                                        .Where(p => p.Kind == _kind);
 
             if (!brands.Any())
             {
@@ -485,35 +487,5 @@ namespace ApiClick.Controllers
             }
             return false;
         }
-
-        //private bool IsBrandOpen(List<ScheduleListElement> _schedule) 
-        //{
-        //    var currentYakutskTime = new DateTimeOffset(DateTime.UtcNow, Constants.YAKUTSK_OFFSET);
-        //    var match = _schedule.FirstOrDefault(e => e.DayOfWeek == currentYakutskTime.DayOfWeek);
-        //    if (match != null) 
-        //    {
-        //        //Попадаем ли мы во временной промежуток сейчас
-        //        var closeEarlierThanOpen = match.OpenTime > match.CloseTime;
-        //        var laterThanOpen = match.OpenTime <= currentYakutskTime.TimeOfDay;
-        //        var earlierThanClose = match.CloseTime >= currentYakutskTime.TimeOfDay;
-        //        if (
-        //                (
-        //                    closeEarlierThanOpen
-        //                    || 
-        //                    (laterThanOpen && earlierThanClose)
-        //                ) 
-        //            &&
-        //                (
-        //                    !closeEarlierThanOpen 
-        //                    || 
-        //                    (laterThanOpen || earlierThanClose)
-        //                )
-        //            ) 
-        //        {
-        //            return true;
-        //        }
-        //    }
-        //    return false;
-        //}
     }
 }

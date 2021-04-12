@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Controllers.ScheduledTasks
 {
+    /// <summary>
+    /// Задача, удаляющая незанятые водные заказы
+    /// Исполняется в строго назначенное время, т.е. через 2 часа после создания
+    /// Задачи создаются при запуске API и при автоматическом добавлении в контроллерах
+    /// </summary>
     public class WaterOrderRemover : IJob
     {
         public static string WATER_GROUP_NAME = "WaterOrderTasks";

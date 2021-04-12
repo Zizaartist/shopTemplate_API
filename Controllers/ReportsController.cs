@@ -27,7 +27,11 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        // GET: api/ReportsController/30/
+        /// <summary>
+        /// Возвращает отчеты за определенный период
+        /// </summary>
+        /// <param name="datePeriod">Временной период (неделя, месяц, год)</param>
+        // GET: api/Reports/30/
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet("{datePeriod}")]
         public ActionResult<IEnumerable<Report>> Get(DatePeriod datePeriod)
@@ -51,8 +55,11 @@ namespace ApiClick.Controllers
             return result;
         }
 
-
-        // GET: api/ReportsController/AllTimeStats
+        /// <summary>
+        /// Возвращает количество и сумму за все время
+        /// </summary>
+        /// <returns>Количество, сумма</returns>
+        // GET: api/Reports/AllTimeStats
         [Route("AllTimeStats")]
         [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpGet]

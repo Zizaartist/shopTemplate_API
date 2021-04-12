@@ -35,8 +35,8 @@ namespace ApiClick.Controllers
         /// <param name="id">Id бренда</param>
         /// <param name="_page">Страница</param>
         /// <returns>Отзывы</returns>
-        // GET: api/BrandReviews/5
-        [Route("BrandReviews/{id}/{_page}")]
+        // GET: api/ByBrand/5
+        [Route("ByBrand/{id}/{_page}")]
         [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<Review>> GetBrandReviews(int id, int _page)
