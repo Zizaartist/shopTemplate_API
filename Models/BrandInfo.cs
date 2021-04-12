@@ -20,7 +20,7 @@ namespace ApiClick.Models
         public string DeliveryTime { get; set; }
         public string Contact { get; set; }
         public string Address { get; set; }
-        public string Conditions { get; set; }
+        public string DeliveryTerms { get; set; }
 
         [JsonIgnore]
         public Brand Brand { get; set; }

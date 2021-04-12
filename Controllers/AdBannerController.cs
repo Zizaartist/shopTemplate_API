@@ -23,10 +23,10 @@ namespace ApiClick.Controllers
 
         //// GET: api/AdBanners
         ////Получение рекламных баннеров, пока крайне неэффективная функция
-        //[Route("{category}")]
+        //[Route("{_kind}")]
         //[Authorize(Roles = "SuperAdmin, Admin, User")]
         //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<int>>> GetAdBanners(Kind category) //IEnumerable<AdBanner>
+        //public async Task<ActionResult<IEnumerable<int>>> GetAdBanners(Kind _kind) //IEnumerable<AdBanner>
         //{
         //    //Удаляем просроченные баннеры
         //    var expiredBanners = _context.AdBanners.Where(e => e.ViewCount <= 0);

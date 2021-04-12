@@ -315,7 +315,7 @@ namespace ApiClick.Controllers
             if (_brandData.BrandInfo.Banner != null) brand.BrandInfo.Banner = _brandData.BrandInfo.Banner;
             if (_brandData.BrandInfo.Logo != null) brand.BrandInfo.Logo = _brandData.BrandInfo.Banner;
             brand.BrandInfo.DeliveryTime = _brandData.BrandInfo.DeliveryTime;
-            brand.BrandInfo.Conditions = _brandData.BrandInfo.Conditions;
+            brand.BrandInfo.DeliveryTerms = _brandData.BrandInfo.DeliveryTerms;
 
             if (_brandData.WaterBrand != null)
             {

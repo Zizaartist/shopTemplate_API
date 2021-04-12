@@ -158,7 +158,7 @@ namespace ApiClick
 
                 entity.Property(e => e.Banner).HasMaxLength(10);
 
-                entity.Property(e => e.Conditions).HasMaxLength(250);
+                entity.Property(e => e.DeliveryTerms).HasMaxLength(250);
 
                 entity.Property(e => e.Contact).HasMaxLength(250);
 
