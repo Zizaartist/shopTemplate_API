@@ -25,7 +25,6 @@ namespace ApiClick.Models
         public int UserId { get; set; }
         [JsonIgnore]
         public UserRole UserRole { get; set; }
-        [JsonIgnore]
         public string Phone { get; set; }
         [JsonIgnore]
         public decimal Points { get; set; }

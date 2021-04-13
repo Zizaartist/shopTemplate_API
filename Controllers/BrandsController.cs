@@ -397,6 +397,7 @@ namespace ApiClick.Controllers
             {
                 if (_brand == null ||
                     string.IsNullOrEmpty(_brand.BrandName) ||
+                    _brand.PointsPercentage == default ||
                     _brand.BrandDoc == null ||
                     IsBrandNameTaken(_brand.BrandName) ||
                     string.IsNullOrEmpty(_brand.BrandDoc.OfficialName) ||
@@ -458,7 +459,11 @@ namespace ApiClick.Controllers
 
         private bool AreHashtagsValid(IEnumerable<int> _ids, Kind _kind) 
         {
-            if (_context.Hashtag.All(tag => _ids.Contains(tag.HashTagId) && tag.Kind == _kind)) 
+            if (_ids.All(id =>
+            {
+                var found = _context.Hashtag.Find(id);
+                return found != null && found.Kind == _kind;
+            }))
             {
                 return true;
             }

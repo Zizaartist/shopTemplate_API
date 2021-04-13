@@ -1,5 +1,6 @@
 ﻿using System;
 using ApiClick.Models;
+using ApiClick.StaticValues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -51,11 +52,11 @@ namespace ApiClick
                 entity.HasIndex(e => e.Image)
                     .HasName("IX_AdBanners_ImgId");
 
-                entity.Property(e => e.Image).HasMaxLength(10);
+                entity.Property(e => e.Image).HasMaxLength(ModelLengths.LENGTH_MIN);
 
                 entity.Property(e => e.RemoveDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Text).HasMaxLength(50);
+                entity.Property(e => e.Text).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.AdBanners)
@@ -74,7 +75,7 @@ namespace ApiClick
 
                 entity.Property(e => e.BrandName)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
@@ -100,25 +101,25 @@ namespace ApiClick
 
                 entity.Property(e => e.Executor)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.Property(e => e.Inn)
                     .IsRequired()
                     .HasColumnName("INN")
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.Property(e => e.LegalAddress)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.Property(e => e.OfficialName)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.Property(e => e.Ogrn)
                     .IsRequired()
                     .HasColumnName("OGRN")
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.HasOne(d => d.Brand)
                     .WithOne(p => p.BrandDoc)
@@ -154,19 +155,19 @@ namespace ApiClick
                     .HasName("IX_BrandInfo")
                     .IsUnique();
 
-                entity.Property(e => e.Address).HasMaxLength(50);
+                entity.Property(e => e.Address).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.Banner).HasMaxLength(10);
+                entity.Property(e => e.Banner).HasMaxLength(ModelLengths.LENGTH_MIN);
 
-                entity.Property(e => e.DeliveryTerms).HasMaxLength(250);
+                entity.Property(e => e.DeliveryTerms).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.Contact).HasMaxLength(250);
+                entity.Property(e => e.Contact).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.DeliveryTime).HasMaxLength(30);
+                entity.Property(e => e.DeliveryTime).HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.Description).HasMaxLength(30);
+                entity.Property(e => e.Description).HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.Logo).HasMaxLength(10);
+                entity.Property(e => e.Logo).HasMaxLength(ModelLengths.LENGTH_MIN);
 
                 entity.HasOne(d => d.Brand)
                     .WithOne(p => p.BrandInfo)
@@ -195,13 +196,13 @@ namespace ApiClick
 
                 entity.Property(e => e.CategoryName)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Image).HasMaxLength(10);
+                entity.Property(e => e.Image).HasMaxLength(ModelLengths.LENGTH_MIN);
 
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Categories)
@@ -216,7 +217,7 @@ namespace ApiClick
 
                 entity.Property(e => e.Text)
                     .IsRequired()
-                    .HasMaxLength(250);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.ErrorReports)
@@ -236,11 +237,11 @@ namespace ApiClick
 
                 entity.Property(e => e.Login)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.Property(e => e.Password)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.Executor)
@@ -252,7 +253,7 @@ namespace ApiClick
             {
                 entity.Property(e => e.HashTagName)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
             });
 
             modelBuilder.Entity<Order>(entity =>
@@ -307,17 +308,17 @@ namespace ApiClick
                     .HasName("IX_OrderInfo")
                     .IsUnique();
 
-                entity.Property(e => e.Commentary).HasMaxLength(250);
+                entity.Property(e => e.Commentary).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.House).HasMaxLength(30);
+                entity.Property(e => e.House).HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.OrdererName).HasMaxLength(50);
+                entity.Property(e => e.OrdererName).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.Property(e => e.Phone)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.Street).HasMaxLength(50);
+                entity.Property(e => e.Street).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.HasOne(d => d.Order)
                     .WithOne(p => p.OrderInfo)
@@ -368,15 +369,15 @@ namespace ApiClick
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(250);
+                entity.Property(e => e.Description).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.Image).HasMaxLength(10);
+                entity.Property(e => e.Image).HasMaxLength(ModelLengths.LENGTH_MIN);
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
 
                 entity.Property(e => e.ProductName)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.HasOne(d => d.Category)
                     .WithMany(p => p.Products)
@@ -425,7 +426,7 @@ namespace ApiClick
 
                 entity.Property(e => e.Text)
                     .IsRequired()
-                    .HasMaxLength(250);
+                    .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.HasOne(d => d.Brand)
                     .WithMany(p => p.Reviews)
@@ -463,9 +464,9 @@ namespace ApiClick
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.DeviceType).HasMaxLength(30);
+                entity.Property(e => e.DeviceType).HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.NotificationRegistration).HasMaxLength(250);
+                entity.Property(e => e.NotificationRegistration).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.Property(e => e.NotificationsEnabled)
                     .IsRequired()
@@ -473,7 +474,7 @@ namespace ApiClick
 
                 entity.Property(e => e.Phone)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
 
                 entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
             });
@@ -484,11 +485,11 @@ namespace ApiClick
                     .HasName("IX_UserInfo")
                     .IsUnique();
 
-                entity.Property(e => e.House).HasMaxLength(30);
+                entity.Property(e => e.House).HasMaxLength(ModelLengths.LENGTH_SMALL);
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.Property(e => e.Street).HasMaxLength(50);
+                entity.Property(e => e.Street).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.UserInfo)
@@ -502,7 +503,7 @@ namespace ApiClick
                     .HasName("IX_WaterBrand")
                     .IsUnique();
 
-                entity.Property(e => e.Certificate).HasMaxLength(10);
+                entity.Property(e => e.Certificate).HasMaxLength(ModelLengths.LENGTH_MIN);
 
                 entity.Property(e => e.ContainerPrice).HasColumnType("decimal(18, 2)");
 
@@ -521,7 +522,7 @@ namespace ApiClick
                     .IsUnique();
 
                 entity.Property(e => e.DeliveryDate)
-                    .HasMaxLength(10)
+                    .HasMaxLength(ModelLengths.LENGTH_MIN)
                     .IsFixedLength();
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");

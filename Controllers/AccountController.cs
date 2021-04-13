@@ -206,20 +206,16 @@ namespace ApiClick.Controllers
         }
 
         /// <summary>
-        /// Проверяет наличие регистрации неотформатированного номера
+        /// Возвращает отформатированный номер
         /// </summary>
         /// <param name="phone">Неотформатированный номер</param>
         /// <returns>Отформатированный номер</returns>
-        // POST: api/Account/PhoneIsRegistered/?phone=79991745473
-        [Route("PhoneIsRegistered")]
+        // POST: api/Account/GetValidPhone/?phone=79991745473
+        [Route("GetValidPhone")]
         [HttpPost]
-        public ActionResult<string> PhoneIsRegistered(string phone)
+        public ActionResult<string> GetValidPhone(string phone)
         {
             string correctPhone = Functions.convertNormalPhoneNumber(phone);
-            if (_context.User.Any(user => user.Phone == correctPhone))
-            {
-                return Forbid();
-            }
             return correctPhone;
         }
 

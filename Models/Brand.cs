@@ -23,9 +23,7 @@ namespace ApiClick.Models
         }
 
         public int BrandId { get; set; }
-        [JsonIgnore]
         public Kind Kind { get; set; }
-        [JsonIgnore]
         public int ExecutorId { get; set; }
         public string BrandName { get; set; }
         public bool Available { get; set; }
