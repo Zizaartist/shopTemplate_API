@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Controllers.FrequentlyUsed
 {
+    /// <summary>
+    /// Во множестве статей указывалось что если создавать множество новых HttpClient то можно исчерпать количество сокетов
+    /// </summary>
     public class HttpClientSingleton
     {
         private static object lockObj = new object(); //Избегаем проблем от параллельных вызовов

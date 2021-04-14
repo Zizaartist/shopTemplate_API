@@ -8,22 +8,23 @@ using System.Text.Json.Serialization;
 
 namespace ApiClick.Models
 {
+    /// <summary>
+    /// Ведет учет изменений баллов
+    /// </summary>
     public partial class PointRegister
     {
+        public decimal Points { get; set; }
+        public bool TransactionCompleted { get; set; }
+        public DateTime CreatedDate { get; set; }
+        [JsonIgnore]
+        public string Receiver { get; set; }
+        [JsonIgnore]
+        public string Sender { get; set; }
         [JsonIgnore]
         public int PointRegisterId { get; set; }
         [JsonIgnore]
         public int? OrderId { get; set; }
-        public int? SenderId { get; set; }
-        public int ReceiverId { get; set; }
-        public decimal Points { get; set; }
-        public bool TransactionCompleted { get; set; }
-        public DateTime CreatedDate { get; set; }
 
-        [JsonIgnore]
-        public virtual User Receiver { get; set; }
-        [JsonIgnore]
-        public virtual User Sender { get; set; }
         [JsonIgnore]
         public virtual Order Order { get; set; }
     }

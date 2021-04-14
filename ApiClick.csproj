@@ -6,6 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\temp\**" />
+    <Content Remove="Models\temp\**" />
+    <EmbeddedResource Remove="Models\temp\**" />
+    <None Remove="Models\temp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.13" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.13" />
     <PackageReference Include="Microsoft.Azure.NotificationHubs" Version="4.0.0" />

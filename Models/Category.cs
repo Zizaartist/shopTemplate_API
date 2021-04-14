@@ -16,14 +16,11 @@ namespace ApiClick.Models
         }
 
         public int CategoryId { get; set; }
-        public int BrandId { get; set; }
         public string CategoryName { get; set; }
         public string Image { get; set; }
         [JsonIgnore]
         public DateTime CreatedDate { get; set; }
 
-        [JsonIgnore]
-        public Brand Brand { get; set; }
         public ICollection<Product> Products { get; set; }
     }
 }

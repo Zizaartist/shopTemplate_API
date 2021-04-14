@@ -19,10 +19,8 @@ namespace ApiClick.Controllers.FrequentlyUsed
                                                             typeof(string), 
                                                             typeof(decimal),
                                                             typeof(DateTime),
-                                                            typeof(Kind),
                                                             typeof(OrderStatus),
-                                                            typeof(PaymentMethod),
-                                                            typeof(UserRole)};
+                                                            typeof(PaymentMethod)};
 
         /// <summary>
         /// Создает новый экземпляр модели и заполняет его только примитивными типами, без навигационных свойств
@@ -46,24 +44,6 @@ namespace ApiClick.Controllers.FrequentlyUsed
             List<T> result = new List<T>();
             input.ForEach(e => result.Add(getCleanModel(e)));
             return result;
-        }
-
-        /// <summary>
-        /// Возвращает владельца личности токена
-        /// </summary>
-        /// <param name="identity">Данные личности, взятые из токена</param>
-        /// <param name="_context">Контекст, в котором производится поиск</param>
-        /// <param name="_enableTracking">Включить отслеживание</param>
-        /// <returns>Пользователь, найденный в контексте</returns>
-        public static User identityToUser(IIdentity identity, ClickContext _context, bool _enableTracking = false)
-        {
-            IQueryable<User> result = _context.User;
-            if (!_enableTracking)
-            {
-                result = result.AsNoTracking();
-            }
-            return result.Include(u => u.Executor)
-                            .FirstOrDefault(u => u.Phone == identity.Name);
         }
 
         /// <summary>

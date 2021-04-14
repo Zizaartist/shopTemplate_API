@@ -8,6 +8,9 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
+    /// <summary>
+    /// Вторичная информация заказа, прилагается к Order
+    /// </summary>
     public partial class OrderInfo
     {
         [JsonIgnore]

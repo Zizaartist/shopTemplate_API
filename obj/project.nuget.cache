@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BQ1hkC7pHDGjPXfDwjuhgaM/FRo1RRlW4YCasyniPUQkqzGg6DAwMM45Vkd30D8XXBedDRe7DJ0Kd0E9U1NTyw==",
+  "dgSpecHash": "HM9NTv9dc3Xya5pgJmVup72no8BHGsiRkPUYLi8AfiDremkZFy8rWKqrdumKeF+4E0IBGsQ1sANwyOXmpEYk2w==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\ApiClick.csproj",
+  "projectFilePath": "C:\\Users\\Syberia-7\\source\\repos\\API template\\ApiClick.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\3.1.13\\microsoft.aspnetcore.authentication.jwtbearer.3.1.13.nupkg.sha512",
     "C:\\Users\\Syberia-7\\.nuget\\packages\\microsoft.aspnetcore.html.abstractions\\2.2.0\\microsoft.aspnetcore.html.abstractions.2.2.0.nupkg.sha512",

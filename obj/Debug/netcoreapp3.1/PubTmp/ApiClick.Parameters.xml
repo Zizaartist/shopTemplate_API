@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<parameters>
-  <parameter name="IIS Web Application Name" description="" value="clickapidebug" tags="IisApp">
-    <parameterEntry kind="ProviderPath" scope="IisApp" match="^C:\\Users\\Syberia-7\\Source\\Repos\\ClickAPI\\obj\\Debug\\netcoreapp3\.1\\PubTmp\\Out\\$" />
-  </parameter>
-</parameters>

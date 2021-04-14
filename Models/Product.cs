@@ -13,7 +13,6 @@ namespace ApiClick.Models
         public Product()
         {
             OrderDetails = new HashSet<OrderDetail>();
-            Reports = new HashSet<Report>();
         }
 
         public int ProductId { get; set; }
@@ -28,8 +27,6 @@ namespace ApiClick.Models
 
         [JsonIgnore]
         public Category Category { get; set; }
-        [JsonIgnore]
-        public ICollection<Report> Reports { get; set; }
         [JsonIgnore]
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }

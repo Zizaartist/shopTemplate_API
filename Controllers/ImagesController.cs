@@ -25,6 +25,11 @@ namespace ApiClick.Controllers
             _appEnvironment = appEnvironment;
         }
 
+        /// <summary>
+        /// Сохраняет полученные изображения в папке wwwroot/Images
+        /// </summary>
+        /// <param name="uploadedFiles">Получаемые файлы</param>
+        /// <returns>Имена загруженных файлов</returns>
         // POST: api/Images
         [Authorize]
         [HttpPost]
