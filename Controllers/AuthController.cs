@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -25,23 +26,43 @@ namespace ApiClick.Controllers
     public class AuthController : Controller
     {
         private readonly ClickContext _context;
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<OrdersController> _logger;
 
-        public AuthController(ClickContext _context)
+        public AuthController(IMemoryCache memoryCache, ClickContext _context, ILogger<OrdersController> _logger)
         {
+            _cache = memoryCache;
             this._context = _context;
+            this._logger = _logger;
         }
 
         /// <summary>
         /// Получение пользовательского access токена
+        /// в случае отсутствия пользователя в бд, создается новый
         /// </summary>
-        /// <returns>Сериализированный токен</returns>
+        /// <returns>Сериализированный токен и корректный номер телефона</returns>
         // POST: api/Auth/UserToken/?phone=79991745473
         [Route("UserToken")]
         [HttpPost]
-        public IActionResult UserToken()
+        public IActionResult UserToken(string phone)
         {
-            //Получаем новую "личность"
-            var identity = GetNewIdentity();
+            if (!Functions.IsPhoneNumber(phone))
+            {
+                return BadRequest(new { errorText = "Invalid phone number." });
+            }
+
+            var correctPhone = Functions.convertNormalPhoneNumber(phone);
+
+            ClaimsIdentity identity;
+            try
+            {
+                identity = GetIdentity(correctPhone);
+            }
+            catch (Exception _ex) 
+            {
+                _logger.LogWarning($"Ошибка при попытке получить identity - {_ex}");
+                return BadRequest(new { errorText = "Unexpected error." });
+            }
 
             var now = DateTime.UtcNow;
             // создаем JWT-токен
@@ -62,21 +83,112 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
-        private ClaimsIdentity GetNewIdentity()
+        /// <summary>
+        /// Отправляет СМС код на указанный номер и создает временный кэш с кодом для проверки
+        /// </summary>
+        /// <param name="phone">Неотформатированный номер</param>
+        // POST: api/Account/SmsCheck/?phone=79991745473
+        [Route("SmsCheck")]
+        [HttpPost]
+        public async Task<IActionResult> SmsCheck(string phone)
         {
-            //Получаем из базы последнее значение числа пользователей
-            int userNumber = GetUserCount() + 1;
-            //Затем преобразуем в хэш чтобы нельзя было reverse-engineer-ить
-            var userNumberHash = Functions.GetHashFromString(userNumber.ToString());
-
-            var claims = new List<Claim>
+            string PhoneLoc = Functions.convertNormalPhoneNumber(phone);
+            Random rand = new Random();
+            string generatedCode = rand.Next(1000, 9999).ToString();
+            if (phone != null)
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, userNumberHash)
-            };
+                if (Functions.IsPhoneNumber(PhoneLoc))
+                {
+                    //Позволяет получать ip отправителя, можно добавить к запросу sms api для фильтрации спаммеров
+                    var senderIp = Request.HttpContext.Connection.RemoteIpAddress;
+                    string moreReadable = senderIp.ToString();
 
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+                    HttpClient client = HttpClientSingleton.HttpClient;
+                    HttpResponseMessage response = await client.GetAsync($"https://sms.ru/sms/send?api_id=0F4D5813-DEF7-5914-2D97-42D0FBA75865&to={PhoneLoc}&msg={generatedCode}&json=1");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        //Добавляем код в кэш на 5 минут
+                        _cache.Set(Functions.convertNormalPhoneNumber(phone), generatedCode, new MemoryCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                        });
+                    }
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
 
-            return claimsIdentity;
+            return Ok();
+        }
+
+        /// <summary>
+        /// Проверяет активность (сущ.) кода
+        /// </summary>
+        /// <param name="code">СМС код</param>
+        /// <param name="phone">Номер получателя</param>
+        // POST: api/Account/CodeCheck/?code=3344&phone=79991745473
+        [Route("CodeCheck")]
+        [HttpPost]
+        public IActionResult CodeCheck(string code, string phone)
+        {
+            if (code == _cache.Get(Functions.convertNormalPhoneNumber(phone)).ToString())
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
+
+        //identity with user rights
+        private ClaimsIdentity GetIdentity(string phone)
+        {
+            try
+            {
+                //Сперва находим существующего пользователя, либо создаем нового
+                User user = _context.User.FirstOrDefault(x => x.Phone == phone);
+
+                if (user != null)
+                {
+                    user = RegisterNewUser(phone);
+                }
+
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone)
+                };
+                ClaimsIdentity claimsIdentity =
+                new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
+                    ClaimsIdentity.DefaultRoleClaimType);
+                return claimsIdentity;
+            }
+            catch (Exception _ex) 
+            {
+                throw _ex;
+            }
+        }
+
+        private User RegisterNewUser(string _phone) 
+        {
+            try
+            {
+                var newUser = new User()
+                {
+                    Phone = _phone,
+                    CreatedDate = DateTime.Now,
+                    Points = 0m
+                };
+
+                _context.User.Add(newUser);
+                _context.SaveChanges();
+
+                return newUser;
+            }
+            catch (Exception _ex) 
+            {
+                throw _ex;
+            }
         }
 
         //TO-DO

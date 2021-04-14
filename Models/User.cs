@@ -23,8 +23,6 @@ namespace ApiClick.Models
 
         [JsonIgnore]
         public int UserId { get; set; }
-        [JsonIgnore]
-        public UserRole UserRole { get; set; }
         public string Phone { get; set; }
         [JsonIgnore]
         public decimal Points { get; set; }
@@ -37,9 +35,6 @@ namespace ApiClick.Models
         [JsonIgnore]
         public DateTime CreatedDate { get; set; }
 
-        public virtual UserInfo UserInfo { get; set; }
-        [JsonIgnore]
-        public Executor Executor { get; set; }
         [JsonIgnore]
         public ICollection<ErrorReport> ErrorReports { get; set; }
         [JsonIgnore]

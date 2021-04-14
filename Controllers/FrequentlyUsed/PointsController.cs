@@ -11,17 +11,24 @@ namespace ApiClick.Controllers.FrequentlyUsed
     public class PointsController
     {
         ClickContext _context;
+        /// <summary>
+        /// Коэффициент, который отражает проценты от суммы заказа, возвращаемые баллами
+        /// </summary>
         const decimal pointsCoef = 0.05m;
+        /// <summary>
+        /// Максимальная сумма, которую можно оплатить баллами
+        /// </summary>
+        const int percentage = 30;
 
         public PointsController(ClickContext _context)
         {
             this._context = _context;
         }
 
-        public decimal GetMaxPayment(decimal _userPoints, Order _order, int _percentage) 
+        public decimal GetMaxPayment(decimal _userPoints, Order _order) 
         {
             var sumCost = _order.OrderDetails.Sum(e => e.Price * e.Count);
-            var costInPoints = sumCost * _percentage; //Пока статичные 30%
+            decimal costInPoints = sumCost / 100 * percentage;
             if (_userPoints > costInPoints)
             {
                 return costInPoints;
@@ -36,37 +43,42 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// Выполняет изменение значения текущих баллов
         /// затем документирует изменение в виде регистра
         /// </summary>
+        /// <param name="_points">Количество переводимых баллов</param>
+        /// <param name="_user">Пользователь, чей счет претерпит изменение</param>
+        /// <param name="_usedOrReceived">Параметр, утверждающий как изменится баланс баллов (true = -)(false = +)</param>
+        /// <param name="_order">Заказ - источник значения максимальной денежной суммы</param>
+        /// <param name="register">Полученый в результате регистр</param>
         /// <returns>Успешность операции</returns>
-        public bool StartTransaction(decimal _points, int _receiverId, Order _order, out PointRegister register, User _sender = null) 
+        public bool StartTransaction(decimal _points, User _user, bool _usedOrReceived, Order _order, out PointRegister register) 
         {
-            User receiver;
-            bool hasSender = _sender != null;
             register = null;
 
-            try
+            if (_usedOrReceived) //Трата баллов пользователя
             {
-                receiver = _context.User.Find(_receiverId); //Просто подтверждаем факт наличия
-            }
-            catch 
-            {
-                return false; //пользователь или заказ не найден
-            }
-
-            if (hasSender) //Отправитель - человек
-            {
-                if (_sender.Points < _points)
+                if (_user.Points < _points)
                 {
                     return false; //недостаточно средств для действия
                 }
 
                 //Изымаем средства от отправителя
-                try
+                try 
                 {
-                    _sender.Points -= _points;
+                    _user.Points -= _points;
                 }
                 catch
                 {
-                    return false;
+                    return false; //Низкоуровневая проблема, хер его знает
+                }
+            }
+            else //Получение баллов
+            {
+                try
+                {
+                    _user.Points += _points;
+                }
+                catch
+                {
+                    return false; //Низкоуровневая проблема, хер его знает
                 }
             }
 
@@ -76,8 +88,8 @@ namespace ApiClick.Controllers.FrequentlyUsed
                 var newPR = new PointRegister()
                 {
                     TransactionCompleted = false,
-                    SenderId = _sender?.UserId,
-                    ReceiverId = _receiverId,
+                    UserId = _user.UserId,
+                    UsedOrReceived = _usedOrReceived,
                     Points = _points,
                     CreatedDate = DateTime.UtcNow
                 };
@@ -91,40 +103,37 @@ namespace ApiClick.Controllers.FrequentlyUsed
             return true;
         }
 
+        /// <summary>
+        /// Завершает транзакцию, делая возврат средств невозможным
+        /// </summary>
+        /// <param name="_pointRegister">Транзакция, которую необходимо завершить</param>
+        /// <returns>Успешность операции</returns>
         public bool CompleteTransaction(PointRegister _pointRegister)
         {
-            User receiver;
-            try
-            {
-                receiver = _context.User.Find(_pointRegister.ReceiverId);
-            }
-            catch
-            {
-                return false;
-            }
-
-            //Совершаем изменение
             try
             {
                 if (!_pointRegister.TransactionCompleted)
                 {
-                    receiver.Points += _pointRegister.Points;
                     _pointRegister.TransactionCompleted = true;
                 }
             }
             catch
             {
-                return false;
+                return false; //Низкоуровневая проблема, хер его знает
             }
             return true;
         }
 
+        /// <summary>
+        /// Производит возврат средств
+        /// </summary>
+        /// <returns>Успешность операции</returns>
         public bool CancelTransaction(PointRegister _pointRegister)
         {
-            User sender;
+            User user;
             try
             {
-                sender = _context.User.Find(_pointRegister.SenderId);
+                user = _context.User.Find(_pointRegister.UserId);
             }
             catch
             {
@@ -134,7 +143,14 @@ namespace ApiClick.Controllers.FrequentlyUsed
             //Совершаем изменение
             try
             {
-                sender.Points += _pointRegister.Points;
+                if (_pointRegister.UsedOrReceived)
+                {
+                    user.Points += _pointRegister.Points;
+                }
+                else
+                {
+                    user.Points -= _pointRegister.Points; //Пока дозволим отрицательные значения, но может оказаться уязвимостью
+                }
                 _context.PointRegister.Remove(_pointRegister);
             }
             catch

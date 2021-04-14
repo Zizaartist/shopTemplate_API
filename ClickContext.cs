@@ -29,6 +29,7 @@ namespace ApiClick
         public virtual DbSet<PointRegister> PointRegister { get; set; }
         public virtual DbSet<Product> Product { get; set; }
         public virtual DbSet<Review> Review { get; set; }
+        public virtual DbSet<User> User { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,15 +58,29 @@ namespace ApiClick
                 entity.Property(e => e.Text)
                     .IsRequired()
                     .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.ErrorReports)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_ErrorReports_Users_UserId");
             });
 
             modelBuilder.Entity<Order>(entity =>
             {
+                entity.HasIndex(e => e.OrdererId)
+                    .HasName("IX_Orders_UserId");
+
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.Orderer)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.OrdererId)
+                    .HasConstraintName("FK_OrderCl_UserId");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>
@@ -172,11 +187,6 @@ namespace ApiClick
                     .IsRequired()
                     .HasMaxLength(ModelLengths.LENGTH_MEDIUM);
 
-                entity.HasOne(d => d.Brand)
-                    .WithMany(p => p.Reviews)
-                    .HasForeignKey(d => d.BrandId)
-                    .HasConstraintName("FK_Messages_Brand");
-
                 entity.HasOne(d => d.Order)
                     .WithOne(p => p.Review)
                     .HasForeignKey<Review>(d => d.OrderId)
@@ -186,6 +196,31 @@ namespace ApiClick
                     .WithMany(p => p.Reviews)
                     .HasForeignKey(d => d.SenderId)
                     .HasConstraintName("FK_Reviews_UserId");
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(e => e.Phone)
+                    .HasName("DF_Users_Phone_Unique")
+                    .IsUnique();
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.DeviceType).HasMaxLength(ModelLengths.LENGTH_SMALL);
+
+                entity.Property(e => e.NotificationRegistration).HasMaxLength(ModelLengths.LENGTH_MEDIUM);
+
+                entity.Property(e => e.NotificationsEnabled)
+                    .IsRequired()
+                    .HasDefaultValueSql("(CONVERT([bit],(1)))");
+
+                entity.Property(e => e.Phone)
+                    .IsRequired()
+                    .HasMaxLength(ModelLengths.LENGTH_SMALL);
+
+                entity.Property(e => e.Points).HasColumnType("decimal(18, 2)");
             });
 
             OnModelCreatingPartial(modelBuilder);

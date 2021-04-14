@@ -21,7 +21,6 @@ namespace ApiClick.Models
         public int ReviewId { get; set; }
         [JsonIgnore]
         public int? SenderId { get; set; }
-        public int BrandId { get; set; }
         public int? OrderId { get; set; }
         public int Rating { get; set; }
         public string Text { get; set; }
@@ -30,8 +29,6 @@ namespace ApiClick.Models
         public virtual User Sender { get; set; }
         [JsonIgnore]
         public virtual Order Order { get; set; }
-        [JsonIgnore]
-        public Brand Brand { get; set; }
 
         [NotMapped]
         public ICollection<string> Products { get; set; }

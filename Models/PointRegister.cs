@@ -8,23 +8,20 @@ using System.Text.Json.Serialization;
 
 namespace ApiClick.Models
 {
-    /// <summary>
-    /// Ведет учет изменений баллов
-    /// </summary>
     public partial class PointRegister
     {
-        public decimal Points { get; set; }
-        public bool TransactionCompleted { get; set; }
-        public DateTime CreatedDate { get; set; }
-        [JsonIgnore]
-        public string Receiver { get; set; }
-        [JsonIgnore]
-        public string Sender { get; set; }
         [JsonIgnore]
         public int PointRegisterId { get; set; }
         [JsonIgnore]
         public int? OrderId { get; set; }
+        public int UserId { get; set; }
+        public decimal Points { get; set; }
+        public bool UsedOrReceived { get; set; } //true = минус, false = плюс
+        public bool TransactionCompleted { get; set; } //При значении ДА возврат средств невозможен
+        public DateTime CreatedDate { get; set; }
 
+        [JsonIgnore]
+        public virtual User User { get; set; }
         [JsonIgnore]
         public virtual Order Order { get; set; }
     }

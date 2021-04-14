@@ -16,16 +16,4 @@ namespace ApiClick.Models.EnumModels
         delivered, //Доставка произведена
         completed //Клиент подтвердил получение баллов
     }
-
-    public class OrderStatusDictionaries 
-    {
-        public static Dictionary<OrderStatus, UserRole> GetMasterRoleFromOrderStatus = new Dictionary<OrderStatus, UserRole>() 
-        {
-            { OrderStatus.sent, UserRole.SuperAdmin },
-            { OrderStatus.received, UserRole.Admin },
-            { OrderStatus.onWay, UserRole.Admin },
-            { OrderStatus.delivered, UserRole.Admin },
-            { OrderStatus.completed, UserRole.User }
-        };
-    }
 }

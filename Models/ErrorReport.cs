@@ -8,14 +8,13 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
-    /// <summary>
-    /// Отчет об ошибке, просто будут копиться
-    /// </summary>
     public partial class ErrorReport
     {
         public int ErrorReportId { get; set; }
         public string Text { get; set; }
         public int? UserId { get; set; }
-        public string Sender { get; set; }
+
+        [JsonIgnore]
+        public User User { get; set; }
     }
 }

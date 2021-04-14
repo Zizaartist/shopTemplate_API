@@ -41,7 +41,7 @@ namespace ApiClick.Controllers
         {
             var mySelf = Functions.identityToUser(User.Identity, _context);
             
-            var pointRegisters = _context.PointRegister.Where(e => e.ReceiverId == mySelf.UserId || e.SenderId == mySelf.UserId);
+            var pointRegisters = _context.PointRegister.Where(e => e.UserId == mySelf.UserId);
 
             if (!pointRegisters.Any()) 
             {

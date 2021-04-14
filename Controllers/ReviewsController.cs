@@ -21,49 +21,11 @@ namespace ApiClick.Controllers
     {
         private readonly ClickContext _context;
         private readonly ILogger<ReviewsController> _logger;
-        private static int PAGE_SIZE = 2;
         
         public ReviewsController(ClickContext _context, ILogger<ReviewsController> _logger)
         {
             this._context = _context;
             this._logger = _logger;
-        }
-
-        /// <summary>
-        /// Возвращает отзывы пользователей связанные с указанным брендом
-        /// </summary>
-        /// <param name="id">Id бренда</param>
-        /// <param name="_page">Страница</param>
-        /// <returns>Отзывы</returns>
-        // GET: api/ByBrand/5
-        [Route("ByBrand/{id}/{_page}")]
-        [Authorize]
-        [HttpGet]
-        public ActionResult<IEnumerable<Review>> GetBrandReviews(int id, int _page)
-        {
-            var messages = _context.Review.Include(review => review.Order)
-                                                .ThenInclude(order => order.OrderDetails)
-                                                    .ThenInclude(detail => detail.Product)
-                                            .Include(review => review.Sender)
-                                                .ThenInclude(user => user.UserInfo)
-                                            .Where(review => review.BrandId == id && !string.IsNullOrEmpty(review.Text));
-
-            messages = Functions.GetPageRange(messages, _page, PAGE_SIZE);
-
-            if (!messages.Any()) 
-            {
-                return NotFound();
-            }
-
-            var result = messages.ToList();
-
-            foreach (var message in result) 
-            {
-                //Только первые 3 в каждом review 
-                message.Products = message.Order.OrderDetails.Select(detail => detail.Product.ProductName).Take(3).ToList();
-            }
-
-            return result;
         }
 
         /// <summary>
@@ -92,14 +54,6 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            if (order.BrandId == null) 
-            {
-                return BadRequest("Ошибка при получении данных бренда");
-            }
-
-            var brandId = order.BrandId ?? -1;
-            _review.BrandId = brandId;
-
             var user = Functions.identityToUser(User.Identity, _context);
             _review.SenderId = user.UserId;
 
@@ -109,29 +63,11 @@ namespace ApiClick.Controllers
                 return Forbid();
             }
 
-            var oldReviewCount = _context.Review.Where(e => e.BrandId == _review.BrandId).Count();
             _review.CreatedDate = DateTime.UtcNow;
-            _context.Review.Add(_review); //Выдаст 500 если обязательные поля не заполнены
-
-            //Изменяем рейтинг бренда
-            var brand = _context.Brand.Find(_review.BrandId);
-            //formula https://stackoverflow.com/a/32631668, в разы лучше чем суммировать итерацией IMO
-            brand.Rating = (((brand.Rating ?? 0f) * oldReviewCount) + (float)_review.Rating) / (float)(oldReviewCount + 1);
-            brand.ReviewCount++;
+            _context.Review.Add(_review); 
             _context.SaveChanges();
 
             return Ok();
-        }
-
-        /// <returns>Количество текстовых, количество всех</returns>
-        // GET: api/BrandReviewCount/3
-        [Route("BrandReviewCount/{id}")]
-        [Authorize]
-        [HttpGet]
-        public ActionResult<(int, int)> GetReviewCount(int id)
-        {
-            var allReviews = _context.Review.Where(e => e.BrandId == id);
-            return (allReviews.Count(), allReviews.Where(e => !string.IsNullOrEmpty(e.Text)).Count());
         }
 
         /// <summary>

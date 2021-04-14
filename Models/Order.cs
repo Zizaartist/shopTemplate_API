@@ -20,15 +20,17 @@ namespace ApiClick.Models
         }
 
         public int OrderId { get; set; }
+        public int OrdererId { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
         public OrderStatus OrderStatus { get; set; }
-        public bool? PointsUsed { get; set; }
+        public bool PointsUsed { get; set; }
         public decimal? DeliveryPrice { get; set; }
         public DateTime CreatedDate { get; set; }
-        [JsonIgnore]
-        public string Orderer { get; set; }
 
+        
         public virtual OrderInfo OrderInfo { get; set; }
+        [JsonIgnore]
+        public User Orderer { get; set; }
         [JsonIgnore]
         public Review Review { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
@@ -37,19 +39,18 @@ namespace ApiClick.Models
 
         [NotMapped]
         public bool? Delivery { get; set; } //Получаем от клиента
-
-        //Регистр, повлиявший на стоимость заказа, потому сделал отдельный доступ к нему
         [NotMapped]
         [JsonIgnore]
         public PointRegister PointRegister
         {
             get 
             {
-                return PointRegisters?.FirstOrDefault(pr => pr.Sender == Orderer);
+                return PointRegisters?.FirstOrDefault(pr => pr.UserId == OrdererId);
             }
         }
-
         [NotMapped]
         public decimal Sum { get; set; }
+        [NotMapped]
+        public string OrdererName { get; set; }
     }
 }
