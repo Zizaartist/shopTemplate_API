@@ -19,10 +19,10 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class ReviewsController : ControllerBase
     {
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
         private readonly ILogger<ReviewsController> _logger;
         
-        public ReviewsController(ClickContext _context, ILogger<ReviewsController> _logger)
+        public ReviewsController(ShopContext _context, ILogger<ReviewsController> _logger)
         {
             this._context = _context;
             this._logger = _logger;
@@ -55,7 +55,7 @@ namespace ApiClick.Controllers
             }
 
             var user = Functions.identityToUser(User.Identity, _context);
-            _review.SenderId = user.UserId;
+            _review.UserId = user.UserId;
 
             //Проверяем существование отзыва с таким же orderId
             if (_context.Review.Any(e => e.OrderId == _review.OrderId))

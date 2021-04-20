@@ -11,8 +11,7 @@ namespace ApiClick.Models
     public partial class OrderDetail
     {
         public int Count { get; set; }
-        //на случай удаления продукта из базы
-        public int? ProductId { get; set; } 
+        public int? ProductId { get; set; }
         public decimal Price { get; set; }
         [JsonIgnore]
         public int OrderDetailId { get; set; }
@@ -21,6 +20,6 @@ namespace ApiClick.Models
 
         public virtual Product Product { get; set; }
         [JsonIgnore]
-        public Order Order { get; set; }
+        public virtual Order Order { get; set; }
     }
 }

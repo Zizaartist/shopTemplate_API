@@ -19,9 +19,9 @@ namespace ApiClick.Controllers
     public class NotificationsRegistrationController : ControllerBase
     {
         private NotificationHubClient hub;
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
 
-        public NotificationsRegistrationController(ClickContext _context)
+        public NotificationsRegistrationController(ShopContext _context)
         {
             hub = Notifications.Instance.Hub;
             this._context = _context;

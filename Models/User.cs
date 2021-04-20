@@ -1,5 +1,4 @@
-﻿using ApiClick.Models.EnumModels;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -9,15 +8,13 @@ using System.Collections.Generic;
 
 namespace ApiClick.Models
 {
-    //Вообще ничего не возвращать кроме UserInfo
     public partial class User
     {
         public User()
         {
             ErrorReports = new HashSet<ErrorReport>();
             Orders = new HashSet<Order>();
-            PointRegisterReceivers = new HashSet<PointRegister>();
-            PointRegisterSenders = new HashSet<PointRegister>();
+            PointRegisters = new HashSet<PointRegister>();
             Reviews = new HashSet<Review>();
         }
 
@@ -36,14 +33,12 @@ namespace ApiClick.Models
         public DateTime CreatedDate { get; set; }
 
         [JsonIgnore]
-        public ICollection<ErrorReport> ErrorReports { get; set; }
+        public virtual ICollection<ErrorReport> ErrorReports { get; set; }
         [JsonIgnore]
-        public ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
         [JsonIgnore]
-        public ICollection<PointRegister> PointRegisterReceivers { get; set; }
+        public virtual ICollection<PointRegister> PointRegisters { get; set; }
         [JsonIgnore]
-        public ICollection<PointRegister> PointRegisterSenders { get; set; }
-        [JsonIgnore]
-        public ICollection<Review> Reviews { get; set; }
+        public virtual ICollection<Review> Reviews { get; set; }
     }
 }

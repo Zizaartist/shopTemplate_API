@@ -22,10 +22,10 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(ClickContext _context, ILogger<OrdersController> _logger)
+        public OrdersController(ShopContext _context, ILogger<OrdersController> _logger)
         {
             this._context = _context;
             this._logger = _logger;
@@ -43,7 +43,7 @@ namespace ApiClick.Controllers
             var ordersFound = _context.Order.Include(order => order.OrderInfo)
                                             .Include(order => order.PointRegisters)
                                             .Include(order => order.OrderDetails)
-                                            .Where(e => e.OrdererId == Functions.identityToUser(User.Identity, _context, false).UserId);
+                                            .Where(e => e.UserId == Functions.identityToUser(User.Identity, _context, false).UserId);
 
             if (!ordersFound.Any())
             {
@@ -152,7 +152,7 @@ namespace ApiClick.Controllers
 
             _order.CreatedDate = DateTime.UtcNow;
             _order.OrderStatus = OrderStatus.received;
-            _order.OrdererId = mySelf.UserId;
+            _order.UserId = mySelf.UserId;
             _order.OrderInfo.Phone = mySelf.Phone;
 
             var orderSum = _order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));

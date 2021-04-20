@@ -22,10 +22,10 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class PointRegistersController : ControllerBase
     {
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
         private readonly ILogger<PointRegistersController> _logger;
 
-        public PointRegistersController(ClickContext _context, ILogger<PointRegistersController> _logger)
+        public PointRegistersController(ShopContext _context, ILogger<PointRegistersController> _logger)
         {
             this._context = _context;
             this._logger = _logger;

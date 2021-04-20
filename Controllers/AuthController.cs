@@ -25,11 +25,11 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class AuthController : Controller
     {
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
         private readonly IMemoryCache _cache;
         private readonly ILogger<OrdersController> _logger;
 
-        public AuthController(IMemoryCache memoryCache, ClickContext _context, ILogger<OrdersController> _logger)
+        public AuthController(IMemoryCache memoryCache, ShopContext _context, ILogger<OrdersController> _logger)
         {
             _cache = memoryCache;
             this._context = _context;

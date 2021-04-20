@@ -53,7 +53,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// <param name="_context">Контекст, в котором производится поиск</param>
         /// <param name="_enableTracking">Включить отслеживание</param>
         /// <returns>Пользователь, найденный в контексте</returns>
-        public static User identityToUser(IIdentity identity, ClickContext _context, bool _enableTracking = false)
+        public static User identityToUser(IIdentity identity, ShopContext _context, bool _enableTracking = false)
         {
             IQueryable<User> result = _context.User;
             if (!_enableTracking)

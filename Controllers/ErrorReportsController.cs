@@ -14,10 +14,10 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class ErrorReportsController : ControllerBase
     {
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
         private readonly ILogger<ErrorReportsController> _logger;
 
-        public ErrorReportsController(ClickContext _context, ILogger<ErrorReportsController> _logger)
+        public ErrorReportsController(ShopContext _context, ILogger<ErrorReportsController> _logger)
         {
             this._context = _context;
             this._logger = _logger;

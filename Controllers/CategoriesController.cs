@@ -18,10 +18,10 @@ namespace ApiClick.Controllers
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
     {
-        private readonly ClickContext _context;
+        private readonly ShopContext _context;
         private readonly ILogger<CategoriesController> _logger;
 
-        public CategoriesController(ClickContext _context, ILogger<CategoriesController> _logger)
+        public CategoriesController(ShopContext _context, ILogger<CategoriesController> _logger)
         {
             this._context = _context;
             this._logger = _logger;

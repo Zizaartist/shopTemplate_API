@@ -10,7 +10,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
 {
     public class PointsController
     {
-        ClickContext _context;
+        ShopContext _context;
         /// <summary>
         /// Коэффициент, который отражает проценты от суммы заказа, возвращаемые баллами
         /// </summary>
@@ -20,7 +20,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
         /// </summary>
         const int percentage = 30;
 
-        public PointsController(ClickContext _context)
+        public PointsController(ShopContext _context)
         {
             this._context = _context;
         }
