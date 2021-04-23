@@ -16,8 +16,8 @@ namespace ApiClick.Models
         public int? OrderId { get; set; }
         public int UserId { get; set; }
         public decimal Points { get; set; }
-        public bool UsedOrReceived { get; set; } //true = минус, false = плюс
-        public bool TransactionCompleted { get; set; } //При значении ДА возврат средств невозможен
+        public bool UsedOrReceived { get; set; }//true = минус, false = плюс
+        public bool TransactionCompleted { get; set; }//При значении ДА возврат средств невозможен
         public DateTime CreatedDate { get; set; }
 
         [JsonIgnore]

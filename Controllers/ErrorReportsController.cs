@@ -27,7 +27,7 @@ namespace ApiClick.Controllers
         /// Добавляет отчет об ошибке
         /// </summary>
         /// <param name="_errorReport">Данные отчета</param>
-        // POST: api/ErrorReport
+        // POST: api/ErrorReports
         [Authorize]
         [HttpPost]
         public ActionResult Post(ErrorReport _errorReport)

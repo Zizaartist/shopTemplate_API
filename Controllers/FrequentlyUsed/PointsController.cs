@@ -177,7 +177,7 @@ namespace ApiClick.Controllers.FrequentlyUsed
             var sum = CalculateSum(_order);
             try
             {
-                var points = _order.PointRegister != null ? _context.PointRegister.Find(_order.PointRegister.PointRegisterId).Points : 0;
+                var points = _order.PointRegisters != null ? _context.PointRegister.Find(_order.PointRegister.PointRegisterId).Points : 0;
                 return sum - points;
             }
             catch (Exception _ex) 

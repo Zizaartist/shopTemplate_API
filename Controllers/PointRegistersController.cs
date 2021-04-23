@@ -34,16 +34,19 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает записи баллов, хоть как-то связанные с пользователем
         /// </summary>
-        // GET: api/PointRegisters
+        // GET: api/PointRegisters/3
+        [Route("{_page}")]
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<PointRegister>> GetPointRegisters()
+        public ActionResult<IEnumerable<PointRegister>> GetPointRegisters(int _page)
         {
             var mySelf = Functions.identityToUser(User.Identity, _context);
-            
-            var pointRegisters = _context.PointRegister.Where(e => e.UserId == mySelf.UserId);
 
-            if (!pointRegisters.Any()) 
+            IQueryable<PointRegister> pointRegisters = _context.PointRegister.Where(pr => pr.UserId == mySelf.UserId)
+                                                        .OrderByDescending(pr => pr.CreatedDate);
+            pointRegisters = Functions.GetPageRange(pointRegisters, _page, PageLengths.POINTREGISTER_LENGTH);
+
+            if (!pointRegisters.Any())
             {
                 return NotFound();
             }

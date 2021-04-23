@@ -2,11 +2,7 @@
   "dependencies": {
     "mssql1": {
       "type": "mssql",
-      "connectionId": "localDB"
-    },
-    "mssql2": {
-      "type": "mssql",
-      "connectionId": "DefaultDB"
+      "connectionId": "shopserverdebug.database.windows.net"
     }
   }
 }

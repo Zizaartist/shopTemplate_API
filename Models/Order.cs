@@ -21,22 +21,20 @@ namespace ApiClick.Models
 
         public int OrderId { get; set; }
         public int UserId { get; set; }
-        public int PaymentMethod { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
         public OrderStatus OrderStatus { get; set; }
         public bool PointsUsed { get; set; }
         public decimal? DeliveryPrice { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public virtual OrderInfo OrderInfo { get; set; }
         [JsonIgnore]
         public virtual User User { get; set; }
-        [JsonIgnore]
-        public virtual Review Review { get; set; }
+        public virtual OrderInfo OrderInfo { get; set; }
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         [JsonIgnore]
         public virtual ICollection<PointRegister> PointRegisters { get; set; }
         [NotMapped]
-        public bool? Delivery { get; set; } //Получаем от клиента
+        public bool Delivery { get; set; } //Получаем от клиента
         [NotMapped]
         [JsonIgnore]
         public PointRegister PointRegister

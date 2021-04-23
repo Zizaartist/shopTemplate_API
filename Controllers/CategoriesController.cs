@@ -27,22 +27,42 @@ namespace ApiClick.Controllers
             this._logger = _logger;
         }
 
-        /// <summary>
-        /// Возвращает список категорий
-        /// </summary>
-        // GET: api/Categories/
+        // GET: api/Categories
         [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<Category>> Get()
         {
-            IQueryable<Category> categories = _context.Category;
+            IQueryable<Category> categories = _context.Category.Include(cat => cat.ChildCategories)
+                                                                .Include(cat => cat.Products)
+                                                                .Where(cat => cat.ParentCategoryId == null);
+
+            if (!categories.Any())
+            {
+                return NotFound();
+            }
+
+            var result = categories.ToList();
+
+            return result;
+        }
+
+        // GET: api/Categories/2
+        [Authorize]
+        [HttpGet("{_parentCategoryId}")]
+        public ActionResult<IEnumerable<Category>> Get(int _parentCategoryId)
+        {
+            IQueryable<Category> categories = _context.Category.Include(cat => cat.ChildCategories)
+                                                                .Include(cat => cat.Products)
+                                                                .Where(cat => cat.ParentCategoryId == _parentCategoryId);
 
             if (!categories.Any()) 
             {
                 return NotFound();
             }
 
-            return categories.ToList();
+            var result = categories.ToList();
+
+            return result;
         }
     }
 }

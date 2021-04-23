@@ -41,22 +41,44 @@ namespace ApiClick.Controllers
         /// в случае отсутствия пользователя в бд, создается новый
         /// </summary>
         /// <returns>Сериализированный токен и корректный номер телефона</returns>
-        // POST: api/Auth/UserToken/?phone=79991745473
+        // POST: api/Auth/UserToken/?phone=79991745473&code=3667
         [Route("UserToken")]
         [HttpPost]
-        public IActionResult UserToken(string phone)
+        public IActionResult UserToken(string phone, string code)
         {
             if (!Functions.IsPhoneNumber(phone))
             {
                 return BadRequest(new { errorText = "Invalid phone number." });
             }
 
-            var correctPhone = Functions.convertNormalPhoneNumber(phone);
+            var formattedPhone = Functions.convertNormalPhoneNumber(phone);
+
+            string localCode;
+            try
+            {
+                localCode = _cache.Get<string>(formattedPhone);
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { errorText = "Ошибка при извлечении из кэша." });
+            }
+
+            if (localCode == null)
+            {
+                return BadRequest(new { errorText = "Устаревший или отсутствующий код." });
+            }
+            else
+            {
+                if (localCode != code)
+                {
+                    return BadRequest(new { errorText = "Ошибка. Получен неверный код. Подтвердите номер еще раз." });
+                }
+            }
 
             ClaimsIdentity identity;
             try
             {
-                identity = GetIdentity(correctPhone);
+                identity = GetIdentity(formattedPhone);
             }
             catch (Exception _ex) 
             {
@@ -70,6 +92,7 @@ namespace ApiClick.Controllers
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
                     notBefore: now,
+                    expires: DateTime.UtcNow.AddYears(1),
                     claims: identity.Claims,
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
@@ -87,7 +110,7 @@ namespace ApiClick.Controllers
         /// Отправляет СМС код на указанный номер и создает временный кэш с кодом для проверки
         /// </summary>
         /// <param name="phone">Неотформатированный номер</param>
-        // POST: api/Account/SmsCheck/?phone=79991745473
+        // POST: api/Auth/SmsCheck/?phone=79991745473
         [Route("SmsCheck")]
         [HttpPost]
         public async Task<IActionResult> SmsCheck(string phone)
@@ -128,7 +151,7 @@ namespace ApiClick.Controllers
         /// </summary>
         /// <param name="code">СМС код</param>
         /// <param name="phone">Номер получателя</param>
-        // POST: api/Account/CodeCheck/?code=3344&phone=79991745473
+        // POST: api/Auth/CodeCheck/?code=3344&phone=79991745473
         [Route("CodeCheck")]
         [HttpPost]
         public IActionResult CodeCheck(string code, string phone)
@@ -141,6 +164,35 @@ namespace ApiClick.Controllers
             return BadRequest();
         }
 
+        /// <summary>
+        /// Подтверждает валидность токена
+        /// </summary>
+        // GET: api/Auth/ValidateToken
+        [Route("ValidateToken")]
+        [HttpGet]
+        public ActionResult ValidateToken()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized(); //"Токен недействителен или отсутствует"
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Получаем количество баллов отправителя запроса
+        /// </summary>
+        // GET: api/Auth/GetMyPoints
+        [Route("GetMyPoints")]
+        [Authorize]
+        [HttpGet]
+        public ActionResult<decimal> GetMyPoints()
+        {
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+            return mySelf.Points;
+        }
+
         //identity with user rights
         private ClaimsIdentity GetIdentity(string phone)
         {
@@ -149,7 +201,7 @@ namespace ApiClick.Controllers
                 //Сперва находим существующего пользователя, либо создаем нового
                 User user = _context.User.FirstOrDefault(x => x.Phone == phone);
 
-                if (user != null)
+                if (user == null)
                 {
                     user = RegisterNewUser(phone);
                 }
@@ -189,12 +241,6 @@ namespace ApiClick.Controllers
             {
                 throw _ex;
             }
-        }
-
-        //TO-DO
-        private int GetUserCount() 
-        {
-            return 1;
         }
     }
 }

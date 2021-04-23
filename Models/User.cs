@@ -15,7 +15,6 @@ namespace ApiClick.Models
             ErrorReports = new HashSet<ErrorReport>();
             Orders = new HashSet<Order>();
             PointRegisters = new HashSet<PointRegister>();
-            Reviews = new HashSet<Review>();
         }
 
         [JsonIgnore]
@@ -38,7 +37,5 @@ namespace ApiClick.Models
         public virtual ICollection<Order> Orders { get; set; }
         [JsonIgnore]
         public virtual ICollection<PointRegister> PointRegisters { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<Review> Reviews { get; set; }
     }
 }

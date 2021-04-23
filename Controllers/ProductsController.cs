@@ -35,11 +35,11 @@ namespace ApiClick.Controllers
         /// <param name="id">Id категории</param>
         /// <param name="_page">Страница</param>
         /// <returns></returns>
-        // GET: api/Products/ByMenu/5/1
-        [Route("ByMenu/{id}/{_page}")]
+        // GET: api/Products/ByCategory/5/1
+        [Route("ByCategory/{id}/{_page}")]
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<Product>> GetProductsByMenu(int id, int _page)
+        public ActionResult<IEnumerable<Product>> GetProductsByCategory(int id, int _page)
         {
             var products = _context.Product.Where(p => p.CategoryId == id); 
             

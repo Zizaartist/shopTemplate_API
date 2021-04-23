@@ -34,16 +34,20 @@ namespace ApiClick.Controllers
         /// <summary>
         /// Возвращает заказы клиента
         /// </summary>
-        // GET: api/Orders/GetMyOrders
-        [Route("GetMyOrders")]
+        // GET: api/Orders/GetMyOrders/3
+        [Route("GetMyOrders/{_page}")]
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<Order>> GetMyOrders()
+        public ActionResult<IEnumerable<Order>> GetMyOrders(int _page)
         {
-            var ordersFound = _context.Order.Include(order => order.OrderInfo)
+            IQueryable<Order> ordersFound = _context.Order.Include(order => order.OrderInfo)
                                             .Include(order => order.PointRegisters)
                                             .Include(order => order.OrderDetails)
-                                            .Where(e => e.UserId == Functions.identityToUser(User.Identity, _context, false).UserId);
+                                            .Where(order => order.UserId == Functions.identityToUser(User.Identity, _context, false).UserId)
+                                            .OrderBy(order => order.OrderStatus == OrderStatus.delivered) //Сперва false, потом true
+                                                .ThenByDescending(order => order.CreatedDate); //Сперва true, потом false
+
+            ordersFound = Functions.GetPageRange(ordersFound, _page, PageLengths.ORDER_LENGTH);
 
             if (!ordersFound.Any())
             {
@@ -61,60 +65,6 @@ namespace ApiClick.Controllers
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Изменяет статус заказа
-        /// </summary>
-        /// <param name="id">Id заказа</param>
-        /// <param name="_status">Опциональный статус, при отсутствии выбирается следующий по очереди</param>
-        // PUT: api/Orders/ClaimPoints/4
-        [Route("ClaimPoints/{id}")]
-        [Authorize]
-        [HttpPut]
-        public ActionResult ClaimPoints(int id)
-        {
-            //Сперва проверяем на физическую возможность смены статуса
-            var order = _context.Order.Include(order => order.PointRegisters)
-                                        .FirstOrDefault(order => order.OrderId == id);
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            //Только на предпоследнем статусе клиенту дозволено сменить на последний
-            if (order.OrderStatus != OrderStatus.delivered)
-            {
-                return Forbid();
-            }
-
-            var mySelf = Functions.identityToUser(User.Identity, _context, true);
-
-            PointsController pointsController = new PointsController(_context);
-
-            if (order.PointsUsed)
-            {
-                //Завершаем перевод баллов от клиента магазину
-                if (!pointsController.CompleteTransaction(order.PointRegister))
-                {
-                    return BadRequest("Не удалось завершить транзакцию");
-                }
-            }
-
-            //Переводим кэшбэк
-            Order orderTemp = new Order() { OrderDetails = Functions.getCleanListOfModels(_context.OrderDetail.Where(e => e.OrderId == order.OrderId).ToList()) };
-            PointRegister cashbackRegister;
-            //Если любой из процессов кэшбэка даст сбой
-            if (!pointsController.StartTransaction(pointsController.CalculateCashback(order), mySelf, false, order, out cashbackRegister) ||
-                !pointsController.CompleteTransaction(cashbackRegister))
-                {
-                    return BadRequest("Не удалось произвести кэшбэк");
-                }
-
-            _context.SaveChanges();
-
-            return Ok();
         }
 
         /// <summary>
@@ -156,6 +106,20 @@ namespace ApiClick.Controllers
             _order.OrderInfo.Phone = mySelf.Phone;
 
             var orderSum = _order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
+
+            _order.DeliveryPrice = null;
+            if (_order.Delivery)
+            {
+                //Если стоимость заказа не преодолела показатель минимальной цены - присвоить указанную стоимость доставки
+                if (orderSum < Constants.MINIMAL_PRICE)
+                {
+                    _order.DeliveryPrice = Constants.DELIVERY_PRICE;
+                }
+                else
+                {
+                    _order.DeliveryPrice = 0m;
+                }
+            }
 
             if (mySelf.Points <= 0) 
             {
@@ -207,14 +171,13 @@ namespace ApiClick.Controllers
             {
                 if (_order == null ||
                     _order.OrderInfo == null ||
-                    _order.Delivery == null ||
                     string.IsNullOrEmpty(_order.OrderInfo.OrdererName) ||
                     !_order.OrderDetails.Any() ||
                     !AreOrderDetailsValid(_order.OrderDetails))
                 {
                     return false;
                 }
-                if (_order.Delivery ?? false)
+                if (_order.Delivery)
                 {
                     if (string.IsNullOrEmpty(_order.OrderInfo.Street) ||
                         string.IsNullOrEmpty(_order.OrderInfo.House))

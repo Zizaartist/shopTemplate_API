@@ -27,7 +27,6 @@ namespace ApiClick
         public virtual DbSet<OrderInfo> OrderInfo { get; set; }
         public virtual DbSet<PointRegister> PointRegister { get; set; }
         public virtual DbSet<Product> Product { get; set; }
-        public virtual DbSet<Review> Review { get; set; }
         public virtual DbSet<User> User { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -42,6 +41,11 @@ namespace ApiClick
                     .HasMaxLength(30);
 
                 entity.Property(e => e.Image).HasMaxLength(15);
+
+                entity.HasOne(d => d.ParentCategory)
+                    .WithMany(p => p.ChildCategories)
+                    .HasForeignKey(d => d.ParentCategoryId)
+                    .HasConstraintName("FK_Category_Category");
             });
 
             modelBuilder.Entity<ErrorReport>(entity =>
@@ -108,9 +112,7 @@ namespace ApiClick
 
                 entity.Property(e => e.Commentary).HasMaxLength(50);
 
-                entity.Property(e => e.House)
-                    .IsRequired()
-                    .HasMaxLength(30);
+                entity.Property(e => e.House).HasMaxLength(30);
 
                 entity.Property(e => e.OrdererName).HasMaxLength(50);
 
@@ -118,9 +120,7 @@ namespace ApiClick
                     .IsRequired()
                     .HasMaxLength(30);
 
-                entity.Property(e => e.Street)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                entity.Property(e => e.Street).HasMaxLength(50);
 
                 entity.HasOne(d => d.Order)
                     .WithOne(p => p.OrderInfo)
@@ -174,37 +174,8 @@ namespace ApiClick
                 entity.HasOne(d => d.Category)
                     .WithMany(p => p.Products)
                     .HasForeignKey(d => d.CategoryId)
-                    .HasConstraintName("FK_Products_CategoryId");
-            });
-
-            modelBuilder.Entity<Review>(entity =>
-            {
-                entity.HasIndex(e => e.OrderId)
-                    .HasName("IX_Order")
-                    .IsUnique()
-                    .HasFilter("([OrderId] IS NOT NULL)");
-
-                entity.HasIndex(e => e.UserId)
-                    .HasName("IX_Sender");
-
-                entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.Text)
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                entity.HasOne(d => d.Order)
-                    .WithOne(p => p.Review)
-                    .HasForeignKey<Review>(d => d.OrderId)
-                    .HasConstraintName("FK_Messages_OrderId");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Reviews)
-                    .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Reviews_UserId");
+                    .HasConstraintName("FK_Products_CategoryId");
             });
 
             modelBuilder.Entity<User>(entity =>
