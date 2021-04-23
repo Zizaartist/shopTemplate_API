@@ -1,5 +1,5 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "\"Data Source=wpl25.hosting.reg.ru;Initial Catalog=u0906946_Click;User ID=u0906946_u0906946;Password=m_H2LW2y;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False",
+    "DefaultConnection": "Server=tcp:shoptemplateserver.database.windows.net,1433;Initial Catalog=ShopTemplateDemo;Persist Security Info=False;User ID=Syberia;Password=K1e2s3k4i5l6;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   }
 }

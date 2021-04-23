@@ -106,6 +106,35 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
+
+        [Route("UserTokenDefault")]
+        [HttpGet]
+        public IActionResult UserTokenDefault()
+        {
+            ClaimsIdentity identity;
+            identity = GetIdentityDefault();
+         
+            var now = DateTime.UtcNow;
+            // создаем JWT-токен
+            var jwt = new JwtSecurityToken(
+                    issuer: AuthOptions.ISSUER,
+                    audience: AuthOptions.AUDIENCE,
+                    notBefore: now,
+                    expires: DateTime.UtcNow.AddYears(1),
+                    claims: identity.Claims,
+                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+            var response = new
+            {
+                access_token = encodedJwt,
+                username = identity.Name
+            };
+
+            return Json(response);
+        }
+
+
         /// <summary>
         /// Отправляет СМС код на указанный номер и создает временный кэш с кодом для проверки
         /// </summary>
@@ -127,7 +156,7 @@ namespace ApiClick.Controllers
                     string moreReadable = senderIp.ToString();
 
                     HttpClient client = HttpClientSingleton.HttpClient;
-                    HttpResponseMessage response = await client.GetAsync($"https://sms.ru/sms/send?api_id=0F4D5813-DEF7-5914-2D97-42D0FBA75865&to={PhoneLoc}&msg={generatedCode}&json=1");
+                    HttpResponseMessage response = await client.GetAsync($"https://smsc.ru/sys/send.php?login=syberia&psw=K1e2s3k4i5l6&phones={PhoneLoc}&mes={generatedCode}");
                     if (response.IsSuccessStatusCode)
                     {
                         //Добавляем код в кэш на 5 минут
@@ -208,7 +237,8 @@ namespace ApiClick.Controllers
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone)
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Phone),
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, "Rolee")
                 };
                 ClaimsIdentity claimsIdentity =
                 new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
@@ -216,6 +246,26 @@ namespace ApiClick.Controllers
                 return claimsIdentity;
             }
             catch (Exception _ex) 
+            {
+                throw _ex;
+            }
+        }
+
+        private ClaimsIdentity GetIdentityDefault()
+        {
+            try
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, "DefaultName"),
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, "DefaultRole")
+                };
+                ClaimsIdentity claimsIdentity =
+                new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
+                    ClaimsIdentity.DefaultRoleClaimType);
+                return claimsIdentity;
+            }
+            catch (Exception _ex)
             {
                 throw _ex;
             }
