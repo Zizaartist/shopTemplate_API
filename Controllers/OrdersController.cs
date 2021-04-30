@@ -83,21 +83,28 @@ namespace ApiClick.Controllers
 
             var mySelf = Functions.identityToUser(User.Identity, _context, true);
 
-            try
+            _order.OrderDetails = _order.OrderDetails.Select(detail =>
+                new OrderDetail()
+                {
+                    ProductId = detail.ProductId,
+                    Count = detail.Count
+                }
+            ).ToList();
+
+            foreach (var detail in _order.OrderDetails)
             {
-                _order.OrderDetails = _order.OrderDetails.Select(detail =>
-                    new OrderDetail()
-                    {
-                        ProductId = detail.ProductId,
-                        Count = detail.Count,
-                        Price = _context.Product.Find(detail.ProductId).Price
-                    }
-                ).ToList();
-            }
-            catch (Exception _ex)
-            {
-                _logger.LogWarning($"Ошибка при получении продукта - {_ex}");
-                return NotFound();
+                var product = _context.Product.Find(detail.ProductId);
+                detail.Price = product.Price;
+
+                //Если на складе недостаточно товара - отменить заказ, иначе - уменьшить счетчик
+                if (detail.Count > product.InStorage)
+                {
+                    return BadRequest("Недостаточно товара!");
+                }
+                else
+                {
+                    product.InStorage -= detail.Count;
+                }
             }
 
             _order.CreatedDate = DateTime.UtcNow;
