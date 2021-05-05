@@ -54,5 +54,28 @@ namespace ApiClick.Controllers
 
             return result;
         }
+
+        /// <summary>
+        /// Возвращает продукцию по критерию наличия входной строки в имени продукта 
+        /// </summary>
+        // GET: api/Products/Search/blabla
+        [Route("Search/{_nameCriteria}")]
+        [Authorize]
+        [HttpGet]
+        public ActionResult<IEnumerable<Product>> GetProductsByName(string _nameCriteria)
+        {
+            var capsNameCriteria = _nameCriteria.ToUpper();
+
+            var products = _context.Product.Where(product => product.ProductName.ToUpper().Contains(capsNameCriteria));
+
+            if (!products.Any())
+            {
+                return NotFound();
+            }
+
+            var result = products.ToList();
+
+            return result;
+        }
     }
 }
