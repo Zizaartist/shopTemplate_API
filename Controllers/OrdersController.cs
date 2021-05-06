@@ -115,7 +115,7 @@ namespace ApiClick.Controllers
             var orderSum = _order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
 
             _order.DeliveryPrice = null;
-            if (_order.Delivery)
+            if (_order.Delivery.Value)
             {
                 //Если стоимость заказа не преодолела показатель минимальной цены - присвоить указанную стоимость доставки
                 if (orderSum < Constants.MINIMAL_PRICE)
@@ -184,7 +184,7 @@ namespace ApiClick.Controllers
                 {
                     return false;
                 }
-                if (_order.Delivery)
+                if (_order.Delivery.Value)
                 {
                     if (string.IsNullOrEmpty(_order.OrderInfo.Street) ||
                         string.IsNullOrEmpty(_order.OrderInfo.House))

@@ -1,4 +1,5 @@
 ﻿using System;
+using ApiClick.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ApiClick.Models
+namespace ApiClick
 {
     public partial class ShopContext : DbContext
     {
