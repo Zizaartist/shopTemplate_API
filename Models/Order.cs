@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using ShopAdminAPI.Models.EnumModels;
+using ApiClick.Models.EnumModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,7 +9,7 @@ using System.Linq;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ShopAdminAPI.Models
+namespace ApiClick.Models
 {
     public partial class Order
     {

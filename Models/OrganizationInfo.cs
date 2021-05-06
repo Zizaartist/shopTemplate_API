@@ -1,9 +1,9 @@
-﻿using ShopAdminAPI.Models.EnumModels;
+﻿using ApiClick.Models.EnumModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ShopAdminAPI.Models
+namespace ApiClick.Models
 {
     public class OrganizationInfo
     {
