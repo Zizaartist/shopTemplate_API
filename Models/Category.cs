@@ -8,7 +8,7 @@ using System.Linq;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ApiClick.Models
+namespace ShopAdminAPI.Models
 {
     public partial class Category
     {
@@ -25,7 +25,6 @@ namespace ApiClick.Models
 
         [JsonIgnore]
         public virtual Category ParentCategory { get; set; }
-        [JsonIgnore]
         public virtual ICollection<Category> ChildCategories { get; set; }
         public virtual ICollection<Product> Products { get; set; }
 

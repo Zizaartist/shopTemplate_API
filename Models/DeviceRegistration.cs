@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ApiClick.Models
+namespace ShopAdminAPI.Models
 {
     /// <summary>
     /// Модель для передачи данных об устройстве при регистрации

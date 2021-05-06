@@ -1,5 +1,5 @@
-﻿using ApiClick.Models.EnumModels;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using ShopAdminAPI.Models.EnumModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,7 +9,7 @@ using System.Linq;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ApiClick.Models
+namespace ShopAdminAPI.Models
 {
     public partial class Order
     {
@@ -34,7 +34,7 @@ namespace ApiClick.Models
         [JsonIgnore]
         public virtual ICollection<PointRegister> PointRegisters { get; set; }
         [NotMapped]
-        public bool Delivery { get; set; } //Получаем от клиента
+        public bool? Delivery { get; set; } //Получаем от клиента
         [NotMapped]
         [JsonIgnore]
         public PointRegister PointRegister

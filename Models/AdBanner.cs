@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 // Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
@@ -7,12 +8,11 @@ using System.Collections.Generic;
 
 namespace ShopAdminAPI.Models
 {
-    public partial class ErrorReport
+    public partial class AdBanner
     {
-        public int ErrorReportId { get; set; }
+        [JsonIgnore]
+        public int AdBannerId { get; set; }
+        public string Image { get; set; }
         public string Text { get; set; }
-        public int? UserId { get; set; }
-
-        public virtual User User { get; set; }
     }
 }

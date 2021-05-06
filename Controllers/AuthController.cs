@@ -106,7 +106,6 @@ namespace ApiClick.Controllers
             return Json(response);
         }
 
-
         [Route("UserTokenDefault")]
         [HttpGet]
         public IActionResult UserTokenDefault()
@@ -131,9 +130,12 @@ namespace ApiClick.Controllers
                 username = identity.Name
             };
 
+            //Добавляем запись о создании токена
+            _context.TokenRecord.Add(new TokenRecord { CreatedDate = DateTime.UtcNow.Date });
+            _context.SaveChanges();
+
             return Json(response);
         }
-
 
         /// <summary>
         /// Отправляет СМС код на указанный номер и создает временный кэш с кодом для проверки

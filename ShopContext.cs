@@ -1,5 +1,4 @@
 ﻿using System;
-using ApiClick.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -7,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ApiClick
+namespace ApiClick.Models
 {
     public partial class ShopContext : DbContext
     {
@@ -20,21 +19,35 @@ namespace ApiClick
         {
         }
 
+        public virtual DbSet<AdBanner> AdBanner { get; set; }
         public virtual DbSet<Category> Category { get; set; }
         public virtual DbSet<ErrorReport> ErrorReport { get; set; }
         public virtual DbSet<Order> Order { get; set; }
         public virtual DbSet<OrderDetail> OrderDetail { get; set; }
         public virtual DbSet<OrderInfo> OrderInfo { get; set; }
+        public virtual DbSet<OrganizationInfo> OrganizationInfo { get; set; }
         public virtual DbSet<PointRegister> PointRegister { get; set; }
         public virtual DbSet<Product> Product { get; set; }
+        public virtual DbSet<Report> Report { get; set; }
+        public virtual DbSet<SessionRecord> SessionRecord { get; set; }
+        public virtual DbSet<TokenRecord> TokenRecord { get; set; }
         public virtual DbSet<User> User { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AdBanner>(entity =>
+            {
+                entity.Property(e => e.Image).HasMaxLength(15);
+
+                entity.Property(e => e.Text).HasMaxLength(50);
+            });
+
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasIndex(e => e.Image)
                     .HasName("IX_BrandMenus_ImgId");
+
+                entity.HasIndex(e => e.ParentCategoryId);
 
                 entity.Property(e => e.CategoryName)
                     .IsRequired()
@@ -112,7 +125,9 @@ namespace ApiClick
 
                 entity.Property(e => e.Commentary).HasMaxLength(50);
 
-                entity.Property(e => e.House).HasMaxLength(30);
+                entity.Property(e => e.House)
+                    .IsRequired()
+                    .HasMaxLength(30);
 
                 entity.Property(e => e.OrdererName).HasMaxLength(50);
 
@@ -120,13 +135,60 @@ namespace ApiClick
                     .IsRequired()
                     .HasMaxLength(30);
 
-                entity.Property(e => e.Street).HasMaxLength(50);
+                entity.Property(e => e.Street)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
                 entity.HasOne(d => d.Order)
                     .WithOne(p => p.OrderInfo)
                     .HasForeignKey<OrderInfo>(d => d.OrderId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_OrderInfo_Order");
+            });
+
+            modelBuilder.Entity<OrganizationInfo>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.Property(e => e.ActualAddress)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Avatar)
+                    .IsRequired()
+                    .HasMaxLength(15);
+
+                entity.Property(e => e.DeliveryPrice).HasColumnType("decimal(18, 0)");
+
+                entity.Property(e => e.DeliveryTerms)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.Property(e => e.Email).HasMaxLength(50);
+
+                entity.Property(e => e.Inn)
+                    .IsRequired()
+                    .HasColumnName("INN")
+                    .HasMaxLength(15);
+
+                entity.Property(e => e.LegalAddress)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Ogrnip)
+                    .IsRequired()
+                    .HasColumnName("OGRNIP")
+                    .HasMaxLength(15);
+
+                entity.Property(e => e.OrganizationName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.PaymentMethods)
+                    .IsRequired()
+                    .HasMaxLength(10);
+
+                entity.Property(e => e.Phones).HasMaxLength(250);
             });
 
             modelBuilder.Entity<PointRegister>(entity =>
@@ -158,7 +220,7 @@ namespace ApiClick
                     .HasName("IX_Products_ImgId");
 
                 entity.Property(e => e.CreatedDate)
-                    .HasColumnType("datetime")
+                    .HasColumnType("date")
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Description).HasMaxLength(50);
@@ -166,8 +228,6 @@ namespace ApiClick
                 entity.Property(e => e.Image).HasMaxLength(15);
 
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-
-                entity.Property(e => e.InStorage).IsRequired();
 
                 entity.Property(e => e.ProductName)
                     .IsRequired()
@@ -178,6 +238,36 @@ namespace ApiClick
                     .HasForeignKey(d => d.CategoryId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Products_CategoryId");
+            });
+
+            modelBuilder.Entity<Report>(entity =>
+            {
+                entity.HasIndex(e => e.ProductOfDayId);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("date");
+
+                entity.Property(e => e.ProductOfDaySum).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Sum).HasColumnType("decimal(18, 2)");
+
+                entity.HasOne(d => d.ProductOfDay)
+                    .WithMany(p => p.Reports)
+                    .HasForeignKey(d => d.ProductOfDayId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<SessionRecord>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.Property(e => e.CreatedDate).HasColumnType("date");
+            });
+
+            modelBuilder.Entity<TokenRecord>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.Property(e => e.CreatedDate).HasColumnType("date");
             });
 
             modelBuilder.Entity<User>(entity =>

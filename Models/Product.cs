@@ -6,13 +6,14 @@ using System.Collections.Generic;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ApiClick.Models
+namespace ShopAdminAPI.Models
 {
     public partial class Product
     {
         public Product()
         {
             OrderDetails = new HashSet<OrderDetail>();
+            Reports = new HashSet<Report>();
         }
 
         public int ProductId { get; set; }
@@ -31,5 +32,7 @@ namespace ApiClick.Models
         public virtual Category Category { get; set; }
         [JsonIgnore]
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<Report> Reports { get; set; }
     }
 }

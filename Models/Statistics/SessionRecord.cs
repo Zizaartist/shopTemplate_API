@@ -5,14 +5,10 @@ using System.Collections.Generic;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace ShopAdminAPI.Models
+namespace ApiClick.Models
 {
-    public partial class ErrorReport
+    public partial class SessionRecord
     {
-        public int ErrorReportId { get; set; }
-        public string Text { get; set; }
-        public int? UserId { get; set; }
-
-        public virtual User User { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }
