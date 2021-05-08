@@ -1,5 +1,7 @@
 ﻿using ApiClick.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +28,10 @@ namespace ApiClick.Controllers
         [HttpGet]
         public ActionResult AppOpened() 
         {
-            _context.SessionRecord.Add(new SessionRecord { CreatedDate = DateTime.UtcNow.Date });
-            _context.SaveChanges();
+
+            var commandText = $"INSERT INTO SessionRecord(CreatedDate)VALUES(@DataTime)";
+            var name = new SqlParameter("@DataTime", DateTime.UtcNow.Date);
+            _context.Database.ExecuteSqlRaw(commandText, name);
 
             return Ok();
         }

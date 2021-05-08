@@ -4,6 +4,7 @@ using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -112,7 +113,7 @@ namespace ApiClick.Controllers
         {
             ClaimsIdentity identity;
             identity = GetIdentityDefault();
-         
+
             var now = DateTime.UtcNow;
             // создаем JWT-токен
             var jwt = new JwtSecurityToken(
@@ -131,8 +132,10 @@ namespace ApiClick.Controllers
             };
 
             //Добавляем запись о создании токена
-            _context.TokenRecord.Add(new TokenRecord { CreatedDate = DateTime.UtcNow.Date });
-            _context.SaveChanges();
+          
+            var commandText = $"INSERT INTO TokenRecord(CreatedDate)VALUES(@DataTime)";
+            var name = new SqlParameter("@DataTime", DateTime.UtcNow.Date);
+            _context.Database.ExecuteSqlRaw(commandText, name);
 
             return Json(response);
         }
