@@ -66,7 +66,7 @@ namespace ApiClick.Controllers
         {
             var capsNameCriteria = _nameCriteria.ToUpper();
 
-            var products = _context.Product.Where(product => product.ProductName.ToUpper().Contains(capsNameCriteria));
+            var products = _context.Product.Include(product => product.Category).Where(product => product.ProductName.ToUpper().Contains(capsNameCriteria));
 
             if (!products.Any())
             {
