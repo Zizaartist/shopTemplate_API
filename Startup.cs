@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using ApiClick.Configurations;
+using ApiClick.Controllers.FrequentlyUsed;
 using ApiClick.StaticValues;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -17,17 +19,21 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using ShopAdminAPI.Controllers;
+using ShopHubAPI.StaticValues;
 
 namespace ApiClick
 {
     public class Startup
     {
-        private IConfigurationRoot _confString;
-        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _confString = new ConfigurationBuilder().AddJsonFile("dbSettings.json").Build();
+
+            ApiConfiguration.SHOP_ID = Configuration["ShopConfig:ShopId"];
+            ApiConfiguration.SHOP_HUB_API = Configuration["ShopConfig:ShopHubAPI"];
+
+            Task.Run(() => ConfigController.GetShopConfig()).Wait();
         }
 
         public IConfiguration Configuration { get; }
@@ -35,7 +41,7 @@ namespace ApiClick
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ShopContext>(options => options.UseSqlServer(_confString.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ShopContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
@@ -45,14 +51,7 @@ namespace ApiClick
                             // укзывает, будет ли валидироваться издатель при валидации токена
                             ValidateIssuer = true,
                             // строка, представляющая издателя
-                            ValidIssuer = AuthOptions.ISSUER,
-
-                            // будет ли валидироваться потребитель токена
-                            ValidateAudience = true,
-                            // установка потребителя токена
-                            ValidAudience = AuthOptions.AUDIENCE,
-                            // будет ли валидироваться время существования
-                            ValidateLifetime = true,
+                            ValidIssuer = ApiConfiguration.SHOP_ID,
 
                             // установка ключа безопасности
                             IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),

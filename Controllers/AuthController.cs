@@ -1,4 +1,5 @@
-﻿using ApiClick.Controllers.FrequentlyUsed;
+﻿using ApiClick.Configurations;
+using ApiClick.Controllers.FrequentlyUsed;
 using ApiClick.Models;
 using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Authorization;
@@ -90,10 +91,8 @@ namespace ApiClick.Controllers
             var now = DateTime.UtcNow;
             // создаем JWT-токен
             var jwt = new JwtSecurityToken(
-                    issuer: AuthOptions.ISSUER,
-                    audience: AuthOptions.AUDIENCE,
+                    issuer: ApiConfiguration.SHOP_ID,
                     notBefore: now,
-                    expires: DateTime.UtcNow.AddYears(1),
                     claims: identity.Claims,
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
@@ -117,10 +116,8 @@ namespace ApiClick.Controllers
             var now = DateTime.UtcNow;
             // создаем JWT-токен
             var jwt = new JwtSecurityToken(
-                    issuer: AuthOptions.ISSUER,
-                    audience: AuthOptions.AUDIENCE,
+                    issuer: ApiConfiguration.SHOP_ID,
                     notBefore: now,
-                    expires: DateTime.UtcNow.AddYears(1),
                     claims: identity.Claims,
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);

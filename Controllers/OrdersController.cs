@@ -15,6 +15,7 @@ using ApiClick.StaticValues;
 using System.ComponentModel;
 using ApiClick.Controllers.FrequentlyUsed;
 using Microsoft.Extensions.Logging;
+using ShopAdminAPI.Configurations;
 
 namespace ApiClick.Controllers
 {
@@ -108,7 +109,7 @@ namespace ApiClick.Controllers
             }
 
             _order.CreatedDate = DateTime.UtcNow;
-            _order.OrderStatus = OrderStatus.received;
+            _order.OrderStatus = OrderStatus.sent;
             _order.UserId = mySelf.UserId;
             _order.OrderInfo.Phone = mySelf.Phone;
 
@@ -118,9 +119,9 @@ namespace ApiClick.Controllers
             if (_order.Delivery.Value)
             {
                 //Если стоимость заказа не преодолела показатель минимальной цены - присвоить указанную стоимость доставки
-                if (orderSum < Constants.MINIMAL_PRICE)
+                if (true)//(orderSum < Constants.MINIMAL_PRICE)
                 {
-                    _order.DeliveryPrice = Constants.DELIVERY_PRICE;
+                    _order.DeliveryPrice = ShopConfiguration.DeliveryPrice;
                 }
                 else
                 {

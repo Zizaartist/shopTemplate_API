@@ -55,6 +55,12 @@ namespace ApiClick.Controllers
             return result;
         }
 
+        [HttpGet]
+        public ActionResult<Product> GetFirst() 
+        {
+            return _context.Product.First();
+        }
+
         /// <summary>
         /// Возвращает продукцию по критерию наличия входной строки в имени продукта 
         /// </summary>
