@@ -348,7 +348,6 @@ C:\Users\Syberia-7\source\repos\ClickAPI\bin\Release\netcoreapp3.1\Newtonsoft.Js
 C:\Users\Syberia-7\Source\Repos\ClickAPI\bin\Release\netcoreapp3.1\Microsoft.Azure.NotificationHubs.dll
 C:\Users\Lucky\Desktop\shopTemplate_API\bin\Release\netcoreapp3.1\appsettings.Development.json
 C:\Users\Lucky\Desktop\shopTemplate_API\bin\Release\netcoreapp3.1\appsettings.json
-C:\Users\Lucky\Desktop\shopTemplate_API\bin\Release\netcoreapp3.1\dbsettings.json
 C:\Users\Lucky\Desktop\shopTemplate_API\bin\Release\netcoreapp3.1\ApiClick.exe
 C:\Users\Lucky\Desktop\shopTemplate_API\bin\Release\netcoreapp3.1\ApiClick.deps.json
 C:\Users\Lucky\Desktop\shopTemplate_API\bin\Release\netcoreapp3.1\ApiClick.runtimeconfig.json
