@@ -95,6 +95,7 @@ namespace ApiClick.Controllers
             {
                 var product = _context.Product.Find(detail.ProductId);
                 detail.Price = product.Price;
+                if (product.Discount != null) detail.Price *= (100 - (product.Discount ?? default)) / 100m;
 
                 //Если на складе недостаточно товара - отменить заказ, иначе - уменьшить счетчик
                 if (detail.Count > product.InStorage)
@@ -112,7 +113,7 @@ namespace ApiClick.Controllers
             _order.UserId = mySelf.UserId;
             _order.OrderInfo.Phone = mySelf.Phone;
 
-            var orderSum = _order.OrderDetails.Sum(e => CalcSumPrice(e.ProductId, e.Count));
+            var orderSum = _order.OrderDetails.Sum(e => e.Price * e.Count);
 
             _order.DeliveryPrice = null;
             if (_order.Delivery.Value)
@@ -147,25 +148,6 @@ namespace ApiClick.Controllers
             _context.SaveChanges();
 
             return Ok();
-        }
-
-        private decimal CalcSumPrice(int? _productId, int _count)
-        {
-            Product product;
-            try
-            {
-                product = _context.Product.Find(_productId);
-            }
-            catch
-            {
-                throw new Exception("No product found");
-            }
-
-            if (_count <= 0)
-            {
-                throw new Exception("Unexpected value");
-            }
-            return product.Price * (decimal)_count;
         }
 
         /// <summary>
