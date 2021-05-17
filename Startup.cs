@@ -53,6 +53,10 @@ namespace ApiClick
                             // строка, представляющая издателя
                             ValidIssuer = ApiConfiguration.SHOP_ID,
 
+                            ValidateAudience = false,
+                            // установка потребителя токена
+
+                            ValidateLifetime = false,
                             // установка ключа безопасности
                             IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
                             // валидация ключа безопасности
