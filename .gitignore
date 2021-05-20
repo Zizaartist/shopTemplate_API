@@ -226,3 +226,6 @@ __pycache__/
 # Windows thumbnail cache files
 Thumbs.db
 .vs/ApiClick/v16/.suo
+.vs/ApiClick/v16/.suo
+*.v2
+.vs/ApiClick/DesignTimeBuild/.dtbcache.v2
