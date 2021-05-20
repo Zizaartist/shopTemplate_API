@@ -230,3 +230,6 @@ Thumbs.db
 *.v2
 .vs/ApiClick/DesignTimeBuild/.dtbcache.v2
 .vs/ApiClick/v16/.suo
+
+/bin/*
+/obj/*
