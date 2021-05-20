@@ -28,6 +28,7 @@ namespace ApiClick.Controllers
         }
 
         // GET: api/Categories
+        //asd
         [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<Category>> Get()
