@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ApiClick.Models.EnumModels
 {
-    public enum Banknote
+    public enum ChangeBanknote
     {
         fiveHundred = 500,
         thousand = 1000,
