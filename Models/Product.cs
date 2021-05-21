@@ -35,6 +35,9 @@ namespace ApiClick.Models
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         [JsonIgnore]
         public virtual ICollection<Report> Reports { get; set; }
+        public virtual ICollection<ProductProperty> ProductProperties { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<ProductPropertyValue> ProductPropertyValues { get; set; }
 
         [NotMapped]
         public string CategoryName { get => Category?.CategoryName; }
