@@ -12,7 +12,7 @@ namespace ShopAdminAPI.Configurations
         public static decimal DeliveryPrice;
         public static int MaxPoints;
         public static int Cashback;
-        public static decimal? MinimanDeliveryPrice;
+        public static decimal? MinimalDeliveryPrice;
         public static List<PaymentMethod> PaymentMethods;
         public static int Version;
     }
