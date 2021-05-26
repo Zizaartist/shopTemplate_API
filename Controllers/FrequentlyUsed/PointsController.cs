@@ -5,38 +5,17 @@ using System.Threading.Tasks;
 using ApiClick.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ShopAdminAPI.Configurations;
 
 namespace ApiClick.Controllers.FrequentlyUsed
 {
     public class PointsController
     {
         ShopContext _context;
-        /// <summary>
-        /// Коэффициент, который отражает проценты от суммы заказа, возвращаемые баллами
-        /// </summary>
-        const decimal pointsCoef = 0.05m;
-        /// <summary>
-        /// Максимальная сумма, которую можно оплатить баллами
-        /// </summary>
-        const int percentage = 30;
 
         public PointsController(ShopContext _context)
         {
             this._context = _context;
-        }
-
-        public decimal GetMaxPayment(decimal _userPoints, Order _order) 
-        {
-            var sumCost = _order.OrderDetails.Sum(e => e.Price * e.Count);
-            decimal costInPoints = sumCost / 100 * percentage;
-            if (_userPoints > costInPoints)
-            {
-                return costInPoints;
-            }
-            else 
-            {
-                return _userPoints;
-            }
         }
 
         /// <summary>
@@ -160,29 +139,65 @@ namespace ApiClick.Controllers.FrequentlyUsed
             return true;
         }
 
-        public static decimal CalculateSum(Order _order)
-        {
-            if (!_order.OrderDetails.Any() || _order.OrderDetails.Any(e => e.Price == default || e.Count == default)) throw new Exception("Ошибка при вычислении кэшбэка");
-            return _order.OrderDetails.Sum(e => e.Price * e.Count);
-        }
-
         public decimal CalculateCashback(Order _order) 
         {
             var pointlessSum = CalculatePointless(_order);
-            return pointlessSum * pointsCoef;
+            return pointlessSum * ShopConfiguration.Cashback;
         }
 
+        /// <summary>
+        /// Рассчитывает часть стоимости заказа, которая не уплачена баллами
+        /// </summary>
         public decimal CalculatePointless(Order _order) 
         {
-            var sum = CalculateSum(_order);
-            try
+            var sum = GetDetailsSum(_order.OrderDetails);
+            var points = _order.PointRegisters.Any() ? _order.PointRegister?.Points ?? 0 : 0;
+            return sum - points;
+        }
+
+        /// <summary>
+        /// Вычисляет сумму деталей заказа
+        /// </summary>
+        public decimal GetDetailsSum(IEnumerable<OrderDetail> _details)
+        {
+            return _details.Sum(detail =>
             {
-                var points = _order.PointRegisters != null ? _context.PointRegister.Find(_order.PointRegister.PointRegisterId).Points : 0;
-                return sum - points;
+                var discountCoef = (100 - (detail.Discount ?? default)) / 100m;
+                var newPrice = detail.Price * discountCoef;
+                return newPrice * detail.Count;
+            });
+        }
+
+        /// <summary>
+        /// Вычисляет максимальную часть стоимости заказа, которую можно оплатить баллами 
+        /// </summary>
+        /// <param name="_userPoints">Текущие баллы пользователя</param>
+        /// <param name="_order">Заказ, стоимость которого берется в расчет</param>
+        /// <returns>Часть стоимости, которая будет оплачена баллами</returns>
+        
+        public decimal GetMaxPayment(decimal _userPoints, Order _order)
+        {
+            var detailsSum = GetDetailsSum(_order.OrderDetails);
+
+            return GetMaxPayment(_userPoints, detailsSum);
+        }
+
+        /// <summary>
+        /// Вычисляет максимальную часть стоимости заказа, которую можно оплатить баллами 
+        /// </summary>
+        /// <param name="_userPoints">Текущие баллы пользователя</param>
+        /// <param name="_initialSum">Суммарная стоимость заказа</param>
+        /// <returns>Часть стоимости, которая будет оплачена баллами</returns>
+        public decimal GetMaxPayment(decimal _userPoints, decimal _initialSum)
+        {
+            decimal costInPoints = _initialSum / 100 * ShopConfiguration.MaxPoints;
+            if (_userPoints > costInPoints)
+            {
+                return costInPoints;
             }
-            catch (Exception _ex) 
+            else
             {
-                throw _ex;
+                return _userPoints;
             }
         }
     }
