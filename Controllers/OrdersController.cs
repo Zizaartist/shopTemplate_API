@@ -141,7 +141,7 @@ namespace ApiClick.Controllers
             if (_order.Delivery.Value)
             {
                 //Если стоимость заказа не преодолела показатель минимальной цены - присвоить указанную стоимость доставки
-                if (orderSum < ShopConfiguration.MinimanDeliveryPrice)
+                if (orderSum < ShopConfiguration.MinimalDeliveryPrice)
                 {
                     _order.DeliveryPrice = ShopConfiguration.DeliveryPrice;
                 }
