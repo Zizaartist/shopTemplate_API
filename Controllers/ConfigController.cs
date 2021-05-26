@@ -61,6 +61,8 @@ namespace ShopAdminAPI.Controllers
                     DeliveryPrice = 0m,
                     MaxPoints = 0,
                     PaymentMethods = "",
+                    Cashback = 0,
+                    MinimalDeliveryPrice = (decimal?)0m,
                     Version = 0
                 };
 
@@ -69,6 +71,8 @@ namespace ShopAdminAPI.Controllers
 
                 ShopConfiguration.DeliveryPrice = temp.DeliveryPrice;
                 ShopConfiguration.MaxPoints = temp.MaxPoints;
+                ShopConfiguration.Cashback = temp.Cashback;
+                ShopConfiguration.MinimanDeliveryPrice = temp.MinimalDeliveryPrice;
 
                 var pms = new List<PaymentMethod>();
                 foreach (var character in temp.PaymentMethods)

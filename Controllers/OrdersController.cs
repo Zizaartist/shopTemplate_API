@@ -42,8 +42,6 @@ namespace ApiClick.Controllers
         public ActionResult<IEnumerable<Order>> GetMyOrders(int _page)
         {
             IQueryable<Order> ordersFound = _context.Order.Include(order => order.OrderInfo)
-                                            .Include(order => order.PointRegisters)
-                                            .Include(order => order.OrderDetails)
                                             .Where(order => order.UserId == Functions.identityToUser(User.Identity, _context, false).UserId)
                                             .OrderBy(order => order.OrderStatus == OrderStatus.delivered) //Сперва false, потом true
                                                 .ThenByDescending(order => order.CreatedDate); //Сперва true, потом false
@@ -56,14 +54,6 @@ namespace ApiClick.Controllers
             }
 
             var result = ordersFound.ToList();
-
-            foreach (var order in result)
-            {
-                order.Sum = order.OrderDetails.Sum(detail => detail.Count * detail.Price) +
-                            (order.DeliveryPrice ?? 0) -
-                            (order.PointRegister?.Points ?? 0);
-                order.OrderDetails = null;
-            }
 
             return result;
         }
@@ -125,7 +115,7 @@ namespace ApiClick.Controllers
             {
                 var product = _context.Product.Find(detail.ProductId);
                 detail.Price = product.Price;
-                if (product.Discount != null) detail.Price *= (100 - (product.Discount ?? default)) / 100m;
+                detail.Discount = product.Discount;
 
                 //Если на складе недостаточно товара - отменить заказ, иначе - уменьшить счетчик
                 if (detail.Count > product.InStorage)
@@ -143,13 +133,15 @@ namespace ApiClick.Controllers
             _order.UserId = mySelf.UserId;
             _order.OrderInfo.Phone = mySelf.Phone;
 
-            var orderSum = _order.OrderDetails.Sum(e => e.Price * e.Count);
+            PointsController pointsController = new PointsController(_context);
+
+            var orderSum = pointsController.GetDetailsSum(_order.OrderDetails);
 
             _order.DeliveryPrice = null;
             if (_order.Delivery.Value)
             {
                 //Если стоимость заказа не преодолела показатель минимальной цены - присвоить указанную стоимость доставки
-                if (true)//(orderSum < Constants.MINIMAL_PRICE)
+                if (orderSum < ShopConfiguration.MinimanDeliveryPrice)
                 {
                     _order.DeliveryPrice = ShopConfiguration.DeliveryPrice;
                 }
@@ -166,13 +158,14 @@ namespace ApiClick.Controllers
 
             if (_order.PointsUsed)
             {
-                PointsController pointsController = new PointsController(_context);
                 PointRegister register;
-                if (!pointsController.StartTransaction(pointsController.GetMaxPayment(mySelf.Points, _order), mySelf, true, _order, out register))
+                if (!pointsController.StartTransaction(pointsController.GetMaxPayment(mySelf.Points, orderSum), mySelf, true, _order, out register))
                 {
                     return BadRequest();
                 }
             }
+
+            _order.Sum = pointsController.CalculatePointless(_order) + (_order.DeliveryPrice ?? 0);
 
             _context.Order.Add(_order);
             _context.SaveChanges();
