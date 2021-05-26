@@ -1,13 +1,17 @@
-﻿using ApiClick.Configurations;
+﻿using ApiClick;
+using ApiClick.Configurations;
 using ApiClick.Controllers.FrequentlyUsed;
 using ApiClick.Models.EnumModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ShopAdminAPI.Configurations;
 using ShopHubAPI.StaticValues;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace ShopAdminAPI.Controllers
@@ -16,6 +20,15 @@ namespace ShopAdminAPI.Controllers
     [Route("api/[controller]")]
     public class ConfigController : ControllerBase
     {
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly ILogger<ConfigController> _logger;
+
+        public ConfigController(IHttpClientFactory _clientFactory, ILogger<ConfigController> _logger)
+        {
+            this._clientFactory = _clientFactory;
+            this._logger = _logger;
+        }
+
         // PUT: api/Config/3
         [Route("{ver}")]
         [HttpPut]
@@ -26,7 +39,7 @@ namespace ShopAdminAPI.Controllers
                 return Ok();
             }
 
-            await GetShopConfig();
+            await GetShopConfig(_clientFactory);
 
             return Ok();
         }
@@ -36,41 +49,36 @@ namespace ShopAdminAPI.Controllers
         [HttpGet]
         public ActionResult Awake() => Ok();
 
-        public static async Task GetShopConfig()
+        public async Task<Action> GetShopConfig(IHttpClientFactory clientFactory)
         {
-            try
-            {
-                var client = HttpClientSingleton.HttpClient;
-                var response = await client.GetAsync($"{ApiConfiguration.SHOP_HUB_API}{ApiStrings.CONFIG_GET}{ApiConfiguration.SHOP_ID}/{null}"); //пока null, не кэшируем
+            var client = clientFactory.CreateClient();
+            var response = await client.GetAsync($"{ApiConfiguration.SHOP_HUB_API}/{ApiStrings.CONFIG_GET}{ApiConfiguration.SHOP_ID}"); //пока null, не кэшируем
 
-                if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
+            {
+                var template = new
                 {
-                    var template = new
-                    {
-                        DeliveryPrice = 0m,
-                        MaxPoints = 0,
-                        PaymentMethods = "",
-                        Version = 0
-                    };
+                    DeliveryPrice = 0m,
+                    MaxPoints = 0,
+                    PaymentMethods = "",
+                    Version = 0
+                };
 
-                    string result = await response.Content.ReadAsStringAsync();
-                    var temp = JsonConvert.DeserializeAnonymousType(result, template);
+                string result = await response.Content.ReadAsStringAsync();
+                var temp = JsonConvert.DeserializeAnonymousType(result, template);
 
-                    ShopConfiguration.DeliveryPrice = temp.DeliveryPrice;
-                    ShopConfiguration.MaxPoints = temp.MaxPoints;
+                ShopConfiguration.DeliveryPrice = temp.DeliveryPrice;
+                ShopConfiguration.MaxPoints = temp.MaxPoints;
 
-                    var pms = new List<PaymentMethod>();
-                    foreach (var character in temp.PaymentMethods)
-                        pms.Add((PaymentMethod)int.Parse(character.ToString()));
+                var pms = new List<PaymentMethod>();
+                foreach (var character in temp.PaymentMethods)
+                    pms.Add((PaymentMethod)int.Parse(character.ToString()));
 
-                    ShopConfiguration.PaymentMethods = pms;
-                    ShopConfiguration.Version = temp.Version;
-                }
+                ShopConfiguration.PaymentMethods = pms;
+                ShopConfiguration.Version = temp.Version;
             }
-            catch (Exception _ex)
-            {
-                Console.WriteLine("БЕЙ ТРЕВОГУ! ВСЕ К ХУЯМ СЛОМАЛОСЬ!");
-            }
+
+            return null;
         }
     }
 }

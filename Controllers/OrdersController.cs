@@ -69,6 +69,34 @@ namespace ApiClick.Controllers
         }
 
         /// <summary>
+        /// Возвращает детали заказа
+        /// </summary>
+        /// <param name="id">Id заказа</param>
+        // GET: api/Orders/2
+        [Route("{id}")]
+        [Authorize]
+        [HttpGet]
+        public ActionResult<IEnumerable<OrderDetail>> GetDetails(int id) 
+        {
+            var mySelf = Functions.identityToUser(User.Identity, _context);
+
+            var order = _context.Order.Include(order => order.OrderDetails)
+                                            .ThenInclude(detail => detail.Product)
+                                        .FirstOrDefault(order => order.OrderId == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+            else if (order.UserId != mySelf.UserId) 
+            {
+                return Forbid();
+            }
+
+            return order.OrderDetails.ToList();
+        }
+
+        /// <summary>
         /// Добавляет новый обычный заказ
         /// </summary>
         /// <param name="_order">Данные нового заказа</param>
@@ -81,6 +109,7 @@ namespace ApiClick.Controllers
             {
                 return BadRequest();
             }
+            _order.OrderStatus = OrderStatus.sent;
 
             var mySelf = Functions.identityToUser(User.Identity, _context, true);
 
@@ -101,7 +130,7 @@ namespace ApiClick.Controllers
                 //Если на складе недостаточно товара - отменить заказ, иначе - уменьшить счетчик
                 if (detail.Count > product.InStorage)
                 {
-                    return BadRequest("Недостаточно товара!");
+                    return NotFound(); //Недостаточно товара!
                 }
                 else
                 {
@@ -110,7 +139,7 @@ namespace ApiClick.Controllers
             }
 
             _order.CreatedDate = DateTime.UtcNow;
-            _order.OrderStatus = OrderStatus.sent;
+            _order.PaymentMethod = PaymentMethod.card;
             _order.UserId = mySelf.UserId;
             _order.OrderInfo.Phone = mySelf.Phone;
 

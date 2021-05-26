@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using ApiClick.Configurations;
 using ApiClick.Controllers.FrequentlyUsed;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using ShopAdminAPI.Configurations;
 using ShopAdminAPI.Controllers;
 using ShopHubAPI.StaticValues;
 
@@ -32,8 +34,6 @@ namespace ApiClick
 
             ApiConfiguration.SHOP_ID = Configuration["ShopConfig:ShopId"];
             ApiConfiguration.SHOP_HUB_API = Configuration["ShopConfig:ShopHubAPI"];
-
-            Task.Run(() => ConfigController.GetShopConfig()).Wait();
         }
 
         public IConfiguration Configuration { get; }
@@ -42,6 +42,7 @@ namespace ApiClick
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ShopContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
@@ -63,6 +64,7 @@ namespace ApiClick
                             ValidateIssuerSigningKey = true,
                         };
                     });
+
             services.AddControllersWithViews()
                 .AddNewtonsoftJson(options =>
                 {
@@ -70,10 +72,12 @@ namespace ApiClick
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 }
             );
+
+            services.AddHttpClient();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
             {
@@ -104,6 +108,13 @@ namespace ApiClick
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
+
+            //Getting configuration
+            IHttpClientFactory _clientFactory = app.ApplicationServices.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+
+            var trash = new ConfigController(null, null);
+
+            lifetime.ApplicationStarted.Register(trash.GetShopConfig(_clientFactory).Wait);
         }
     }
 }
