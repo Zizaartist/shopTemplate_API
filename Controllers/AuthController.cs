@@ -28,12 +28,14 @@ namespace ApiClick.Controllers
     public class AuthController : Controller
     {
         private readonly ShopContext _context;
+        private readonly IHttpClientFactory _clientFactory;
         private readonly IMemoryCache _cache;
         private readonly ILogger<OrdersController> _logger;
 
-        public AuthController(IMemoryCache memoryCache, ShopContext _context, ILogger<OrdersController> _logger)
+        public AuthController(IMemoryCache memoryCache, IHttpClientFactory _clientFactory, ShopContext _context, ILogger<OrdersController> _logger)
         {
             _cache = memoryCache;
+            this._clientFactory = _clientFactory;
             this._context = _context;
             this._logger = _logger;
         }
@@ -157,7 +159,7 @@ namespace ApiClick.Controllers
                     var senderIp = Request.HttpContext.Connection.RemoteIpAddress;
                     string moreReadable = senderIp.ToString();
 
-                    HttpClient client = HttpClientSingleton.HttpClient;
+                    HttpClient client = _clientFactory.CreateClient();
                     HttpResponseMessage response = await client.GetAsync($"https://smsc.ru/sys/send.php?login=syberia&psw=K1e2s3k4i5l6&phones={PhoneLoc}&mes={generatedCode}");
                     if (response.IsSuccessStatusCode)
                     {
